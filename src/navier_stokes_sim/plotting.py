@@ -434,3 +434,7 @@ def create_plots(result: SimulationResult) -> None:
     plot_snapshots(result, result.output_dir / "snapshots.png")
     plot_animation(result, result.output_dir / "blowup.gif")
     write_interactive_volume(result, result.output_dir / "interactive-3d.html")
+    if result.volume_force is not None:
+        write_interactive_volume(
+            result, result.output_dir / "interactive-force-3d.html", field="force"
+        )

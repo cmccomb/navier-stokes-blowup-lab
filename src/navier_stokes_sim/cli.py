@@ -235,7 +235,13 @@ def main(argv: list[str] | None = None) -> None:
     if not args.no_animation:
         plot_animation(result, result.output_dir / "blowup.gif")
     if not args.no_3d:
-        write_interactive_volume(result, result.output_dir / "interactive-3d.html")
+        write_interactive_volume(
+            result, result.output_dir / "interactive-3d.html", field="velocity"
+        )
+    if args.capture_force_volumes:
+        write_interactive_volume(
+            result, result.output_dir / "interactive-force-3d.html", field="force"
+        )
     last = result.diagnostics[-1]
     print(f"completed {len(result.times)} frames in {result.output_dir}")
     print(
