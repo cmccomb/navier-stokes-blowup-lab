@@ -5,25 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Start-from-rest refinement cases from the Navier–Stokes Blow-up Lab."
+      content="The best complete start-from-rest trajectory from the Navier–Stokes Blow-up Lab."
     />
     <meta name="theme-color" content="#07111f" />
-    <title>Start-from-rest study · Navier–Stokes Blow-up Lab</title>
+    <title>Start from rest · Navier–Stokes Blow-up Lab</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="app.js"></script>
   </head>
   <body>
-    <a class="skip-link" href="#result">Skip to the result</a>
+    <a class="skip-link" href="#result">Skip to the simulation</a>
     <header class="site-header">
       <a class="wordmark" href="#top" aria-label="Navier–Stokes Blow-up Lab home">
         <span class="mark" aria-hidden="true">∇</span>
         <span>NS Blow-up Lab</span>
       </a>
       <nav aria-label="Project navigation">
-        <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/results.md">Full record</a>
-        <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/index.md">Docs</a>
-        <a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-blowup-lab">GitHub ↗</a>
+        <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/index.md">
+          Documentation
+        </a>
+        <a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-blowup-lab">
+          GitHub ↗
+        </a>
       </nav>
     </header>
 
@@ -32,34 +35,25 @@
         <div class="result-summary">
           <p class="eyebrow">
             <span class="status-dot" aria-hidden="true"></span>
-            Start-from-rest study · complete trajectories only
+            Complete start-from-rest trajectory
           </p>
           <h1 id="result-title">
-            Start at zero. Refine from there.
+            <span id="run-resolution">192³</span> from rest.
           </h1>
           <p class="dek">
-            Every featured case begins at <span class="math">t = 0</span>.
-            The velocity and force are exactly zero through
-            <span class="math">t = <span id="rest-until">0.55</span></span>,
-            then the vortex forms and concentrates. Late-window restarts stay
-            in the technical archive.
+            Velocity and force remain exactly zero through
+            <span class="math">t = <span id="rest-until">0.55</span></span>.
+            The manufactured force then activates smoothly and the vortex
+            concentrates through
+            <span class="math">t = <span id="run-end">0.990</span></span>.
           </p>
 
-          <div class="run-picker" aria-labelledby="run-picker-label">
-            <span id="run-picker-label">Start-from-rest cases</span>
-            <div class="run-tabs" id="run-tabs" role="group" aria-label="Select a completed run">
-              <button type="button" class="run-tab is-active" data-run-id="baseline" aria-pressed="true">
-                Baseline
-              </button>
-            </div>
-          </div>
-
-          <p class="case-line">
+          <p class="run-line">
             <strong id="run-label">Baseline trajectory</strong>
-            <span><span id="run-resolution">192³</span> · <span class="math">t = 0 → <span id="run-end">0.99</span></span></span>
+            <span><span id="run-frames">51</span> solver checkpoints</span>
           </p>
 
-          <dl class="headline-metrics" aria-label="Endpoint summary">
+          <dl class="headline-metrics" aria-label="Final-frame summary">
             <div>
               <dt>Peak speed</dt>
               <dd id="metric-peak">2.838</dd>
@@ -72,14 +66,16 @@
               <dt>Tracking error</dt>
               <dd id="metric-tracking">1.566%</dd>
             </div>
-            <div>
-              <dt>Saved checkpoints</dt>
-              <dd id="run-frames">51</dd>
-            </div>
           </dl>
 
           <p class="verification" id="data-status" role="status">
             Verified September 10, 2026
+          </p>
+          <p class="boundary">
+            Finite manufactured-solution experiment—not an independent proof.
+            <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/results.md">
+              Full record
+            </a>
           </p>
         </div>
 
@@ -97,136 +93,20 @@
           </video>
           <figcaption>
             <div>
-              <strong id="media-title">Baseline computed field versus target</strong>
-              <span>Center-plane speed · similarity-time playback · rest interval compressed</span>
+              <strong id="media-title">PhiFlow versus target</strong>
+              <span>Center-plane speed · similarity-time playback</span>
             </div>
-            <div class="downloads" aria-label="Download result media">
+            <div class="downloads" aria-label="Download simulation media">
               <a id="download-mp4" href="media/baseline.mp4" download>MP4</a>
               <a id="download-gif" href="media/baseline.gif" download>GIF</a>
             </div>
           </figcaption>
         </figure>
       </section>
-
-      <section class="endpoint" aria-labelledby="endpoint-title">
-        <figure class="endpoint-figure">
-          <img
-            id="endpoint-image"
-            src="figures/baseline-endpoint.png"
-            alt="Axial and equatorial velocity slices at rest and at t equals 0.99"
-            loading="lazy"
-            width="2340"
-            height="1440"
-          />
-        </figure>
-
-        <div class="endpoint-summary">
-          <p class="kicker">Endpoint at <span class="math">t = <span id="endpoint-time">0.99</span></span></p>
-          <h2 id="endpoint-title">Resolved through the selected final frame.</h2>
-          <p>
-            The geometric and Fourier audits both pass. The discrete velocity
-            remains divergence-free near machine precision.
-          </p>
-          <dl class="checks">
-            <div>
-              <dt>Core coverage</dt>
-              <dd><span id="radial-cells">4.99</span> × <span id="axial-cells">5.18</span> cells</dd>
-            </div>
-            <div>
-              <dt>Top-third spectral energy</dt>
-              <dd id="spectral-tail">0.730%</dd>
-            </div>
-            <div>
-              <dt>Divergence L∞</dt>
-              <dd id="divergence">4.44e−14</dd>
-            </div>
-            <div>
-              <dt>Total kinetic energy</dt>
-              <dd id="kinetic-energy">0.007288</dd>
-            </div>
-            <div>
-              <dt>Maximum solver step</dt>
-              <dd id="max-dt">0.02</dd>
-            </div>
-            <div>
-              <dt>Advective CFL</dt>
-              <dd id="cfl">0.32</dd>
-            </div>
-          </dl>
-        </div>
-      </section>
-
-      <section class="comparison" aria-labelledby="comparison-title">
-        <div>
-          <p class="kicker">Controlled comparison</p>
-          <h2 id="comparison-title">One origin, measured refinements.</h2>
-        </div>
-        <div class="comparison-table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Case</th>
-                <th scope="col">Grid</th>
-                <th scope="col">Endpoint</th>
-                <th scope="col">Max Δt</th>
-                <th scope="col">Tracking</th>
-              </tr>
-            </thead>
-            <tbody id="comparison-body">
-              <tr>
-                <th scope="row">Baseline trajectory</th>
-                <td>192³</td>
-                <td>0.990</td>
-                <td>0.02</td>
-                <td>1.566%</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="interpretation" aria-labelledby="interpretation-title">
-        <div>
-          <p class="kicker">Interpretation</p>
-          <h2 id="interpretation-title">Strong finite-grid evidence, with a hard boundary.</h2>
-        </div>
-        <div class="interpretation-copy">
-          <p>
-            Every displayed run reproduces formation from exact rest, similarity-scale
-            contraction, velocity and vorticity growth, and incompressibility on
-            one resolved trajectory.
-          </p>
-          <p>
-            It is not an independent proof. The finite wave surrogate omits the
-            paper’s infinite pulse hierarchy and all-order corrections; the
-            manufactured-force L² norm still reaches <span id="force-l2">28.48</span>.
-          </p>
-        </div>
-      </section>
-
-      <nav class="deep-links" aria-label="Technical documentation">
-        <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/model.md">
-          <span>Model</span>
-          <strong>Numerical method →</strong>
-        </a>
-        <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/reproduction.md">
-          <span>Standard</span>
-          <strong>Reproduction gates →</strong>
-        </a>
-        <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/results.md">
-          <span>Archive</span>
-          <strong>All experiments →</strong>
-        </a>
-        <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/running.md">
-          <span>Runbook</span>
-          <strong>Reproduce this run →</strong>
-        </a>
-      </nav>
     </main>
 
     <footer>
       <p>Independent open numerical work · not affiliated with OpenAI.</p>
-      <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/CONTRIBUTING.md">Contribute ↗</a>
     </footer>
   </body>
 </html>
