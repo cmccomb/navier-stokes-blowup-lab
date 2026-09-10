@@ -224,6 +224,29 @@ def test_legacy_checkpoint_does_not_claim_a_forcing_phase_limit(tmp_path) -> Non
     assert load_matching_checkpoint(tmp_path, cfg) is None
 
 
+def test_old_profile_checkpoint_keeps_linear_interpolation(tmp_path) -> None:
+    cfg = SimulationConfig(
+        resolution=8,
+        t_end=0.02,
+        frames=2,
+        capture_volumes=False,
+        pressure_projection="fft",
+        profile_interpolation="linear",
+    )
+    run_simulation(cfg, tmp_path)
+    path = tmp_path / "run.json"
+    metadata = json.loads(path.read_text())
+    metadata["diagnostic_schema_version"] = 7
+    metadata["config"].pop("profile_interpolation")
+    path.write_text(json.dumps(metadata))
+    restored = load_simulation_result(tmp_path)
+    assert restored.config.profile_interpolation == "linear"
+    assert (
+        load_matching_checkpoint(tmp_path, replace(cfg, profile_interpolation="cubic"))
+        is None
+    )
+
+
 def test_partial_checkpoint_resumes_after_interruption(tmp_path, monkeypatch) -> None:
     cfg = SimulationConfig(
         resolution=8,

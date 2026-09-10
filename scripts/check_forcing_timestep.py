@@ -22,6 +22,11 @@ def main() -> None:
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--resolution", type=int, default=32)
     parser.add_argument("--t-end", type=float, default=0.985)
+    parser.add_argument(
+        "--profile-interpolation", choices=("linear", "cubic"), default="cubic"
+    )
+    parser.add_argument("--derivative-epsilon", type=float, default=1e-6)
+    parser.add_argument("--no-pulses", action="store_true")
     args = parser.parse_args()
     base = SimulationConfig(
         resolution=args.resolution,
@@ -31,7 +36,9 @@ def main() -> None:
         pressure_projection="fft",
         cfl=0.2,
         max_dt=0.001,
-        derivative_epsilon=1e-6,
+        derivative_epsilon=args.derivative_epsilon,
+        profile_interpolation=args.profile_interpolation,
+        pulses_enabled=not args.no_pulses,
         capture_volumes=False,
     )
     fields, rows = [], []
@@ -80,6 +87,8 @@ def main() -> None:
         "resolution": base.resolution,
         "t_start": 0,
         "t_end": base.t_end,
+        "profile_interpolation": base.profile_interpolation,
+        "pulses_enabled": base.pulses_enabled,
         "runs": rows,
         "relative_velocity_differences": differences,
         "relative_vorticity_differences": curl_differences,

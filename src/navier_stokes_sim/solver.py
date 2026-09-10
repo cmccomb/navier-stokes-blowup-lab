@@ -44,7 +44,7 @@ from .profile import (
 from .snapshot_store import initialize_store, preview_times, write_snapshot
 from .time_stepping import forcing_step_limit
 
-DIAGNOSTIC_SCHEMA_VERSION = 7
+DIAGNOSTIC_SCHEMA_VERSION = 8
 
 
 @dataclass
@@ -84,11 +84,12 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
 
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     schema_version = metadata.get("diagnostic_schema_version")
-    if schema_version not in {2, 3, 4, 5, 6, DIAGNOSTIC_SCHEMA_VERSION}:
+    if schema_version not in {2, 3, 4, 5, 6, 7, DIAGNOSTIC_SCHEMA_VERSION}:
         raise ValueError(f"outdated diagnostics checkpoint in {output_dir}")
     config_values = dict(metadata["config"])
     # A legacy run never used the newly introduced forcing-phase controller.
     config_values.setdefault("forcing_phase_step", None)
+    config_values.setdefault("profile_interpolation", "linear")
     if schema_version == 2:
         # v0.3 checkpoints predate the paper-coordinate model and therefore
         # unambiguously refer to the original separable target.

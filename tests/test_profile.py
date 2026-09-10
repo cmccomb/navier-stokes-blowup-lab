@@ -1,7 +1,12 @@
+from dataclasses import replace
+
 import numpy as np
+from scipy.interpolate import CubicSpline
 
 from navier_stokes_sim.config import SimulationConfig, mesh_preset_parameters
 from navier_stokes_sim.profile import (
+    _interp_table,
+    _paper_interpolants,
     axial_outflow_diagnostics,
     cylindrical_components,
     discrete_curl,
@@ -17,6 +22,38 @@ from navier_stokes_sim.profile import (
     target_velocity_decomposition,
     temporal_activation,
 )
+
+
+def test_cubic_table_eliminates_slope_jumps_and_clamps_exterior() -> None:
+    grid = np.linspace(0, 1, 9)
+    values = grid**3
+    spline = CubicSpline(grid, values)
+    x = np.linspace(0, 1, 73)
+    np.testing.assert_allclose(_interp_table(x, grid, values, spline), x**3, atol=1e-14)
+    np.testing.assert_array_equal(
+        _interp_table(np.array([-1, 2]), grid, values, spline), [0, 1]
+    )
+    knot, eps = 0.5, 1e-7
+
+    def slopes(curve):
+        samples = _interp_table(
+            np.array([knot - eps, knot, knot + eps]), grid, values, curve
+        )
+        return np.diff(samples) / eps
+
+    assert abs(np.diff(slopes(None))[0]) > 0.1
+    assert abs(np.diff(slopes(spline))[0]) < 1e-5
+
+
+def test_cubic_target_preserves_rest_and_discrete_solenoidality() -> None:
+    cfg = SimulationConfig(resolution=16)
+    assert _paper_interpolants(cfg) is _paper_interpolants(cfg)
+    assert _paper_interpolants(replace(cfg, profile_interpolation="linear")) == {}
+    assert not np.any(target_velocity(0, cfg))
+    cubic = target_velocity(0.9, cfg)
+    linear = target_velocity(0.9, replace(cfg, profile_interpolation="linear"))
+    assert np.max(np.abs(discrete_divergence(cubic, cfg.dx))) < 1e-11
+    assert 0 < np.linalg.norm(cubic - linear) / np.linalg.norm(cubic) < 1e-3
 
 
 def test_starts_from_rest() -> None:
@@ -97,9 +134,7 @@ def test_paper_similarity_coordinates_close_implicit_equation() -> None:
     coordinates = paper_similarity_coordinates(t, cfg)
     zeta = coordinates.eta * coordinates.q ** (0.5 - cfg.h)
     residual = (
-        coordinates.q
-        - zeta * zeta * coordinates.q ** (2 * cfg.h)
-        - (cfg.t_star - t)
+        coordinates.q - zeta * zeta * coordinates.q ** (2 * cfg.h) - (cfg.t_star - t)
     )
     assert np.max(np.abs(residual)) < 1e-13
     assert np.max(np.abs(coordinates.eta)) < 1

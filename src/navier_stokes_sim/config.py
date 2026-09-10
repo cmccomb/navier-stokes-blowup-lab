@@ -46,6 +46,7 @@ class SimulationConfig:
     velocity_scale: float = 0.25
     swirl_ratio: float = 0.85
     profile_model: str = "paper-surrogate"
+    profile_interpolation: str = "cubic"
     paper_profile_revision: str = "appendix-b-axis-v1"
     paper_annulus_xa: float = 0.60
     paper_annulus_xb: float = 1.45
@@ -101,6 +102,8 @@ class SimulationConfig:
     preview_resolution: int = 32
 
     def validate(self) -> None:
+        if self.profile_interpolation not in {"linear", "cubic"}:
+            raise ValueError("profile_interpolation must be linear or cubic")
         if self.preview_phase_step is not None and (
             not isfinite(self.preview_phase_step)
             or not 0 < self.preview_phase_step <= 1

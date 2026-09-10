@@ -27,6 +27,7 @@ def load_series(
             data = {k: arrays[k] for k in ("vectors", "times", "axis", "metadata")}
     metadata = json.loads(str(data["metadata"].item()))
     metadata["config"].setdefault("forcing_phase_step", None)
+    metadata["config"].setdefault("profile_interpolation", "linear")
     captured_field = metadata["field"]
     if field is not None and field != captured_field:
         raise ValueError("requested field differs from the captured preview")

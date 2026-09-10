@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 import numpy as np
+from scipy.interpolate import CubicSpline
 
 from .config import SimulationConfig
 
@@ -115,9 +116,7 @@ def _smooth_step(s: np.ndarray) -> np.ndarray:
     return out
 
 
-def _plateau_cutoff(
-    coordinate: np.ndarray, inner: float, outer: float
-) -> np.ndarray:
+def _plateau_cutoff(coordinate: np.ndarray, inner: float, outer: float) -> np.ndarray:
     return 1.0 - _smooth_step((np.abs(coordinate) - inner) / (outer - inner))
 
 
@@ -225,7 +224,15 @@ def _exterior_tail_table(
     return radius, integral[-1] - integral
 
 
-def _interp_table(x: np.ndarray, grid: np.ndarray, values: np.ndarray) -> np.ndarray:
+def _interp_table(
+    x: np.ndarray,
+    grid: np.ndarray,
+    values: np.ndarray,
+    spline: CubicSpline | None = None,
+) -> np.ndarray:
+    if spline is not None:
+        # Match the legacy constant extension; do not extrapolate a polynomial.
+        return spline(np.clip(x, grid[0], grid[-1]))
     return np.interp(x, grid, values, left=values[0], right=values[-1])
 
 
@@ -252,6 +259,32 @@ def _paper_axis_phi_table(
     return eta, phi
 
 
+@lru_cache(maxsize=8)
+def _paper_interpolants(cfg: SimulationConfig) -> dict[str, CubicSpline]:
+    """Cache C2 table interpolants so moving coordinates do not cross slope jumps."""
+    if cfg.profile_interpolation == "linear":
+        return {}
+    radial, integral, phi = _paper_radial_tables(
+        cfg.paper_annulus_xa, cfg.paper_annulus_xb, cfg.h
+    )
+    eta, axis = _paper_axis_phi_table(
+        cfg.h,
+        cfg.paper_axial_slope,
+        cfg.paper_axis_offset,
+        cfg.paper_axis_lambda,
+        cfg.paper_axis_sigma,
+    )
+    radius, tail = _exterior_tail_table(
+        cfg.localization_inner, cfg.localization_outer, cfg.h
+    )
+    return {
+        "radial_u": CubicSpline(radial, integral),
+        "radial_phi": CubicSpline(radial, phi),
+        "axis_phi": CubicSpline(eta, axis),
+        "exterior": CubicSpline(radius, tail),
+    }
+
+
 def paper_axis_profiles(
     eta: np.ndarray, cfg: SimulationConfig
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -271,7 +304,9 @@ def paper_axis_profiles(
         cfg.paper_axis_sigma,
     )
     axial = cfg.paper_axial_slope * eta + cfg.paper_axis_offset
-    phi = _interp_table(eta, axis_eta, axis_phi)
+    phi = _interp_table(
+        eta, axis_eta, axis_phi, _paper_interpolants(cfg).get("axis_phi")
+    )
     return axial, phi
 
 
@@ -352,15 +387,21 @@ def _paper_vector_potentials(
     cosine = np.divide(x, radius, out=np.zeros_like(x), where=radius > 0)
     sine = np.divide(y, radius, out=np.zeros_like(y), where=radius > 0)
 
-    table_x, u_integral_table, phi_inner_table = (
-        _paper_radial_tables(cfg.paper_annulus_xa, cfg.paper_annulus_xb, cfg.h)
+    table_x, u_integral_table, phi_inner_table = _paper_radial_tables(
+        cfg.paper_annulus_xa, cfg.paper_annulus_xb, cfg.h
     )
-    u_integral = _interp_table(similarity_x, table_x, u_integral_table)
+    interpolants = _paper_interpolants(cfg)
+    u_integral = _interp_table(
+        similarity_x, table_x, u_integral_table, interpolants.get("radial_u")
+    )
     # Use the tail-integral gauge.  Subtracting a spatial constant does not
     # change curl(A), but it makes A_z vanish before the fixed cutoff and avoids
     # generating a spurious velocity sheet where that cutoff transitions.
     phi_inner_integral = (
-        _interp_table(similarity_x, table_x, phi_inner_table) - phi_inner_table[-1]
+        _interp_table(
+            similarity_x, table_x, phi_inner_table, interpolants.get("radial_phi")
+        )
+        - phi_inner_table[-1]
     )
 
     if cfg.paper_profile_revision == "legacy-hand-shaped":
@@ -371,9 +412,7 @@ def _paper_vector_potentials(
         # Equations (B.1)--(B.3) specify the near-axis axial and azimuthal data.
         # Preserve them across the diagnostic core, then taper only near |eta|=1.
         axis_axial, axis_phi = paper_axis_profiles(eta, cfg)
-        eta_window = _plateau_cutoff(
-            eta, cfg.paper_eta_support, cfg.paper_eta_taper
-        )
+        eta_window = _plateau_cutoff(eta, cfg.paper_eta_support, cfg.paper_eta_taper)
         axial_profile = axis_axial * eta_window
         swirl_profile = axis_phi * (1.0 + cfg.paper_swirl_bias * eta) * eta_window
     ramp = temporal_activation(t, cfg)
@@ -403,7 +442,9 @@ def _paper_vector_potentials(
     exterior_radius, exterior_tail = _exterior_tail_table(
         cfg.localization_inner, cfg.localization_outer, cfg.h
     )
-    exterior_potential = _interp_table(radius, exterior_radius, exterior_tail)
+    exterior_potential = _interp_table(
+        radius, exterior_radius, exterior_tail, interpolants.get("exterior")
+    )
     exterior_blend = _smooth_step(
         (similarity_x - cfg.paper_annulus_xa)
         / (cfg.paper_annulus_xb - cfg.paper_annulus_xa)
@@ -421,17 +462,15 @@ def _paper_vector_potentials(
         z, cfg.localization_inner, cfg.localization_outer
     )
     a_z = a_z_core + (
-        exterior_coefficient
-        * exterior_blend
-        * exterior_potential
-        * axial_localization
+        exterior_coefficient * exterior_blend * exterior_potential * axial_localization
     )
 
     # A fixed spatial cutoff is applied to the potential, so its discrete curl
     # stays divergence-free and exactly periodic while leaving the core intact.
-    localization = _plateau_cutoff(
-        radius, cfg.localization_inner, cfg.localization_outer
-    ) * axial_localization
+    localization = (
+        _plateau_cutoff(radius, cfg.localization_inner, cfg.localization_outer)
+        * axial_localization
+    )
     a_theta *= localization
     background = (-sine * a_theta, cosine * a_theta, a_z)
 
@@ -459,11 +498,7 @@ def _paper_vector_potentials(
             distance = (log_slot - offset + 0.5) % 1.0 - 0.5
             return float(_bump(np.asarray(distance / cfg.pulse_time_width)))
 
-        local_velocity = (
-            cfg.velocity_scale
-            * ramp
-            * q ** (-0.5 - cfg.h + 0.5 * cfg.h)
-        )
+        local_velocity = cfg.velocity_scale * ramp * q ** (-0.5 - cfg.h + 0.5 * cfg.h)
         local_length = cfg.base_radius * np.sqrt(q)
 
         # curl(A_z e_z) carries (r,theta) covariance; curl(A_theta e_theta)
@@ -472,8 +507,7 @@ def _paper_vector_potentials(
         # staggered log-time gates mimic the paper's succession of finer pulse
         # scales while keeping every retained wavelength resolvable.
         base_radial_phase = cfg.pulse_radial_frequency * np.log(
-            np.maximum(similarity_x, 0.25 * cfg.paper_annulus_xa)
-            / cfg.paper_annulus_xa
+            np.maximum(similarity_x, 0.25 * cfg.paper_annulus_xa) / cfg.paper_annulus_xa
         )
         pulse_theta = np.zeros_like(a_theta)
         for level in range(cfg.pulse_hierarchy_levels):
@@ -612,9 +646,7 @@ def paper_structure_diagnostics(
     d = 0.5 - cfg.h
     zeta = coordinates.eta * coordinates.q**d
     coordinate_residual = (
-        coordinates.q
-        - zeta * zeta * coordinates.q ** (2 * cfg.h)
-        - tau
+        coordinates.q - zeta * zeta * coordinates.q ** (2 * cfg.h) - tau
     )
     background, primary_pulses, correction = target_velocity_decomposition(t, cfg)
     pulses = primary_pulses + correction
@@ -636,15 +668,10 @@ def paper_structure_diagnostics(
     )
     background_total = max(float(np.sum(background_energy)), 1e-30)
     exterior_meridional = float(
-        np.sum(
-            background_radial[exterior] ** 2
-            + background_axial[exterior] ** 2
-        )
+        np.sum(background_radial[exterior] ** 2 + background_axial[exterior] ** 2)
         / background_total
     )
-    exterior_swirl = float(
-        np.sum(background_theta[exterior] ** 2) / background_total
-    )
+    exterior_swirl = float(np.sum(background_theta[exterior] ** 2) / background_total)
 
     strict_annulus = paper_annulus_mask(t, cfg)
     pulse_total = float(np.sum(pulse_energy))
@@ -664,17 +691,9 @@ def paper_structure_diagnostics(
         * bins
     ).astype(int)
     ie = np.floor(
-        (coordinates.eta + cfg.paper_eta_support)
-        / (2 * cfg.paper_eta_support)
-        * bins
+        (coordinates.eta + cfg.paper_eta_support) / (2 * cfg.paper_eta_support) * bins
     ).astype(int)
-    valid = (
-        strict_annulus
-        & (ix >= 0)
-        & (ix < bins)
-        & (ie >= 0)
-        & (ie < bins)
-    )
+    valid = strict_annulus & (ix >= 0) & (ix < bins) & (ie >= 0) & (ie < bins)
     bin_id = ix + bins * ie
     counts = np.bincount(bin_id[valid], minlength=bins * bins)
     mean_energy = 0.0
@@ -690,26 +709,20 @@ def paper_structure_diagnostics(
         mean_energy += float(np.sum(component_mean**2 * counts))
     covariance_sq = 0.0
     for product in (pulse_radial * pulse_theta, pulse_radial * pulse_axial):
-        sums = np.bincount(
-            bin_id[valid], weights=product[valid], minlength=bins * bins
-        )
+        sums = np.bincount(bin_id[valid], weights=product[valid], minlength=bins * bins)
         covariance = np.divide(
             sums, counts, out=np.zeros_like(sums, dtype=float), where=counts > 0
         )
         covariance_sq += float(np.sum(covariance**2 * counts))
     sampled_pulse_energy = float(
         np.sum(
-            pulse_radial[valid] ** 2
-            + pulse_theta[valid] ** 2
-            + pulse_axial[valid] ** 2
+            pulse_radial[valid] ** 2 + pulse_theta[valid] ** 2 + pulse_axial[valid] ** 2
         )
     )
     mean_fraction = np.sqrt(mean_energy / max(sampled_pulse_energy, 1e-30))
     covariance_rms = np.sqrt(covariance_sq / max(float(np.sum(counts)), 1.0))
     return {
-        "paper_coordinate_residual_linf": float(
-            np.max(np.abs(coordinate_residual))
-        ),
+        "paper_coordinate_residual_linf": float(np.max(np.abs(coordinate_residual))),
         "paper_eta_linf": float(np.max(np.abs(coordinates.eta))),
         "background_exterior_meridional_fraction": exterior_meridional,
         "background_exterior_swirl_fraction": exterior_swirl,
@@ -743,9 +756,7 @@ def axial_outflow_diagnostics(
     )
     mesh_metrics = {
         "mesh_spacing_gain": 1.0 / cfg.half_domain,
-        "cutoff_boundary_clearance_cells": (
-            cfg.half_domain - cfg.localization_outer
-        )
+        "cutoff_boundary_clearance_cells": (cfg.half_domain - cfg.localization_outer)
         / cfg.dx,
         "activation_annulus_clearance_cells": (
             cfg.localization_outer - activation_midplane_annulus_radius
@@ -764,9 +775,8 @@ def axial_outflow_diagnostics(
         }
 
     coordinates = paper_similarity_coordinates(t, cfg)
-    core = (
-        (coordinates.x_similarity < cfg.paper_annulus_xa)
-        & (np.abs(coordinates.eta) < cfg.paper_eta_support)
+    core = (coordinates.x_similarity < cfg.paper_annulus_xa) & (
+        np.abs(coordinates.eta) < cfg.paper_eta_support
     )
     axial = velocity[..., 2]
     dividing_eta = (
@@ -844,9 +854,8 @@ def energy_weighted_core_widths(
     weight = np.sum(velocity * velocity, axis=-1)
     if t is not None and cfg.profile_model == "paper-surrogate":
         coordinates = paper_similarity_coordinates(t, cfg)
-        core = (
-            (coordinates.x_similarity < cfg.paper_annulus_xa)
-            & (np.abs(coordinates.eta) < cfg.paper_eta_support)
+        core = (coordinates.x_similarity < cfg.paper_annulus_xa) & (
+            np.abs(coordinates.eta) < cfg.paper_eta_support
         )
         weight = np.where(core, weight, 0.0)
     total = float(np.sum(weight))

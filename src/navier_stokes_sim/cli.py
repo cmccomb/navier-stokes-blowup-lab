@@ -80,6 +80,12 @@ def _parser() -> argparse.ArgumentParser:
         help="paper-coordinate target or the v0.3 separable baseline",
     )
     parser.add_argument(
+        "--profile-interpolation",
+        choices=("linear", "cubic"),
+        default="cubic",
+        help="C2 cubic profile tables, or legacy piecewise-linear ablation",
+    )
+    parser.add_argument(
         "--paper-axis-slope",
         type=float,
         default=4.0,
@@ -250,6 +256,7 @@ def main(argv: list[str] | None = None) -> None:
         paper_time_cutoff_start=args.paper_time_cutoff[0],
         paper_time_cutoff_end=args.paper_time_cutoff[1],
         profile_model=args.profile_model,
+        profile_interpolation=args.profile_interpolation,
         paper_axial_slope=args.paper_axis_slope,
         paper_axis_offset=args.paper_axis_offset,
         pulses_enabled=not args.no_pulses and args.profile_model == "paper-surrogate",
