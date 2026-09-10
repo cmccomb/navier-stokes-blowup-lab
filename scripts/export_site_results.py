@@ -91,9 +91,9 @@ def build_payload(
             {
                 "title": "Late-time concentration at 224³",
                 "kind": "video",
-                "mp4": "media/late-time-224.mp4",
-                "gif": "media/late-time-224.gif",
-                "poster": "media/late-time-224-poster.png",
+                "mp4": "media/current-best.mp4",
+                "gif": "media/current-best.gif",
+                "poster": "media/current-best-poster.png",
                 "caption": (
                     "Computed and target axial speed slices from t=0.94 to 0.995. "
                     "The endpoint still passes the four-cell geometric gate."

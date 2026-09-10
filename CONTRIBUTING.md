@@ -2,16 +2,15 @@
 
 Thanks for helping turn the OpenAI Navier–Stokes construction into a more
 faithful solver experiment. Contributions are welcome in the mathematical
-model, numerical method, validation suite, visualization, documentation, and
-fleet tooling.
+model, numerical method, validation suite, visualization, and documentation.
 
 ## Start here
 
-1. Read [REPRODUCTION.md](REPRODUCTION.md). It defines the fidelity gates and
+1. Read [the reproduction target](docs/reproduction.md). It defines the fidelity gates and
    distinguishes a controlled finite-truncation reproduction from a numerical
    instability.
 2. Install Python 3.11–3.13 and [`uv`](https://docs.astral.sh/uv/).
-3. Run `uv sync --extra dev` and `uv run pytest -q`.
+3. Run `uv sync --no-editable --extra dev` and `uv run pytest -q`.
 4. Create a focused branch and open a pull request using the repository
    template.
 
@@ -67,6 +66,7 @@ uv run ruff check .
 uv run pytest -q
 ```
 
-If the current-best result changes, update `RESULTS.md`, the compact Pages data,
-and the representative media in the same pull request. The public page shows
-only the current best; `RESULTS.md` keeps the fuller experimental record.
+If the current-best result changes, update `docs/results.md`, the compact Pages
+data, and the representative media in the same pull request. The public page
+shows only the current best; `docs/results.md` keeps the fuller experimental
+record.

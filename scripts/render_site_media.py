@@ -58,6 +58,7 @@ def _save(animation: FuncAnimation, stem: Path, poster: plt.Figure) -> None:
 
 def render_late_time(run_dir: Path, output_dir: Path) -> None:
     data = _load(run_dir)
+    resolution = int(data["resolution"])
     computed = _speed(np.asarray(data["velocity"]))
     target = _speed(np.asarray(data["target"]))
     times = np.asarray(data["times"])
@@ -78,13 +79,14 @@ def render_late_time(run_dir: Path, output_dir: Path) -> None:
         for image, field in zip(images, (computed, target)):
             image.set_data(field[frame].T)
         title.set_text(
-            f"224³ late-time concentration  ·  t={times[frame]:.3f}  ·  τ={1-times[frame]:.3f}"
+            f"{resolution}³ late-time concentration  ·  "
+            f"t={times[frame]:.3f}  ·  τ={1-times[frame]:.3f}"
         )
         return (*images, title, scale)
 
     animation = FuncAnimation(fig, update, frames=len(times), interval=250, blit=False)
     update(len(times) - 1)
-    _save(animation, output_dir / "late-time-224", fig)
+    _save(animation, output_dir / "current-best", fig)
     plt.close(fig)
 
 

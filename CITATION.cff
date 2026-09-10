@@ -6,7 +6,7 @@ authors:
   - family-names: McComb
     given-names: Chris
 repository-code: "https://github.com/cmccomb/navier-stokes-blowup-lab"
-url: "https://cmccomb.github.io/navier-stokes-blowup-lab/"
+url: "https://cmccomb.com/navier-stokes-blowup-lab/"
 license: MIT
 version: 0.6.0
 date-released: 2026-09-10

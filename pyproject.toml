@@ -1,7 +1,7 @@
 [project]
-name = "openai-navier-stokes-simulation"
+name = "navier-stokes-blowup-lab"
 version = "0.6.0"
-description = "Proof-informed 3D incompressible CFD experiment for the OpenAI Navier-Stokes blow-up construction"
+description = "Independent, proof-informed 3D CFD experiments for a Navier-Stokes blow-up construction"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
@@ -11,6 +11,13 @@ dependencies = [
   "plotly>=6.0",
   "scipy>=1.12",
 ]
+
+[project.scripts]
+ns-blowup = "navier_stokes_sim.cli:main"
+ns-fidelity = "navier_stokes_sim.fidelity:main"
+ns-frontier = "navier_stokes_sim.frontier:main"
+ns-study = "navier_stokes_sim.study:main"
+ns-validation = "navier_stokes_sim.validation:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.8"]
@@ -22,8 +29,12 @@ target-version = "py311"
 [tool.ruff.lint.per-file-ignores]
 "src/navier_stokes_sim/{plotting,study,validation}.py" = ["E402"]
 
-[tool.uv]
-package = false
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/navier_stokes_sim"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]

@@ -8,6 +8,9 @@ function updateHeadline(run) {
   document.querySelector("#metric-tracking").textContent = formatPercent(run.tracking_relative_l2);
   document.querySelector("#metric-tail").textContent = formatPercent(run.spectral_tail_fraction);
   document.querySelector("#metric-divergence").textContent = formatScientific(run.divergence_linf);
+  document.querySelector("#evidence-cells").textContent = run.cells_per_radial_scale.toFixed(2);
+  document.querySelector("#evidence-tail").textContent = formatPercent(run.spectral_tail_fraction);
+  document.querySelector("#evidence-divergence").textContent = formatScientific(run.divergence_linf);
 }
 
 async function loadResults() {

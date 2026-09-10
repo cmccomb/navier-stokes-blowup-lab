@@ -48,7 +48,7 @@
             This is a finite manufactured-solution surrogate—not an independent
             proof and not yet the paper’s exact infinite pulse hierarchy.
           </p>
-          <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/REPRODUCTION.md">Read the fidelity gates →</a>
+          <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/reproduction.md">Read the fidelity gates →</a>
         </aside>
       </section>
 
@@ -98,10 +98,10 @@
               controls
               playsinline
               preload="metadata"
-              poster="media/late-time-224-poster.png"
+              poster="media/current-best-poster.png"
               aria-label="Computed and target axial speed at 224 cubed resolution"
             >
-              <source src="media/late-time-224.mp4" type="video/mp4" />
+              <source src="media/current-best.mp4" type="video/mp4" />
               Your browser cannot play this video.
             </video>
             <figcaption>
@@ -114,19 +114,19 @@
                 </p>
               </div>
               <div class="downloads" aria-label="Download media">
-                <a href="media/late-time-224.mp4" download>MP4</a>
-                <a href="media/late-time-224.gif" download>GIF</a>
+                <a href="media/current-best.mp4" download>MP4</a>
+                <a href="media/current-best.gif" download>GIF</a>
               </div>
             </figcaption>
           </figure>
 
           <figure class="media-card">
             <img
-              src="media/late-time-224.gif"
+              src="media/current-best.gif"
               alt="Animated computed and target axial speed at 224 cubed resolution"
               loading="lazy"
               width="1050"
-              height="483"
+              height="482"
             />
             <figcaption>
               <div>
@@ -138,18 +138,18 @@
                 </p>
               </div>
               <div class="downloads" aria-label="Download media">
-                <a href="media/late-time-224.gif" download>GIF</a>
+                <a href="media/current-best.gif" download>GIF</a>
               </div>
             </figcaption>
           </figure>
 
           <figure class="media-card figure-card">
             <img
-              src="figures/current-best-288.png"
+              src="figures/current-best-endpoint.png"
               alt="Axial and equatorial velocity snapshots from the 288 cubed current-best endpoint run"
               loading="lazy"
-              width="1800"
-              height="1200"
+              width="2340"
+              height="1440"
             />
             <figcaption>
               <div>
@@ -176,22 +176,22 @@
         <div class="method-grid best-grid">
           <article>
             <span class="step">GEOMETRY</span>
-            <h3>5.29 radial cells</h3>
+            <h3><span id="evidence-cells">5.29</span> radial cells</h3>
             <p>The concentrating scale remains above the declared four-cell cutoff.</p>
           </article>
           <article>
             <span class="step">SPECTRUM</span>
-            <h3>0.463% tail energy</h3>
+            <h3><span id="evidence-tail">0.463%</span> tail energy</h3>
             <p>The top Fourier third is occupied but not dominating the endpoint.</p>
           </article>
           <article class="open-work">
             <span class="step">CONSTRAINT</span>
-            <h3>1.03 × 10⁻¹³ divergence</h3>
+            <h3><span id="evidence-divergence">1.03e−13</span> divergence</h3>
             <p>The periodic FFT projection preserves incompressibility near roundoff.</p>
           </article>
         </div>
         <p class="history-link">
-          The public page stays focused. <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/RESULTS.md">Read the full run history and controls →</a>
+          The public page stays focused. <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/results.md">Read the full run history and controls →</a>
         </p>
       </section>
 

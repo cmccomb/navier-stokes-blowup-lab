@@ -4,6 +4,10 @@ __pycache__/
 .ruff_cache/
 *.py[cod]
 outputs/
+
+# One-off machine launchers and collected fleet state stay local. Public solver
+# and analysis commands must be host-agnostic.
+fleet/*.py
 .DS_Store
 *.egg-info/
 dist/

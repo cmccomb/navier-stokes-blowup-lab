@@ -26,7 +26,7 @@ confidence in the finite-grid trajectory, but they do not supply the paper's
 missing infinite pulse hierarchy or prove grid-independent blow-up.
 
 The compact current-best media and metrics are published on the
-[results site](https://cmccomb.github.io/navier-stokes-blowup-lab/). The full
+[results site](https://cmccomb.com/navier-stokes-blowup-lab/). The full
 fleet comparison remains in `outputs/fleet-overnight-analysis` locally.
 
 ## Version 0.5 high-resolution frontier
@@ -45,9 +45,20 @@ The endpoint tracking error decreases with observed order 2.39 across the three 
 
 A `192^3` pulse-free control finishes with 1.252% tracking error, 0.708% top-third energy, and peak vorticity 212.18. The close full-pulse and pulse-free aggregate errors show that the grid resolves the background at comparable quality; the difference between their fields remains available for the annular-wave ablation.
 
-All four tested Macs have eight CPU cores and 16 GB unified memory. A `192^3` one-step benchmark on `kay` used 5.71 GB peak resident memory. Local probes on `mali` completed at `208^3` and `224^3` with 3.93 GB and 5.30 GB peak resident memory, respectively, and zero process swaps. Later scheduling on an otherwise available fleet node completed the `288^3` late-window trajectory, establishing a higher empirical frontier than the first local probes suggested. `192^3` remains the conservative unattended size on a machine that must also support interactive work.
+All four tested Macs have eight CPU cores and 16 GB unified memory. A `192^3`
+one-step benchmark used 5.71 GB peak resident memory. Local probes completed at
+`208^3` and `224^3` with 3.93 GB and 5.30 GB peak resident memory, respectively,
+and zero process swaps. Later scheduling on an otherwise available node
+completed the `288^3` late-window trajectory, establishing a higher empirical
+frontier than the first local probes suggested. `192^3` remains the conservative
+unattended size on a machine that must also support interactive work.
 
-Multi-host spatial decomposition was rejected after measurement rather than assumption. Peer transfer was about 1 MB/s from `mali` to `kay` and 4.5 MB/s between the two home Macs, with 12 ms average latency even on the latter link. A distributed 3D FFT would exchange hundreds of megabytes multiple times per timestep, so communication would dominate. The fleet was instead used for independent causal trajectories, with `kay` as the coordinator and compact outputs collected afterward. `Young` was unavailable during the early probe but later completed the isolated `288^3` trajectory.
+Multi-host spatial decomposition was rejected after measurement rather than
+assumption. Peer transfer ranged from about 1 to 4.5 MB/s, with 12 ms average
+latency even on the faster link. A distributed 3D FFT would exchange hundreds
+of megabytes multiple times per timestep, so communication would dominate. The
+fleet was instead used for independent causal trajectories, with compact
+outputs collected afterward.
 
 The comparison artifacts are in `outputs/frontier-comparison`; the full remote results are collected under `outputs/fleet-frontier`.
 
