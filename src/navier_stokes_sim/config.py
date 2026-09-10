@@ -96,8 +96,18 @@ class SimulationConfig:
     capture_volumes: bool = True
     capture_force_volumes: bool = False
     volume_frames: int = 6
+    stream_volumes: bool = False
+    preview_phase_step: float | None = None
+    preview_resolution: int = 32
 
     def validate(self) -> None:
+        if self.preview_phase_step is not None and (
+            not isfinite(self.preview_phase_step)
+            or not 0 < self.preview_phase_step <= 1
+        ):
+            raise ValueError("preview_phase_step must lie in (0, 1] or be None")
+        if self.preview_resolution < 8:
+            raise ValueError("preview_resolution must be at least 8")
         if self.forcing_phase_step is not None and (
             not isfinite(self.forcing_phase_step)
             or not 0 < self.forcing_phase_step <= 1

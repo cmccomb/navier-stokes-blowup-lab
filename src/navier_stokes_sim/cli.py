@@ -154,6 +154,28 @@ def _parser() -> argparse.ArgumentParser:
         help="number of full-volume checkpoints, including both endpoints",
     )
     parser.add_argument(
+        "--stream-volumes",
+        action="store_true",
+        help="write independent full-volume files instead of accumulating 3D history in RAM; use with --no-3d",
+    )
+    parser.add_argument(
+        "--preview-phase-step",
+        type=float,
+        help="save lightweight 3D velocity and force frames on a separate forcing-phase clock (e.g. 0.3 radians)",
+    )
+    parser.add_argument(
+        "--preview-resolution",
+        type=int,
+        default=32,
+        help="maximum samples per axis for streamed display volumes",
+    )
+    parser.add_argument(
+        "--derivative-epsilon",
+        type=float,
+        default=2e-4,
+        help="maximum force time-difference half-window; hold fixed and small for timestep comparisons",
+    )
+    parser.add_argument(
         "--integrator",
         choices=("euler", "rk2"),
         default="rk2",
@@ -210,6 +232,10 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     args = _parser().parse_args(argv)
+    if args.stream_volumes and not args.no_3d:
+        raise ValueError(
+            "--stream-volumes requires --no-3d; render streamed histories separately"
+        )
     mesh_parameters = mesh_preset_parameters(args.mesh_preset)
     cfg = SimulationConfig(
         resolution=args.resolution,
@@ -242,6 +268,10 @@ def main(argv: list[str] | None = None) -> None:
         capture_volumes=args.capture_velocity_volumes or not args.no_3d,
         capture_force_volumes=args.capture_force_volumes,
         volume_frames=args.volume_frames,
+        stream_volumes=args.stream_volumes,
+        preview_phase_step=args.preview_phase_step,
+        preview_resolution=args.preview_resolution,
+        derivative_epsilon=args.derivative_epsilon,
     )
     result = run_simulation(
         cfg,

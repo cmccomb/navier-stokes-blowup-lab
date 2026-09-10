@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+import time
 import warnings
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
@@ -40,6 +41,7 @@ from .profile import (
     target_velocity,
     temporal_activation,
 )
+from .snapshot_store import initialize_store, preview_times, write_snapshot
 from .time_stepping import forcing_step_limit
 
 DIAGNOSTIC_SCHEMA_VERSION = 7
@@ -105,6 +107,10 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
         config_values["paper_profile_revision"] = "legacy-hand-shaped"
     cfg = SimulationConfig(**config_values)
     cfg.validate()
+    started = time.monotonic()
+    steps_this_process = 0
+    min_dt_this_process = float("inf")
+    max_dt_this_process = 0.0
     with diagnostics_path.open(newline="", encoding="utf-8") as handle:
         diagnostics = []
         for source_row in csv.DictReader(handle):
@@ -147,6 +153,13 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
         if len(volume_times) and not np.array_equal(volume_times, force_volume_times):
             raise ValueError(f"velocity/force volume times differ in {output_dir}")
         volume_times = force_volume_times
+    if cfg.stream_volumes:
+        captured_times = []
+        for path in sorted((output_dir / "full-volumes").glob("frame-*.npz")):
+            if ".tmp." not in path.name:
+                with np.load(path, allow_pickle=False) as arrays:
+                    captured_times.append(float(arrays["time"]))
+        volume_times = np.asarray(captured_times)
     return SimulationResult(
         config=cfg,
         output_dir=output_dir,
@@ -751,6 +764,15 @@ def run_simulation(
             )
             recent_forces.append((force_time, force_np))
     volume_indices = _volume_frame_indices(save_times, cfg)
+    preview_clock = preview_times(cfg)
+    preview_indices = {float(value): i for i, value in enumerate(preview_clock)}
+    diagnostic_times = set(save_times.tolist())
+    for enabled, directory in (
+        (cfg.stream_volumes and bool(volume_indices), "full-volumes"),
+        (cfg.preview_phase_step is not None, "preview-volumes"),
+    ):
+        if enabled:
+            initialize_store(output_dir / directory, cfg, resume=partial is not None)
     center_y = cfg.resolution // 2
 
     def save_frame(save_t: float) -> None:
@@ -774,18 +796,28 @@ def run_simulation(
             diagnostics[-2]["force_time_derivative_l2"] = _vector_l2(
                 (third_force - first_force) / (third_t - first_t), cfg
             )
-        velocity_slices.append(velocity_np[:, center_y, :, :])
-        equatorial_slices.append(velocity_np[:, :, center_y, :])
-        target_slices.append(target_np[:, center_y, :, :])
-        force_slices.append(force_np[:, center_y, :, :])
+        # Views would pin entire 3D parent arrays for every saved 2D frame.
+        velocity_slices.append(velocity_np[:, center_y, :, :].copy())
+        equatorial_slices.append(velocity_np[:, :, center_y, :].copy())
+        target_slices.append(target_np[:, center_y, :, :].copy())
+        force_slices.append(force_np[:, center_y, :, :].copy())
         frame_index = len(diagnostics) - 1
         if (
             cfg.capture_volumes or cfg.capture_force_volumes
         ) and frame_index in volume_indices:
             volume_times.append(save_t)
-            if cfg.capture_volumes:
+            if cfg.stream_volumes:
+                write_snapshot(
+                    output_dir / "full-volumes",
+                    frame_index,
+                    save_t,
+                    cfg,
+                    velocity=velocity_np if cfg.capture_volumes else None,
+                    force=force_np if cfg.capture_force_volumes else None,
+                )
+            elif cfg.capture_volumes:
                 volume_velocity.append(velocity_np.copy())
-            if cfg.capture_force_volumes:
+            if cfg.capture_force_volumes and not cfg.stream_volumes:
                 volume_force.append(force_np.copy())
         _write_partial_checkpoint(
             output_dir,
@@ -801,10 +833,47 @@ def run_simulation(
             volume_velocity,
             volume_force,
         )
+        progress = {
+            "updated_at": datetime.now(UTC).isoformat(),
+            "t": save_t,
+            "completed_frames": len(diagnostics),
+            "total_frames": cfg.frames,
+            "elapsed_seconds_this_process": time.monotonic() - started,
+            "steps_this_process": steps_this_process,
+            "min_dt_this_process": min_dt_this_process if steps_this_process else None,
+            "max_dt_this_process": max_dt_this_process if steps_this_process else None,
+        }
+        temporary = output_dir / "progress.tmp.json"
+        temporary.write_text(json.dumps(progress, indent=2) + "\n", encoding="utf-8")
+        temporary.replace(output_dir / "progress.json")
+
+    def save_preview(save_t: float) -> None:
+        force_np = (
+            _as_numpy(_manufactured_force(save_t, target, cfg))
+            if _forcing_is_active(save_t, cfg)
+            else np.zeros_like(target_np)
+        )
+        write_snapshot(
+            output_dir / "preview-volumes",
+            preview_indices[save_t],
+            save_t,
+            cfg,
+            velocity=_as_numpy(velocity),
+            force=force_np,
+            preview=True,
+        )
 
     if partial is None:
         save_frame(t)
-    for frame_time in save_times[len(diagnostics) :]:
+    # Repair an interrupted write of a preview at the checkpoint's own time.
+    if t in preview_indices:
+        save_preview(t)
+    event_times = np.unique(
+        np.concatenate(
+            (save_times[len(diagnostics) :], preview_clock[preview_clock > t + 1e-13])
+        )
+    )
+    for frame_time in event_times:
         while t < frame_time - 1e-13:
             if (
                 cfg.profile_model == "paper-surrogate"
@@ -836,6 +905,10 @@ def run_simulation(
             )
             if cfg.forcing_end is not None and t < cfg.forcing_end < t + dt:
                 dt = cfg.forcing_end - t
+
+            steps_this_process += 1
+            min_dt_this_process = min(min_dt_this_process, dt)
+            max_dt_this_process = max(max_dt_this_process, dt)
 
             next_t = t + dt
 
@@ -872,7 +945,10 @@ def run_simulation(
             target_np = next_target_np
             t = next_t
 
-        save_frame(float(frame_time))
+        if frame_time in preview_indices:
+            save_preview(float(frame_time))
+        if frame_time in diagnostic_times:
+            save_frame(float(frame_time))
 
     previous_t, previous_force = recent_forces[-2]
     final_t, final_force = recent_forces[-1]
@@ -951,6 +1027,12 @@ def run_simulation(
         "config": cfg.to_dict(),
         "final_state": "final-state.npz" if save_final_state else None,
         "force_volumes": "forces.npz" if result.volume_force is not None else None,
+        "streamed_volumes": "full-volumes/manifest.json"
+        if cfg.stream_volumes
+        else None,
+        "preview_volumes": "preview-volumes/manifest.json"
+        if cfg.preview_phase_step is not None
+        else None,
     }
     (output_dir / "run.json").write_text(
         json.dumps(metadata, indent=2) + "\n", encoding="utf-8"

@@ -27,6 +27,11 @@ def read_preview(
         raise ValueError("field must be velocity or force")
     if max_resolution < 8:
         raise ValueError("preview resolution must be at least 8")
+    # Prefer the dense display clock; callers can pass full-volumes directly
+    # when they need samples from the sparse, float64 analysis checkpoints.
+    for directory in (run, run / "preview-volumes", run / "full-volumes"):
+        if (directory / "manifest.json").is_file():
+            return _read_snapshot_store(directory, field, max_resolution)
     partial = run / "partial-checkpoint.npz"
     if partial.is_file():
         source = partial
@@ -84,6 +89,50 @@ def read_preview(
     return {
         "times": times,
         "vectors": np.stack(sampled_frames),
+        "axis": axis,
+        "metadata": np.asarray(json.dumps(metadata)),
+    }
+
+
+def _read_snapshot_store(
+    directory: Path, field: str, max_resolution: int
+) -> dict[str, np.ndarray]:
+    metadata = json.loads((directory / "manifest.json").read_text())
+    if metadata.get("snapshot_store_version") != 1:
+        raise ValueError("unsupported snapshot store")
+    vectors, times = [], []
+    axis = None
+    for path in sorted(directory.glob("frame-*.npz")):
+        if ".tmp." in path.name:
+            continue
+        with np.load(path, allow_pickle=False) as arrays:
+            if field not in arrays:
+                raise ValueError(f"no captured {field} history in {directory}")
+            source_axis = arrays["axis"]
+            stride = max(1, int(np.ceil(len(source_axis) / max_resolution)))
+            sampled_axis = source_axis[::stride]
+            if axis is not None and not np.array_equal(axis, sampled_axis):
+                raise ValueError("inconsistent streamed coordinates")
+            axis = sampled_axis
+            vectors.append(
+                arrays[field][::stride, ::stride, ::stride].astype(np.float32)
+            )
+            times.append(float(arrays["time"]))
+    if not times:
+        raise ValueError(f"no captured {field} history in {directory}")
+    if not np.all(np.diff(times) > 0):
+        raise ValueError("streamed times must increase")
+    metadata.update(
+        {
+            "preview_version": 1,
+            "field": field,
+            "source_archive": directory.name,
+            "display_sampling": "source-cell subsampling; float32 display only",
+        }
+    )
+    return {
+        "vectors": np.stack(vectors),
+        "times": np.asarray(times),
         "axis": axis,
         "metadata": np.asarray(json.dumps(metadata)),
     }
