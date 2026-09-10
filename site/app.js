@@ -2,16 +2,10 @@ function setText(selector, value) {
   document.querySelector(selector).textContent = value;
 }
 
-function setMedia(selector, path) {
-  document.querySelector(selector).setAttribute("src", path);
-}
-
-function setDownload(selector, path) {
-  document.querySelector(selector).setAttribute("href", path);
-}
-
 function showRun(run, generatedAt) {
   setText("#run-resolution", `${run.resolution}³`);
+  setText("#grid-resolution", Array(3).fill(run.resolution).join(" × "));
+  setText("#grid-cells", `${(run.resolution ** 3 / 1e6).toFixed(2)} million cells`);
   setText("#run-end", run.t_end.toFixed(3));
   setText("#rest-until", run.rest_until.toFixed(2));
   setText("#metric-peak", run.peak_speed.toFixed(3));
@@ -20,13 +14,6 @@ function showRun(run, generatedAt) {
     "#metric-scale",
     `${Math.min(run.cells_per_radial_scale, run.cells_per_axial_scale).toFixed(2)} cells`,
   );
-
-  setMedia("#axial-gif", run.media.axial_jet);
-  setMedia("#swirl-gif", run.media.equatorial_swirl);
-  setMedia("#forcing-gif", run.media.pulse_forcing);
-  setDownload("#download-axial", run.media.axial_jet);
-  setDownload("#download-swirl", run.media.equatorial_swirl);
-  setDownload("#download-forcing", run.media.pulse_forcing);
 
   setText(
     "#data-status",

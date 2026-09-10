@@ -44,6 +44,7 @@
             <span class="math">t = <span id="run-end">0.992</span></span>.
           </p>
 
+          <p class="grid-note">Grid: <strong id="grid-resolution">224 × 224 × 224</strong> · <span id="grid-cells">11.24 million cells</span><br />Saved solver frames only · initial rest interval shortened</p>
           <dl class="headline-metrics" aria-label="Final-frame summary">
             <div>
               <dt>Peak speed</dt>
@@ -65,57 +66,28 @@
           </p>
         </div>
 
-        <figure class="gif-card gif-card-primary">
-          <img
-            id="axial-gif"
-            src="media/best-axial-jet.gif"
-            width="756" height="672"
-            alt="Vertical velocity: blue negative and orange positive on a dark axial plane"
-          />
-          <figcaption>
-            <div>
-              <strong>Axial jet</strong>
-              <span>Signed vertical velocity · x–z plane</span>
-            </div>
-            <a id="download-axial" href="media/best-axial-jet.gif" download>GIF ↓</a>
-          </figcaption>
-        </figure>
       </section>
 
-      <section class="gif-grid" aria-label="Additional simulation views">
-        <figure class="gif-card">
-          <img
-            id="swirl-gif"
-            src="media/best-equatorial-swirl.gif"
-            loading="lazy"
-            width="756" height="672"
-            alt="Vertical vorticity: violet negative and mint positive in the equatorial plane"
-          />
-          <figcaption>
-            <div>
-              <strong>Perpendicular swirl</strong>
-              <span>Signed vertical vorticity · x–y plane</span>
-            </div>
-            <a id="download-swirl" href="media/best-equatorial-swirl.gif" download>GIF ↓</a>
-          </figcaption>
-        </figure>
-
-        <figure class="gif-card">
-          <img
-            id="forcing-gif"
-            src="media/best-pulse-forcing.gif"
-            loading="lazy"
-            width="756" height="672"
-            alt="Total vertical manufactured force: blue negative and pink positive in the axial plane"
-          />
-          <figcaption>
-            <div>
-              <strong>Applied forcing</strong>
-              <span>Total vertical force · x–z plane</span>
-            </div>
-            <a id="download-forcing" href="media/best-pulse-forcing.gif" download>GIF ↓</a>
-          </figcaption>
-        </figure>
+      <section class="measure" aria-label="Speed">
+        <h2>Speed</h2><p class="measure-note">Velocity magnitude</p>
+        <div class="gif-grid">
+          <figure class="gif-card"><img src="media/best-speed-vertical.gif" width="756" height="672" alt="Speed, Vertical · x–z" /><figcaption><strong>Vertical · x–z</strong><a href="media/best-speed-vertical.gif" download>GIF ↓</a></figcaption></figure>
+          <figure class="gif-card"><img src="media/best-speed-equatorial.gif" width="756" height="672" alt="Speed, Equatorial · x–y" /><figcaption><strong>Equatorial · x–y</strong><a href="media/best-speed-equatorial.gif" download>GIF ↓</a></figcaption></figure>
+        </div>
+      </section>
+      <section class="measure" aria-label="Vertical velocity">
+        <h2>Vertical velocity</h2><p class="measure-note">Signed u_z</p>
+        <div class="gif-grid">
+          <figure class="gif-card"><img src="media/best-axial-velocity-vertical.gif" width="756" height="672" alt="Vertical velocity, Vertical · x–z" /><figcaption><strong>Vertical · x–z</strong><a href="media/best-axial-velocity-vertical.gif" download>GIF ↓</a></figcaption></figure>
+          <figure class="gif-card"><img src="media/best-axial-velocity-equatorial.gif" width="756" height="672" alt="Vertical velocity, Equatorial · x–y" /><figcaption><strong>Equatorial · x–y</strong><a href="media/best-axial-velocity-equatorial.gif" download>GIF ↓</a></figcaption></figure>
+        </div>
+      </section>
+      <section class="measure" aria-label="Plane-normal vorticity">
+        <h2>Plane-normal vorticity</h2><p class="measure-note">ωᵧ in the vertical slice · ω_z in the equatorial slice</p>
+        <div class="gif-grid">
+          <figure class="gif-card"><img src="media/best-normal-vorticity-vertical.gif" width="756" height="672" alt="Plane-normal vorticity, Vertical · x–z" /><figcaption><strong>Vertical · x–z</strong><a href="media/best-normal-vorticity-vertical.gif" download>GIF ↓</a></figcaption></figure>
+          <figure class="gif-card"><img src="media/best-normal-vorticity-equatorial.gif" width="756" height="672" alt="Plane-normal vorticity, Equatorial · x–y" /><figcaption><strong>Equatorial · x–y</strong><a href="media/best-normal-vorticity-equatorial.gif" download>GIF ↓</a></figcaption></figure>
+        </div>
       </section>
     </main>
 
