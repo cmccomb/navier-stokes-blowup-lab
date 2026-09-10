@@ -140,12 +140,12 @@ def write_orbit_gif(
         item._axinfo["grid"]["linewidth"] = 0.4
     symbol = "u" if field == "velocity" else "f"
     label = "Velocity" if field == "velocity" else "Applied force"
-    axis.set_title(
+    fig.suptitle(
         f"{label} volume · {config.mesh_preset} · "
         f"{config.resolution}³ · t = {time:.4f}",
         color=PAPER,
-        fontsize=17,
-        pad=18,
+        fontsize=16,
+        y=0.95,
     )
     colorbar = fig.colorbar(scatter, ax=axis, fraction=0.035, pad=0.025)
     colorbar.set_label(rf"${symbol}_z$", color=MUTED, fontsize=13)
