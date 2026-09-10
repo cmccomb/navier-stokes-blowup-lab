@@ -268,7 +268,8 @@ def main(argv: list[str] | None = None) -> None:
     )
     print(
         f"divergence Linf={last['divergence_linf']:.3e}, "
-        f"tracking L2={last['tracking_relative_l2']:.3e}, resolved={last['resolved']}"
+        f"tracking L2={last['tracking_relative_l2']:.3e}, "
+        f"core-scale-covered={last['resolved']}"
     )
     print(
         f"peak vorticity={last['peak_vorticity']:.6g}, "

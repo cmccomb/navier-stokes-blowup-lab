@@ -205,6 +205,25 @@ def test_legacy_checkpoint_cannot_masquerade_as_appendix_b_run(tmp_path) -> None
     assert load_matching_checkpoint(tmp_path, cfg) is None
 
 
+def test_legacy_checkpoint_does_not_claim_a_forcing_phase_limit(tmp_path) -> None:
+    cfg = SimulationConfig(
+        resolution=8,
+        t_end=0.02,
+        frames=2,
+        capture_volumes=False,
+        pressure_projection="fft",
+    )
+    run_simulation(cfg, tmp_path)
+    path = tmp_path / "run.json"
+    metadata = json.loads(path.read_text())
+    metadata["diagnostic_schema_version"] = 6
+    metadata["config"].pop("forcing_phase_step")
+    path.write_text(json.dumps(metadata))
+    restored = load_simulation_result(tmp_path)
+    assert restored.config.forcing_phase_step is None
+    assert load_matching_checkpoint(tmp_path, cfg) is None
+
+
 def test_partial_checkpoint_resumes_after_interruption(tmp_path, monkeypatch) -> None:
     cfg = SimulationConfig(
         resolution=8,
@@ -227,7 +246,9 @@ def test_partial_checkpoint_resumes_after_interruption(tmp_path, monkeypatch) ->
         if len(diagnostics) == 2:
             raise RuntimeError("simulated interruption")
 
-    monkeypatch.setattr(solver, "_write_partial_checkpoint", interrupt_after_second_frame)
+    monkeypatch.setattr(
+        solver, "_write_partial_checkpoint", interrupt_after_second_frame
+    )
     with pytest.raises(RuntimeError, match="simulated interruption"):
         run_simulation(cfg, interrupted_dir)
     assert (interrupted_dir / "partial-checkpoint.npz").is_file()

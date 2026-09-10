@@ -259,7 +259,7 @@ def write_time_animation(
     )
     fig = plt.figure(figsize=(8, 7.2), facecolor=INK)
     axis = fig.add_subplot(111, projection="3d")
-    fig.subplots_adjust(left=0.04, right=0.86, bottom=0.09, top=0.84)
+    fig.subplots_adjust(left=0.04, right=0.86, bottom=0.18, top=0.84)
     axis.set_facecolor(INK)
     half = series.config.half_domain
     axis.set(

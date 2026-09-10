@@ -25,6 +25,12 @@ def test_starts_from_rest() -> None:
     assert np.count_nonzero(velocity) == 0
 
 
+def test_late_coarse_grid_handles_empty_pulse_bins() -> None:
+    cfg = SimulationConfig(resolution=24, t_start=0.98, t_end=0.985, frames=3)
+    row = paper_structure_diagnostics(0.9825, cfg)
+    assert all(np.isfinite(value) for value in row.values())
+
+
 def test_paper_target_has_an_initial_rest_interval() -> None:
     cfg = SimulationConfig(
         resolution=12,

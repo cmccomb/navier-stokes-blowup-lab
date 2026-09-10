@@ -684,7 +684,7 @@ def paper_structure_diagnostics(
             bin_id[valid], weights=component[valid], minlength=bins * bins
         )
         component_mean = np.divide(
-            sums, counts, out=np.zeros_like(sums), where=counts > 0
+            sums, counts, out=np.zeros_like(sums, dtype=float), where=counts > 0
         )
         means.append(component_mean)
         mean_energy += float(np.sum(component_mean**2 * counts))
@@ -694,7 +694,7 @@ def paper_structure_diagnostics(
             bin_id[valid], weights=product[valid], minlength=bins * bins
         )
         covariance = np.divide(
-            sums, counts, out=np.zeros_like(sums), where=counts > 0
+            sums, counts, out=np.zeros_like(sums, dtype=float), where=counts > 0
         )
         covariance_sq += float(np.sum(covariance**2 * counts))
     sampled_pulse_energy = float(
