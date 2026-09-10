@@ -84,6 +84,30 @@ footer {
   color: var(--paper);
 }
 
+.intro { padding: clamp(2rem, 5vw, 4rem) 0 2rem; }
+.intro h1 { max-width: 54rem; line-height: 1.04; }
+.intro-lead { max-width: 49rem; color: #c7d5de; font-size: 1.125rem; }
+.intro-jump { display: inline-flex; align-items: center; gap: 1rem; color: var(--cyan); font-weight: 700; }
+.context-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  margin-top: 2.5rem;
+}
+.context-grid section { min-width: 0; border-top: 1px solid var(--line); padding-top: 1rem; }
+.context-number { margin-bottom: 0.65rem; color: var(--cyan); font-size: 0.8rem; letter-spacing: 0.04em; }
+.context-grid h2 { margin: 0 0 1rem; font-size: 1.3rem; line-height: 1.25; font-weight: 600; }
+.context-grid p:not(.context-number), .proof-detail-body p { color: #c7d5de; }
+.context-grid strong { color: var(--paper); }
+.context-grid a, .proof-detail a { color: var(--cyan); }
+.proof-detail { margin-top: 1rem; border-block: 1px solid var(--line); }
+.proof-detail summary { padding: 1rem 0; cursor: pointer; font-weight: 700; }
+.proof-detail[open] summary { color: var(--cyan); }
+.proof-detail-body { max-width: 52rem; padding: 0.25rem 0 0.5rem; }
+.source-links { display: flex; flex-wrap: wrap; gap: 0.65rem 1.5rem; font-size: 0.875rem; }
+#result { scroll-margin-top: 1.5rem; }
+#result-title { margin: 0 0 1rem; font-size: clamp(2.2rem, 4vw, 3.3rem); line-height: 1.08; font-weight: 500; letter-spacing: -0.03em; }
+
 .result-stage {
   padding: 2rem 0 1.5rem;
 }
@@ -389,6 +413,8 @@ footer p { margin-bottom: 0; }
 }
 
 @media (max-width: 900px) {
+  .context-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+  .context-grid section { max-width: 48rem; }
   .result-stage { padding-top: 2rem; }
   .result-summary { max-width: 42rem; }
   .gif-grid { max-width: 100%; margin-inline: auto; }
