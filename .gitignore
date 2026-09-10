@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.py[cod]
+outputs/
+.DS_Store
+*.egg-info/
+dist/
+build/
+
+# Local site preview and scratch exports
+.site-preview/
+site/media/*.tmp

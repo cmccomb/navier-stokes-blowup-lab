@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-10T04:56:00-04:00",
+  "scope": "Finite-grid manufactured-solution evidence; not an independent proof and not yet the paper's exact infinite construction.",
+  "headline": {
+    "case": "n288-maximum-safe",
+    "variant": "maximum safe resolution",
+    "resolution": 288,
+    "t_end": 0.995,
+    "max_dt": 0.02,
+    "pulses_enabled": true,
+    "forcing_end": null,
+    "peak_speed": 4.545514652485355,
+    "target_peak_speed": 4.4926702528518225,
+    "peak_vorticity": 492.5106541352614,
+    "tracking_relative_l2": 0.007438060057264594,
+    "divergence_linf": 1.0302869668521453e-13,
+    "cells_per_radial_scale": 5.29481557752487,
+    "cells_per_axial_scale": 5.524068786826627,
+    "spectral_k95": 78.03845206050669,
+    "spectral_tail_fraction": 0.004631434756774343,
+    "resolved": true
+  },
+  "history_count": 9,
+  "media": [
+    {
+      "title": "Late-time concentration at 224\u00b3",
+      "kind": "video",
+      "mp4": "media/late-time-224.mp4",
+      "gif": "media/late-time-224.gif",
+      "poster": "media/late-time-224-poster.png",
+      "caption": "Computed and target axial speed slices from t=0.94 to 0.995. The endpoint still passes the four-cell geometric gate."
+    }
+  ]
+}

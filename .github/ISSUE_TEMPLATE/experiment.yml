@@ -1,0 +1,31 @@
+name: Experiment or fidelity proposal
+description: Propose a run, validation check, or mathematical fidelity improvement.
+title: "[experiment] "
+labels: [experiment]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Research question
+      description: What precise claim or uncertainty will this test?
+    validations:
+      required: true
+  - type: textarea
+    id: method
+    attributes:
+      label: Proposed method
+      description: Include grid, timestep, time window, forcing, pulse, and comparison choices.
+    validations:
+      required: true
+  - type: textarea
+    id: gates
+    attributes:
+      label: Resolution and falsification checks
+      description: State the geometric, spectral, convergence, and failure criteria.
+    validations:
+      required: true
+  - type: textarea
+    id: resources
+    attributes:
+      label: Compute and storage estimate
+      description: Give estimated memory, runtime, and artifact size when known.

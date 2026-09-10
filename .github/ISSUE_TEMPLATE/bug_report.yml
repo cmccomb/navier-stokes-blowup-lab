@@ -1,0 +1,30 @@
+name: Bug report
+description: Report a reproducible solver, diagnostic, or visualization defect.
+title: "[bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction command
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Commit SHA, OS, processor, memory, Python, and PhiFlow versions.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Diagnostic evidence
+      description: Attach compact logs or plots; do not attach private data or huge checkpoints.

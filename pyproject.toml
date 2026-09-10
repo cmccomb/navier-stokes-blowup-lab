@@ -1,0 +1,30 @@
+[project]
+name = "openai-navier-stokes-simulation"
+version = "0.6.0"
+description = "Proof-informed 3D incompressible CFD experiment for the OpenAI Navier-Stokes blow-up construction"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "matplotlib>=3.9",
+  "numpy>=2.0",
+  "phiflow==3.4.0",
+  "plotly>=6.0",
+  "scipy>=1.12",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.8"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint.per-file-ignores]
+"src/navier_stokes_sim/{plotting,study,validation}.py" = ["E402"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src", "."]
+testpaths = ["tests"]

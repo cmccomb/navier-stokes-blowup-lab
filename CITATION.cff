@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this numerical experiment, please cite the repository and the OpenAI paper linked below."
+title: "Navier–Stokes Blow-up Lab"
+type: software
+authors:
+  - family-names: McComb
+    given-names: Chris
+repository-code: "https://github.com/cmccomb/navier-stokes-blowup-lab"
+url: "https://cmccomb.github.io/navier-stokes-blowup-lab/"
+license: MIT
+version: 0.6.0
+date-released: 2026-09-10
+references:
+  - type: article
+    title: "Finite Time Blowup for Navier–Stokes"
+    url: "https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf"

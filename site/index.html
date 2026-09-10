@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Reproducible finite-grid experiments inspired by the OpenAI Navier–Stokes blow-up construction."
+    />
+    <meta name="theme-color" content="#07111f" />
+    <title>Navier–Stokes Blow-up Lab</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to results</a>
+    <header class="site-header">
+      <a class="wordmark" href="#top" aria-label="Navier–Stokes Blow-up Lab home">
+        <span class="mark" aria-hidden="true">∇</span>
+        <span>NS Blow-up Lab</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#media">Media</a>
+        <a href="#evidence">Evidence</a>
+        <a href="#method">Method</a>
+        <a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-blowup-lab">Contribute ↗</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="pulse" aria-hidden="true"></span> Active numerical experiment</div>
+          <h1 id="hero-title">How close can a finite solver get?</h1>
+          <p class="dek">
+            A reproducible PhiFlow experiment following the geometry of OpenAI’s
+            Navier–Stokes construction—from exact rest toward a concentrating
+            vortex at <span class="math">t* = 1</span>.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#media">Watch the flow</a>
+            <a class="button secondary" href="https://github.com/cmccomb/navier-stokes-blowup-lab#run-it">Run it locally</a>
+          </div>
+        </div>
+        <aside class="scope-card" aria-label="Scientific scope">
+          <div class="scope-label">Interpretation boundary</div>
+          <p>
+            This is a finite manufactured-solution surrogate—not an independent
+            proof and not yet the paper’s exact infinite pulse hierarchy.
+          </p>
+          <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/REPRODUCTION.md">Read the fidelity gates →</a>
+        </aside>
+      </section>
+
+      <section class="metrics" aria-label="Latest verified endpoint">
+        <article class="metric metric-lead">
+          <span class="metric-label">Largest verified late-window grid</span>
+          <strong id="metric-resolution">288³</strong>
+          <span id="metric-time">at t = 0.995</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Peak vorticity</span>
+          <strong id="metric-vorticity">492.51</strong>
+          <span>resolved endpoint</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Tracking error</span>
+          <strong id="metric-tracking">0.744%</strong>
+          <span>relative L²</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Spectral tail</span>
+          <strong id="metric-tail">0.463%</strong>
+          <span>top-third energy</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Divergence L∞</span>
+          <strong id="metric-divergence">1.03e−13</strong>
+          <span>near roundoff</span>
+        </article>
+      </section>
+
+      <section class="section" id="media" aria-labelledby="media-title">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Flow field</p>
+            <h2 id="media-title">Watch concentration sharpen</h2>
+          </div>
+          <p>
+            The MP4 preserves detail; the matching GIF is optimized for quick
+            sharing and review in issues and pull requests.
+          </p>
+        </div>
+
+        <div class="media-grid">
+          <figure class="media-card media-card-wide">
+            <video
+              controls
+              playsinline
+              preload="metadata"
+              poster="media/late-time-224-poster.png"
+              aria-label="Computed and target axial speed at 224 cubed resolution"
+            >
+              <source src="media/late-time-224.mp4" type="video/mp4" />
+              Your browser cannot play this video.
+            </video>
+            <figcaption>
+              <div>
+                <span class="media-tag">224³ · t 0.94 → 0.995</span>
+                <h3>Computed field versus target</h3>
+                <p>
+                  Late-time concentration remains geometrically resolved at the
+                  endpoint, while the shared scale makes tracking differences visible.
+                </p>
+              </div>
+              <div class="downloads" aria-label="Download media">
+                <a href="media/late-time-224.mp4" download>MP4</a>
+                <a href="media/late-time-224.gif" download>GIF</a>
+              </div>
+            </figcaption>
+          </figure>
+
+          <figure class="media-card">
+            <img
+              src="media/late-time-224.gif"
+              alt="Animated computed and target axial speed at 224 cubed resolution"
+              loading="lazy"
+              width="1050"
+              height="483"
+            />
+            <figcaption>
+              <div>
+                <span class="media-tag">Shareable GIF</span>
+                <h3>The same best trajectory, inline</h3>
+                <p>
+                  A compact version of the computed-versus-target sequence for
+                  discussion, embedding, and reproducible result review.
+                </p>
+              </div>
+              <div class="downloads" aria-label="Download media">
+                <a href="media/late-time-224.gif" download>GIF</a>
+              </div>
+            </figcaption>
+          </figure>
+
+          <figure class="media-card figure-card">
+            <img
+              src="figures/current-best-288.png"
+              alt="Axial and equatorial velocity snapshots from the 288 cubed current-best endpoint run"
+              loading="lazy"
+              width="1800"
+              height="1200"
+            />
+            <figcaption>
+              <div>
+                <span class="media-tag">Current best · 288³</span>
+                <h3>Highest verified endpoint</h3>
+                <p>
+                  At t=0.995, the run retains 5.29 radial cells across the core
+                  and 0.463% of energy in the top spectral third.
+                </p>
+              </div>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section evidence" id="evidence" aria-labelledby="runs-title">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Current-best evidence</p>
+            <h2 id="runs-title">Three checks before interpretation</h2>
+          </div>
+          <p id="dataset-status" role="status">Loading the current-best record…</p>
+        </div>
+        <div class="method-grid best-grid">
+          <article>
+            <span class="step">GEOMETRY</span>
+            <h3>5.29 radial cells</h3>
+            <p>The concentrating scale remains above the declared four-cell cutoff.</p>
+          </article>
+          <article>
+            <span class="step">SPECTRUM</span>
+            <h3>0.463% tail energy</h3>
+            <p>The top Fourier third is occupied but not dominating the endpoint.</p>
+          </article>
+          <article class="open-work">
+            <span class="step">CONSTRAINT</span>
+            <h3>1.03 × 10⁻¹³ divergence</h3>
+            <p>The periodic FFT projection preserves incompressibility near roundoff.</p>
+          </article>
+        </div>
+        <p class="history-link">
+          The public page stays focused. <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/RESULTS.md">Read the full run history and controls →</a>
+        </p>
+      </section>
+
+      <section class="section method" id="method" aria-labelledby="method-title">
+        <div class="section-heading">
+          <div>
+            <p class="kicker">Reproduction roadmap</p>
+            <h2 id="method-title">What is real, and what remains</h2>
+          </div>
+        </div>
+        <div class="method-grid">
+          <article>
+            <span class="step">01</span>
+            <h3>Implemented</h3>
+            <p>
+              Exact discrete incompressibility, implicit similarity coordinates,
+              three-region geometry, rest interval, smooth activation, two annular
+              wave surrogates, projected RK2, and FFT pressure projection.
+            </p>
+          </article>
+          <article>
+            <span class="step">02</span>
+            <h3>Measured</h3>
+            <p>
+              Grid coverage, Fourier occupancy, tracking, vorticity, energy,
+              force derivatives, balance residuals, and full-state timestep
+              differences across independent Mac trajectories.
+            </p>
+          </article>
+          <article class="open-work">
+            <span class="step">03</span>
+            <h3>Open work</h3>
+            <p>
+              Replace hand-shaped profiles with the paper’s profile ODEs, add
+              stress-matched finite correction hierarchies, and demonstrate joint
+              convergence in grid, timestep, pulse frequency, and truncation order.
+            </p>
+            <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/issues/new?template=experiment.yml">Propose an experiment →</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="contribute" aria-labelledby="contribute-title">
+        <div>
+          <p class="kicker">Open collaboration</p>
+          <h2 id="contribute-title">Bring a solver, proof detail, or skeptical test.</h2>
+        </div>
+        <div>
+          <p>
+            The most valuable contribution is one that can fail clearly. Every
+            proposed result should identify its resolution gate, refinement path,
+            and alternative explanation.
+          </p>
+          <a class="button primary" href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/CONTRIBUTING.md">Contribution guide</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Independent open numerical work · not affiliated with OpenAI.</p>
+      <div>
+        <a href="https://openai.com/index/navier-stokes-solution/">Announcement ↗</a>
+        <a href="https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf">Paper ↗</a>
+        <a href="https://github.com/tum-pbs/PhiFlow">PhiFlow ↗</a>
+        <a href="https://github.com/cmccomb/navier-stokes-blowup-lab">GitHub ↗</a>
+      </div>
+    </footer>
+  </body>
+</html>
