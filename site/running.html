@@ -46,7 +46,8 @@ uv run ns-blowup --help</code></pre>
   --t-start 0 --t-end 0.99 \
   --frames 121 --frame-spacing similarity \
   --cfl 0.20 --max-dt 0.00065 \
-  --capture-force-volumes --volume-frames 12 \
+  --forcing-phase-step 0.15 \
+  --capture-velocity-volumes --capture-force-volumes --volume-frames 12 \
   --paper-time-cutoff 0.55 0.775 \
   --pressure-projection fft \
   --output outputs/n192-paper-rest-fine \
@@ -71,6 +72,19 @@ uv run ns-blowup --help</code></pre>
   --frames 72 --fps 8</code></pre>
         <p>The renderer writes a similarity-core axial-outflow GIF and paired physical-plane GIFs for speed, signed vertical velocity, and plane-normal vorticity. It uses saved solver states only and a fixed color scale for each paired view.</p>
 
+        <h2>Animate three-dimensional histories</h2>
+        <pre><code>uv run python -m scripts.render_volume_media \
+  --run outputs/n192-paper-rest-fine \
+  --output artifacts --stem full --field force \
+  --component magnitude --camera orbit --format both</code></pre>
+        <p>This writes a time-animated GIF, MP4, interactive explorer, and a JSON record of times and display settings. Use <code>--component x</code>, <code>y</code>, or <code>z</code> for signed components, <code>--camera fixed</code> for a stationary view, and <code>--field velocity</code> for captured fluid velocity. The explorer offers magnitude and all components with the same saved-time slider. All arrows include x, y, and z.</p>
+        <p><code>--capture-velocity-volumes</code> preserves velocity history even with <code>--no-3d</code>. That option now defers both velocity and force rendering. Full volume histories require substantial RAM and disk; use the offline exporter to stream one archived source frame at a time into compact display samples. Sparse volume checkpoints cannot show every forcing oscillation; see the <a href="review.html">numerical review</a> before planning a longer run.</p>
+        <pre><code>uv run python -m scripts.export_volume_preview \
+  --run outputs/n192-paper-rest-fine --field force \
+  --max-resolution 64 --output artifacts/force-preview.npz
+uv run python -m scripts.render_volume_media \
+  --preview artifacts/force-preview.npz --output artifacts --stem full</code></pre>
+
         <h2>Output contract</h2>
         <ul>
           <li><code>run.json</code>: exact configuration, solver description, timestamp, and scope warning.</li>
@@ -78,6 +92,7 @@ uv run ns-blowup --help</code></pre>
           <li><code>slices.npz</code>: saved axial and equatorial solver slices.</li>
           <li><code>partial-checkpoint.npz</code>: atomic resumable state, removed after completion.</li>
           <li><code>forces.npz</code>: full 3D force vectors at the requested volume checkpoints, including both endpoints.</li>
+          <li><code>volumes.npz</code>: optional three-component velocity history at the volume checkpoints.</li>
           <li><code>final-state.npz</code>: optional terminal 3D field for convergence comparisons.</li>
         </ul>
 

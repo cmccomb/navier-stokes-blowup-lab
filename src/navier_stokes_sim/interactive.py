@@ -108,7 +108,7 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
         height=740,
         template="plotly_dark",
         paper_bgcolor="#07111f",
-        margin={"l": 15, "r": 20, "t": 155, "b": 135},
+        margin={"l": 15, "r": 20, "t": 155, "b": 200},
         uirevision="preserve-camera",
         scene={
             **{
@@ -156,7 +156,7 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
                             {
                                 "frame": {"duration": 650, "redraw": True},
                                 "transition": {"duration": 0},
-                                "fromcurrent": True,
+                                "fromcurrent": False,
                             },
                         ],
                     },
@@ -202,7 +202,7 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
                 "xref": "paper",
                 "yref": "paper",
                 "x": 0.5,
-                "y": -0.22,
+                "y": -0.45,
                 "showarrow": False,
                 "font": {"size": 11},
             }

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07111f" />
+    <title>Numerical review · Navier–Stokes Singularity Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="index.html"><span class="mark" aria-hidden="true">∇</span><span>Navier–Stokes Simulation</span></a>
+      <nav aria-label="Project navigation"><a href="index.html">Results</a><a href="documentation.html" aria-current="page">Documentation</a><a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">GitHub ↗</a></nav>
+    </header>
+    <main class="docs-shell" id="content">
+      <nav class="docs-nav" aria-label="Documentation pages">
+        <a href="method.html">Model &amp; method</a><a href="derivation.html">Profile derivation</a><a href="running.html">Run it</a><a href="results.html">Numerical record</a><a href="reproduction.html">Reproduction target</a><a href="review.html" aria-current="page">Numerical review</a>
+      </nav>
+      <article class="doc-page">
+        <p class="eyebrow">Guide 06 · September 10, 2026</p>
+        <h1>What the current runs can establish</h1>
+        <p class="dek">The next accuracy step is a controlled full-domain refinement with an explicit forcing clock. Larger peaks in the smaller box are not evidence that it better resolves the intended singular core.</p>
+
+        <h2>The forcing needs its own timestep limit</h2>
+        <p>The original production settings were projected RK2, CFL 0.20, <code>max_dt = 0.001</code>, and the explicit diffusion cap <code>0.12 Δx²/ν</code>. These control the flow and viscous timescales. The retained pulses also oscillate in logarithmic time, with frequencies increasing as <span class="math">1/τ</span>, where <span class="math">τ = 1 − t</span>.</p>
+        <p>At the midplane, the fastest retained first-family phase has rate approximately <span class="math">21.347/τ</span>. At <span class="math">t = 0.985</span>, its period is about 0.00442. Evaluating the prescribed 128³ target gives estimated old-rule timesteps of 0.000762 in the full box and 0.000509 in the smaller box: about 5.8 and 8.7 steps per fastest retained phase cycle. These estimates use target peak speed; actual steps can be shorter due to solver velocity or output boundaries. Gate amplitudes determine which modes contribute at a particular time. Quadratic advection in the manufactured force can produce still faster sum-frequency terms.</p>
+        <p>The new default bounds the phase advance of those quadratic combinations by 0.15 radians, about 42 samples per fastest bounded cycle. If <span class="math">C</span> bounds the phase derivative with respect to <span class="math">−log τ</span>, the solver imposes</p>
+        <div class="equation">Δt ≤ τ [1 − exp(−0.15/C)].</div>
+        <p>For the default three-level hierarchy, <span class="math">C ≈ 42.693</span>. This gives a cap near 0.0000526 at <span class="math">t = 0.985</span>. The centered time-difference half-window used to manufacture the force is also limited to one tenth of that cap. This is a conservative temporal-resolution safeguard, not a substitute for halving the step and comparing results.</p>
+        <p>The running 128³ pair retains its original code and settings. Schema-6 outputs load with the new forcing-phase limit explicitly recorded as absent; new runs use schema 7. Use a new output directory when changing these numerical settings.</p>
+
+        <h2>Early-time timestep check</h2>
+        <p>A bounded 24³ full-domain test started from exact rest and reached <span class="math">t = 0.65</span>. With the original force-difference window held at 0.0002, the difference between timesteps 0.002 and 0.001 was 3.70 times the difference between 0.001 and 0.0005, consistent with near-second-order behavior. The latter change was 9.37 × 10<sup>−6</sup> in relative velocity L². Halving the force-difference window separately changed the final velocity by 2.73 × 10<sup>−6</sup>. This supports the early ramp, but does not validate late-time oscillations or spatial convergence at 128³.</p>
+        <p>A separate, target-initialized 24³ diagnostic window from <span class="math">t = 0.98</span> to 0.985 compared phase limits 0.15, 0.075, and 0.0375. Successive final-velocity differences were 1.08 × 10<sup>−5</sup> and 8.99 × 10<sup>−6</sup> in relative L². The force-difference window tightened with the phase limit, so this is a coupled sensitivity check, not a pure timestep-order test. It did not show a clean factor-of-four reduction. This small, spatially underresolved diagnostic is not a start-from-rest result and does not establish production convergence.</p>
+
+        <h2>The smaller box changes the forcing</h2>
+        <p>At matched saved time <span class="math">t = 0.7576568214</span>, the original full-resolution, float64 force volumes give the following comparison. The taper region is defined by <span class="math">r ≥ localization_inner</span> or <span class="math">|z| ≥ localization_inner</span>. Its force fraction is <span class="math">∫<sub>taper</sub>|f|² / ∫<sub>box</sub>|f|²</span>; it is not a kinetic-energy fraction.</p>
+        <table>
+          <thead><tr><th>Quantity</th><th>Full domain</th><th>Smaller box</th></tr></thead>
+          <tbody>
+            <tr><td>Half-width</td><td>1.00</td><td>0.68</td></tr>
+            <tr><td>Cutoff transition width in cells</td><td>14.08</td><td>4.71</td></tr>
+            <tr><td>Cutoff-to-periodic-boundary gap in cells</td><td>3.84</td><td>1.88</td></tr>
+            <tr><td>Fraction of ∫|f|² in taper region</td><td>16.10%</td><td>95.00%</td></tr>
+            <tr><td>Peak |f|</td><td>17.95</td><td>195.69</td></tr>
+            <tr><td>Peak |u|</td><td>1.030</td><td>2.838</td></tr>
+            <tr><td>Peak vorticity</td><td>16.63</td><td>160.46</td></tr>
+          </tbody>
+        </table>
+        <p>The smaller-box force maximum lies at approximately <span class="math">(−0.452, −0.441, 0.622)</span>, in its cutoff region. Thus the larger global peaks are strongly associated with the changed exterior taper. The comparison combines a spacing change and a model change; it cannot serve as a clean grid-convergence test. The next production comparison should retain the full box and the same cutoff while changing resolution.</p>
+
+        <h2>“Resolved” only checks a core length</h2>
+        <p>The legacy <code>resolved</code> diagnostic tests whether the nominal radial and axial similarity lengths span at least four cells. It does not audit every pulse wavelength or the cutoff transition. At <span class="math">t = 0.985</span>, the full and smaller boxes have 4.08 and 5.99 cells per nominal radial scale, but only about 1.99 and 2.93 cells per finest retained radial wavelength at the midplane annulus midpoint. These are local phase-gradient estimates; the amplitude gates may suppress that mode at a given time.</p>
+        <p>Those wavelengths are too short for an accuracy claim. Keep the current trajectories as numerical references, check spectra and overlapping-core quantities, and compare full-box resolutions and timesteps before advancing claims about blow-up. A small error against a manufactured target alone cannot establish that the target’s finest features are spatially resolved.</p>
+
+        <h2>Projection and visualization fixes</h2>
+        <p>The centered FFT derivative has exact null modes at zero frequency and at the even-grid Nyquist frequency. Evaluating <code>sin(−π)</code> numerically left a tiny nonzero value; division by its square could erase an alternating divergence-free mode. The projector now zeros those symbols explicitly. A regression test preserves all centered null modes. This fixes the discrete projection identity; it does not make Nyquist modes trustworthy physical information.</p>
+        <p>The late coarse-grid check also exposed a diagnostic failure when pulse bins contain no samples: an empty weighted histogram produced integer output, which could not receive floating-point division. Mean and covariance accumulators now explicitly use floating-point arrays, with a regression covering the empty-bin case.</p>
+        <p>The 3D exporter now animates saved simulation times, offers total magnitude and x/y/z components, and displays arrows using all three components. Color scales, surface thresholds, vector scaling, and physical axes remain fixed through time. GIF and MP4 exports support camera rotation or a fixed camera. Isosurfaces use <a href="https://scikit-image.org/docs/stable/auto_examples/edges/plot_marching_cubes.html">scikit-image marching cubes</a>; interactive controls use <a href="https://plotly.com/python/animations/">Plotly frames</a>.</p>
+        <p>Display arrays are explicitly subsampled from the solver grid. They are not additional CFD resolution. Saved volume frames are held without interpolating fluid states; a rotating single snapshot is distinct from physical time evolution.</p>
+
+        <h2>Capture cadence remains a separate constraint</h2>
+        <p>The current runs saved full force volumes at 24 selected checkpoints but did not retain a velocity-volume history. Their force movies can show the large-scale evolution, but that sparse output clock cannot resolve every late-time pulse cycle. Tightening integration alone does not improve those movies. Future production should preserve velocity and force histories independently of rendering and use a denser, streamed display-volume clock before attempting to interpret rapid oscillations visually. Historical velocity volumes cannot be recovered from the two central slices.</p>
+        <p>Recommended order: verify the forcing-phase limit by halving it; implement sufficiently frequent lightweight volume capture; compare full-domain spatial resolutions with unchanged forcing parameters; then extend the endpoint while the retained wavelengths remain adequately sampled. Keep the smaller-box branch as a cutoff-sensitivity experiment.</p>
+        <nav class="page-links" aria-label="Adjacent documentation"><a href="running.html">Run it →</a><a href="documentation.html">All documentation →</a></nav>
+      </article>
+    </main>
+    <footer><p>Independent open numerical work · not affiliated with OpenAI.</p></footer>
+  </body>
+</html>
