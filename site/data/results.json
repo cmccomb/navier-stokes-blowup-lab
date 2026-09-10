@@ -1,35 +1,40 @@
 {
-  "schema_version": 1,
-  "generated_at": "2026-09-10T04:56:00-04:00",
+  "schema_version": 2,
+  "generated_at": "2026-09-10T14:53:27.903259+00:00",
   "scope": "Finite-grid manufactured-solution evidence; not an independent proof and not yet the paper's exact infinite construction.",
-  "headline": {
-    "case": "n288-maximum-safe",
-    "variant": "maximum safe resolution",
-    "resolution": 288,
-    "t_end": 0.995,
-    "max_dt": 0.02,
-    "pulses_enabled": true,
-    "forcing_end": null,
-    "peak_speed": 4.545514652485355,
-    "target_peak_speed": 4.4926702528518225,
-    "peak_vorticity": 492.5106541352614,
-    "tracking_relative_l2": 0.007438060057264594,
-    "divergence_linf": 1.0302869668521453e-13,
-    "cells_per_radial_scale": 5.29481557752487,
-    "cells_per_axial_scale": 5.524068786826627,
-    "spectral_k95": 78.03845206050669,
-    "spectral_tail_fraction": 0.004631434756774343,
+  "run": {
+    "id": "current-best-from-rest",
+    "label": "Complete start-from-rest trajectory",
+    "created_at": "2026-09-10T14:26:28.160744+00:00",
+    "solver": "PhiFlow 3.4.0 centered-grid finite differences with projected rk2 time integration; pressure projection=fft",
+    "scope_warning": "This is not the exact OpenAI construction or a numerical proof of singularity. The paper-surrogate has the paper's exact initial rest interval and smooth temporal localization, and resolves two annular wave families, but not the infinite pulse hierarchy or all-order corrections; the manufactured force need not remain smooth as t approaches 1.",
+    "resolution": 192,
+    "t_start": 0.0,
+    "t_end": 0.99,
+    "frames": 51,
+    "rest_until": 0.55,
+    "fully_active_from": 0.775,
+    "integrator": "rk2",
+    "pressure_projection": "fft",
+    "t": 0.99,
+    "peak_speed": 2.838343050826265,
+    "target_peak_speed": 2.7579017479164603,
+    "kinetic_energy": 0.007287655968637966,
+    "kinetic_energy_core": 0.00020356735123449083,
+    "peak_vorticity": 215.52382051830625,
+    "tracking_relative_l2": 0.015661347663829293,
+    "divergence_linf": 4.440892098500626e-14,
+    "cells_per_radial_scale": 4.992000000000003,
+    "cells_per_axial_scale": 5.179341851763522,
+    "spectral_k95": 56.868268832451726,
+    "spectral_tail_fraction": 0.007301429507217302,
+    "force_l2": 28.47669975753909,
     "resolved": true
   },
-  "history_count": 9,
-  "media": [
-    {
-      "title": "Late-time concentration at 224\u00b3",
-      "kind": "video",
-      "mp4": "media/current-best.mp4",
-      "gif": "media/current-best.gif",
-      "poster": "media/current-best-poster.png",
-      "caption": "Computed and target axial speed slices from t=0.94 to 0.995. The endpoint still passes the four-cell geometric gate."
-    }
-  ]
+  "media": {
+    "mp4": "media/current-best.mp4",
+    "gif": "media/current-best.gif",
+    "poster": "media/current-best-poster.png",
+    "endpoint": "figures/current-best-endpoint.png"
+  }
 }

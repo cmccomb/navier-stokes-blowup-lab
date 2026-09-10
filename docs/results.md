@@ -1,6 +1,32 @@
 # Results from the expanded numerical study
 
-## Version 0.6 current maximum: `288^3`
+## Current canonical run: `192^3` from rest
+
+The public result is one continuous `192^3` trajectory from exact rest at
+`t=0` through `t=0.99`. The velocity and manufactured force vanish identically
+through `t=0.55`, transition with the compact-flat temporal cutoff, and are
+fully active from `t=0.775`. All 51 requested frames completed.
+
+| Endpoint diagnostic at `t=0.99` | Result |
+|---|---:|
+| Peak speed, solver / target | 2.83834 / 2.75790 |
+| Relative target-tracking error | 1.5661% |
+| Divergence `L-infinity` | `4.44e-14` |
+| Peak vorticity | 215.52 |
+| Total / core kinetic energy | 0.007288 / 0.000204 |
+| Radial / axial scale coverage | 4.99 / 5.18 cells |
+| 95%-energy Fourier mode | 56.87 |
+| Top-third spectral energy | 0.7301% |
+| Manufactured-force `L2` norm | 28.48 |
+| Geometric resolution gate | Pass |
+
+This is the most complete run because formation, activation, and late-time
+concentration occur within one solver trajectory. It is the sole run displayed
+on the [results site](https://cmccomb.com/navier-stokes-blowup-lab/). The force
+norm still grows, and the finite wave model still omits the analytical infinite
+pulse hierarchy and all-order corrections.
+
+## Version 0.6 resolution maximum: `288^3`
 
 The current maximum verified late-window calculation advances the
 paper-surrogate target from `t=0.94` through `t=0.995` on a uniform `288^3`
@@ -25,9 +51,7 @@ from free relaxation and test the finite wave surrogate. These checks improve
 confidence in the finite-grid trajectory, but they do not supply the paper's
 missing infinite pulse hierarchy or prove grid-independent blow-up.
 
-The compact current-best media and metrics are published on the
-[results site](https://cmccomb.com/navier-stokes-blowup-lab/). The full
-fleet comparison remains in `outputs/fleet-overnight-analysis` locally.
+The full fleet comparison remains in `outputs/fleet-overnight-analysis` locally.
 
 ## Version 0.5 high-resolution frontier
 

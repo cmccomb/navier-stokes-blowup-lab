@@ -1,34 +1,44 @@
-const formatPercent = (value, digits = 3) => `${(100 * value).toFixed(digits)}%`;
-const formatScientific = (value) => value.toExponential(2).replace("e-", "e−");
+const percent = (value) => `${(100 * value).toFixed(3)}%`;
+const scientific = (value) => value.toExponential(2).replace("e-", "e−");
 
-function updateHeadline(run) {
-  document.querySelector("#metric-resolution").textContent = `${run.resolution}³`;
-  document.querySelector("#metric-time").textContent = `at t = ${run.t_end}`;
-  document.querySelector("#metric-vorticity").textContent = run.peak_vorticity.toFixed(2);
-  document.querySelector("#metric-tracking").textContent = formatPercent(run.tracking_relative_l2);
-  document.querySelector("#metric-tail").textContent = formatPercent(run.spectral_tail_fraction);
-  document.querySelector("#metric-divergence").textContent = formatScientific(run.divergence_linf);
-  document.querySelector("#evidence-cells").textContent = run.cells_per_radial_scale.toFixed(2);
-  document.querySelector("#evidence-tail").textContent = formatPercent(run.spectral_tail_fraction);
-  document.querySelector("#evidence-divergence").textContent = formatScientific(run.divergence_linf);
+function setText(selector, value) {
+  document.querySelector(selector).textContent = value;
 }
 
-async function loadResults() {
-  const status = document.querySelector("#dataset-status");
+function showRun(run, generatedAt) {
+  setText("#run-resolution", `${run.resolution}³`);
+  setText("#run-end", run.t_end.toFixed(2));
+  setText("#run-frames", run.frames);
+  setText("#rest-until", run.rest_until.toFixed(2));
+  setText("#metric-peak", run.peak_speed.toFixed(3));
+  setText("#metric-vorticity", run.peak_vorticity.toFixed(2));
+  setText("#metric-tracking", percent(run.tracking_relative_l2));
+  setText("#radial-cells", run.cells_per_radial_scale.toFixed(2));
+  setText("#axial-cells", run.cells_per_axial_scale.toFixed(2));
+  setText("#spectral-tail", percent(run.spectral_tail_fraction));
+  setText("#divergence", scientific(run.divergence_linf));
+  setText("#kinetic-energy", run.kinetic_energy.toFixed(6));
+  setText("#force-l2", run.force_l2.toFixed(2));
+  setText(
+    "#data-status",
+    `Verified ${new Date(generatedAt).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })}`,
+  );
+}
+
+async function loadResult() {
   try {
     const response = await fetch("data/results.json", { cache: "no-cache" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-    updateHeadline(data.headline);
-    status.textContent = `Verified ${new Date(data.generated_at).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })} · current best of ${data.history_count} recorded endpoints`;
+    showRun(data.run, data.generated_at);
   } catch (error) {
-    status.textContent = "The current-best record could not be loaded.";
+    setText("#data-status", "Published values shown · live record unavailable");
     console.error(error);
   }
 }
 
-loadResults();
+loadResult();

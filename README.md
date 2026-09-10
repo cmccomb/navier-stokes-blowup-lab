@@ -20,21 +20,22 @@ toward the normalized singular time `t*=1`.
 
 ## Current best
 
-The [results site](https://cmccomb.com/navier-stokes-blowup-lab/) publishes the
-current-best GIF, MP4, endpoint image, and interpretation checks.
+The [results site](https://cmccomb.com/navier-stokes-blowup-lab/) publishes one
+canonical result: the most complete resolved start-from-rest trajectory.
 
-| Late-window endpoint | Value |
+| Complete-run endpoint | Value |
 |---|---:|
-| Grid | `288^3` |
-| Final time | `0.995` |
-| Peak vorticity | `492.51` |
-| Relative target-tracking error | `0.7438%` |
-| Top-third spectral energy | `0.4631%` |
-| Radial scale coverage | `5.29` cells |
-| Divergence `L-infinity` | `1.03e-13` |
+| Grid | `192^3` |
+| Time interval | `0` to `0.99` |
+| Exact rest interval | `0` to `0.55` |
+| Peak vorticity | `215.52` |
+| Relative target-tracking error | `1.566%` |
+| Top-third spectral energy | `0.730%` |
+| Radial scale coverage | `4.99` cells |
+| Divergence `L-infinity` | `4.44e-14` |
 
-The `288^3` run initializes from the manufactured target at `t=0.94`. It is the
-resolution frontier, not the full start-from-rest trajectory.
+The separate `288^3` late-window calculation remains the resolution maximum and
+is documented in the [full results record](docs/results.md).
 
 ## Quick start
 

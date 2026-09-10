@@ -29,12 +29,11 @@ full 3D arrays, or raw fleet output. In an issue or pull request, report the
 complete command, commit SHA, platform, wall time, peak memory, final
 diagnostics, and whether the geometric and spectral resolution gates passed.
 
-To refresh the compact dashboard data from a fleet summary:
+To refresh the public record from one completed start-from-rest run:
 
 ```bash
 uv run python scripts/export_site_results.py \
-  --summary outputs/fleet-overnight-analysis/endpoint-summary.csv \
-  --highlight n288-maximum-safe \
+  --run outputs/current-best-from-rest \
   --output site/data/results.json
 ```
 
@@ -42,8 +41,9 @@ To render publishable media from local slice checkpoints:
 
 ```bash
 uv run python scripts/render_site_media.py \
-  --late-run outputs/paper-surrogate-n224-frontier \
-  --output site/media
+  --run outputs/current-best-from-rest \
+  --output site/media \
+  --endpoint-output site/figures/current-best-endpoint.png
 ```
 
 Commit only compact, representative site media. Put substantially larger

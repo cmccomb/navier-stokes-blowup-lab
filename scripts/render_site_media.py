@@ -22,6 +22,7 @@ def _load(run_dir: Path) -> dict[str, object]:
         payload = {name: data[name] for name in data.files}
     metadata = json.loads((run_dir / "run.json").read_text(encoding="utf-8"))
     payload["resolution"] = int(metadata["config"]["resolution"])
+    payload["rest_until"] = float(metadata["config"]["paper_time_cutoff_start"])
     return payload
 
 
@@ -56,12 +57,17 @@ def _save(animation: FuncAnimation, stem: Path, poster: plt.Figure) -> None:
     )
 
 
-def render_late_time(run_dir: Path, output_dir: Path) -> None:
+def render_run(run_dir: Path, output_dir: Path) -> None:
     data = _load(run_dir)
     resolution = int(data["resolution"])
     computed = _speed(np.asarray(data["velocity"]))
     target = _speed(np.asarray(data["target"]))
     times = np.asarray(data["times"])
+    rest_frames = np.flatnonzero(times <= float(data["rest_until"]))
+    active_frames = np.flatnonzero(times > float(data["rest_until"]))
+    display_frames = np.unique(
+        np.concatenate(([rest_frames[0], rest_frames[-1]], active_frames))
+    )
     vmax = float(np.quantile(np.concatenate([computed.ravel(), target.ravel()]), 0.998))
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.6), facecolor=INK)
@@ -79,12 +85,12 @@ def render_late_time(run_dir: Path, output_dir: Path) -> None:
         for image, field in zip(images, (computed, target)):
             image.set_data(field[frame].T)
         title.set_text(
-            f"{resolution}³ late-time concentration  ·  "
+            f"{resolution}³ from rest  ·  "
             f"t={times[frame]:.3f}  ·  τ={1-times[frame]:.3f}"
         )
         return (*images, title, scale)
 
-    animation = FuncAnimation(fig, update, frames=len(times), interval=250, blit=False)
+    animation = FuncAnimation(fig, update, frames=display_frames, interval=250, blit=False)
     update(len(times) - 1)
     _save(animation, output_dir / "current-best", fig)
     plt.close(fig)
@@ -92,15 +98,22 @@ def render_late_time(run_dir: Path, output_dir: Path) -> None:
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--late-run", type=Path, required=True)
+    parser.add_argument("--run", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--endpoint-output", type=Path, required=True)
     return parser
 
 
 def main(argv: list[str] | None = None) -> None:
     args = _parser().parse_args(argv)
-    render_late_time(args.late_run, args.output)
-    print(f"wrote GIF, MP4, and poster media to {args.output}")
+    render_run(args.run, args.output)
+    from navier_stokes_sim.plotting import plot_snapshots
+    from navier_stokes_sim.solver import load_simulation_result
+
+    result = load_simulation_result(args.run)
+    args.endpoint_output.parent.mkdir(parents=True, exist_ok=True)
+    plot_snapshots(result, args.endpoint_output)
+    print(f"wrote current-run media to {args.output} and {args.endpoint_output}")
 
 
 if __name__ == "__main__":
