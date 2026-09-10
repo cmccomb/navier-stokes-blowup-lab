@@ -43,16 +43,22 @@ uv run ns-blowup --help</code></pre>
         <h2>Full-domain start from rest</h2>
         <pre><code>uv run ns-blowup \
   --resolution 192 --mesh-preset full-domain \
-  --t-start 0 --t-end 0.99 \
-  --frames 121 --frame-spacing similarity \
-  --cfl 0.20 --max-dt 0.00065 \
-  --forcing-phase-step 0.15 \
+  --t-start 0 --t-end 0.985 \
+  --frames 81 --frame-spacing similarity \
+  --cfl 0.20 --max-dt 0.001 \
+  --forcing-phase-step 0.15 --derivative-epsilon 0.000001 \
   --capture-velocity-volumes --capture-force-volumes --volume-frames 12 \
+  --stream-volumes --preview-phase-step 0.3 --preview-resolution 32 \
   --paper-time-cutoff 0.55 0.775 \
   --pressure-projection fft \
   --output outputs/n192-paper-rest-fine \
-  --no-animation --no-3d</code></pre>
+  --save-final-state --no-animation --no-3d</code></pre>
         <p>Similarity-time spacing saves real solver checkpoints more densely near <span class="math">t = 1</span>; the GIF renderer never blends temporally between checkpoints.</p>
+        <p>Run 128³ with the same options for the baseline. Use one production solver per 16 GB machine, with a new output directory for each configuration. Full-resolution float64 vector checkpoints stream to <code>full-volumes/</code>; denser float32 display frames stream to <code>preview-volumes/</code>. Both velocity and force are saved. Rendering a run directory selects the denser preview; pass its <code>full-volumes</code> directory to use sparse analysis checkpoints instead. Streams do not accumulate a full-volume history in RAM.</p>
+        <h2>Check the forcing timestep first</h2>
+        <pre><code>uv run python -m scripts.check_forcing_timestep \
+  --resolution 32 --t-end 0.985 --output outputs/phase-pilot-n32</code></pre>
+        <p>This integrates from rest three times, halving both the maximum step and forcing-phase bound while holding the force-difference half-window at 10<sup>−6</sup>. The summary records successive final-velocity and vorticity differences. A low-resolution temporal pilot is not spatial validation; repeat the comparison at production resolution before making accuracy claims.</p>
 
         <h2>Static core refinement</h2>
         <pre><code>uv run ns-blowup \
@@ -63,7 +69,7 @@ uv run ns-blowup --help</code></pre>
   --pressure-projection fft \
   --output outputs/n192-core-refined \
   --no-animation --no-3d</code></pre>
-        <p>This uses a fixed periodic box of half-width 0.68 and spends 1.47 times as many cells per physical core length. Pair it with the full-domain command at the same <span class="math">N</span>, time clock, and solver settings. See the <a href="derivation.html">mesh derivation and tradeoff</a>.</p>
+        <p>This smaller box is a cutoff-sensitivity experiment, not the preferred refinement. It changes both the spacing and the exterior forcing taper, so it is not a clean grid-convergence comparison. See the <a href="review.html">numerical review</a> and <a href="derivation.html">mesh tradeoff</a>.</p>
 
         <h2>Render direction-aware GIFs</h2>
         <pre><code>uv run python -m scripts.render_flow_gifs \

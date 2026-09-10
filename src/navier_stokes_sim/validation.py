@@ -97,12 +97,15 @@ def _temporal_study(
     output_dir: Path, resume: bool
 ) -> tuple[list[dict[str, float | str]], dict[str, float]]:
     rows: list[dict[str, float | str]] = []
-    steps = (0.05, 0.025, 0.0125, 0.00625, 0.003125)
+    steps = (0.004, 0.002, 0.001, 0.0005, 0.00025)
     base = SimulationConfig(
         resolution=24,
-        t_end=0.5,
+        t_end=0.65,
         frames=2,
         capture_volumes=False,
+        pressure_projection="fft",
+        forcing_phase_step=None,
+        derivative_epsilon=1e-6,
     )
     for integrator in ("euler", "rk2"):
         for max_dt in steps:
@@ -135,6 +138,10 @@ def _temporal_study(
         error = np.asarray(
             [row["tracking_relative_l2"] for row in selected], dtype=float
         )
+        if not np.all(np.isfinite(error) & (error > 0)):
+            raise ValueError(
+                "temporal order requires positive finite errors after activation"
+            )
         orders[integrator] = float(np.polyfit(np.log(dt), np.log(error), 1)[0])
     return rows, orders
 
@@ -174,7 +181,7 @@ def _plot_validation(
     ax.set(
         xlabel="maximum time step",
         ylabel="final relative tracking error",
-        title="Temporal convergence at 24³, t=0.5",
+        title="Early-ramp temporal convergence at 24³, t=0.65",
     )
     ax.grid(True, which="both", alpha=0.25)
     ax.legend()

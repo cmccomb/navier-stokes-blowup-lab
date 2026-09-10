@@ -1,5 +1,7 @@
 import numpy as np
+import pytest
 
+from navier_stokes_sim import validation
 from navier_stokes_sim.config import SimulationConfig
 from navier_stokes_sim.solver import SimulationResult
 from navier_stokes_sim.validation import fit_power_law
@@ -38,3 +40,16 @@ def test_power_law_fit_recovers_known_exponent(tmp_path) -> None:
     fit = fit_power_law(result, "quantity", exponent)
     assert np.isclose(fit.measured_exponent, exponent)
     assert np.isclose(fit.r_squared, 1.0)
+
+
+def test_temporal_audit_reaches_active_forcing(tmp_path, monkeypatch) -> None:
+    def inspect_config(cfg, *args, **kwargs):
+        assert cfg.t_end > cfg.paper_time_cutoff_start
+        assert cfg.forcing_phase_step is None
+        assert cfg.derivative_epsilon == 1e-6
+        assert cfg.max_dt <= 0.004
+        raise RuntimeError("active temporal audit configured")
+
+    monkeypatch.setattr(validation, "run_simulation", inspect_config)
+    with pytest.raises(RuntimeError, match="active temporal audit"):
+        validation._temporal_study(tmp_path, resume=False)
