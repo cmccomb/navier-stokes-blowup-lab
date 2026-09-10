@@ -56,10 +56,11 @@ class SimulationResult:
     force_slices: np.ndarray
     volume_times: np.ndarray
     volume_velocity: np.ndarray | None
+    volume_force: np.ndarray | None
 
 
 _BOOLEAN_DIAGNOSTICS = {"resolved", "forcing_active"}
-_PARTIAL_CHECKPOINT_VERSION = 1
+_PARTIAL_CHECKPOINT_VERSION = 2
 
 
 def load_simulation_result(output_dir: Path) -> SimulationResult:
@@ -129,14 +130,22 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
             f"{len(diagnostics)} diagnostics versus {len(times)} slices"
         )
 
+    volume_times = np.empty(0, dtype=float)
+    volume_velocity = None
+    volume_force = None
     volume_path = output_dir / "volumes.npz"
     if volume_path.is_file():
         with np.load(volume_path, allow_pickle=False) as arrays:
             volume_times = arrays["times"].copy()
             volume_velocity = arrays["velocity"].copy()
-    else:
-        volume_times = np.empty(0, dtype=float)
-        volume_velocity = None
+    force_volume_path = output_dir / "forces.npz"
+    if force_volume_path.is_file():
+        with np.load(force_volume_path, allow_pickle=False) as arrays:
+            force_volume_times = arrays["times"].copy()
+            volume_force = arrays["force"].copy()
+        if len(volume_times) and not np.array_equal(volume_times, force_volume_times):
+            raise ValueError(f"velocity/force volume times differ in {output_dir}")
+        volume_times = force_volume_times
     return SimulationResult(
         config=cfg,
         output_dir=output_dir,
@@ -148,6 +157,7 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
         force_slices=force_slices,
         volume_times=volume_times,
         volume_velocity=volume_velocity,
+        volume_force=volume_force,
     )
 
 
@@ -548,6 +558,7 @@ def _write_partial_checkpoint(
     force_slices: list[np.ndarray],
     volume_times: list[float],
     volume_velocity: list[np.ndarray],
+    volume_force: list[np.ndarray],
 ) -> None:
     """Atomically persist enough state to resume after the latest saved frame."""
 
@@ -575,6 +586,11 @@ def _write_partial_checkpoint(
                 if volume_velocity
                 else np.empty(0, dtype=np.float64)
             ),
+            volume_force=(
+                np.stack(volume_force)
+                if volume_force
+                else np.empty(0, dtype=np.float64)
+            ),
         )
     arrays_temporary.replace(arrays_path)
 
@@ -590,6 +606,7 @@ def _load_partial_checkpoint(
     list[np.ndarray],
     list[np.ndarray],
     list[float],
+    list[np.ndarray],
     list[np.ndarray],
 ] | None:
     arrays_path = output_dir / "partial-checkpoint.npz"
@@ -609,6 +626,7 @@ def _load_partial_checkpoint(
                 "choose another output directory or pass resume=False"
             )
         volume_array = arrays["volume_velocity"]
+        force_volume_array = arrays["volume_force"]
         return (
             float(arrays["t"]),
             arrays["velocity"].copy(),
@@ -619,6 +637,11 @@ def _load_partial_checkpoint(
             [item.copy() for item in arrays["force_slices"]],
             arrays["volume_times"].astype(float).tolist(),
             [item.copy() for item in volume_array] if volume_array.size else [],
+            (
+                [item.copy() for item in force_volume_array]
+                if force_volume_array.size
+                else []
+            ),
         )
 
 
@@ -675,6 +698,7 @@ def run_simulation(
         force_slices: list[np.ndarray] = []
         volume_times: list[float] = []
         volume_velocity: list[np.ndarray] = []
+        volume_force: list[np.ndarray] = []
     else:
         (
             t,
@@ -686,6 +710,7 @@ def run_simulation(
             force_slices,
             volume_times,
             volume_velocity,
+            volume_force,
         ) = partial
         target_np = target_velocity(t, cfg)
         target = _to_field(target_np, cfg)
@@ -703,7 +728,12 @@ def run_simulation(
             )
             recent_forces.append((force_time, force_np))
     volume_indices = set(
-        np.linspace(1, cfg.frames - 1, min(6, cfg.frames - 1), dtype=int).tolist()
+        np.linspace(
+            0,
+            cfg.frames - 1,
+            min(cfg.volume_frames, cfg.frames),
+            dtype=int,
+        ).tolist()
     )
     center_y = cfg.resolution // 2
 
@@ -733,9 +763,14 @@ def run_simulation(
         target_slices.append(target_np[:, center_y, :, :])
         force_slices.append(force_np[:, center_y, :, :])
         frame_index = len(diagnostics) - 1
-        if cfg.capture_volumes and frame_index in volume_indices:
+        if (
+            cfg.capture_volumes or cfg.capture_force_volumes
+        ) and frame_index in volume_indices:
             volume_times.append(save_t)
-            volume_velocity.append(velocity_np.copy())
+            if cfg.capture_volumes:
+                volume_velocity.append(velocity_np.copy())
+            if cfg.capture_force_volumes:
+                volume_force.append(force_np.copy())
         _write_partial_checkpoint(
             output_dir,
             cfg,
@@ -748,6 +783,7 @@ def run_simulation(
             force_slices,
             volume_times,
             volume_velocity,
+            volume_force,
         )
 
     if partial is None:
@@ -835,6 +871,7 @@ def run_simulation(
         force_slices=np.stack(force_slices),
         volume_times=np.asarray(volume_times),
         volume_velocity=np.stack(volume_velocity) if volume_velocity else None,
+        volume_force=np.stack(volume_force) if volume_force else None,
     )
 
     _write_diagnostics(diagnostics, output_dir / "diagnostics.csv")
@@ -851,6 +888,12 @@ def run_simulation(
             output_dir / "volumes.npz",
             times=result.volume_times,
             velocity=result.volume_velocity,
+        )
+    if result.volume_force is not None:
+        np.savez_compressed(
+            output_dir / "forces.npz",
+            times=result.volume_times,
+            force=result.volume_force,
         )
     if save_final_state:
         final_state_temporary = output_dir / "final-state.tmp.npz"
@@ -885,6 +928,7 @@ def run_simulation(
         ),
         "config": cfg.to_dict(),
         "final_state": "final-state.npz" if save_final_state else None,
+        "force_volumes": "forces.npz" if result.volume_force is not None else None,
     }
     (output_dir / "run.json").write_text(
         json.dumps(metadata, indent=2) + "\n", encoding="utf-8"

@@ -138,6 +138,17 @@ def _parser() -> argparse.ArgumentParser:
         "--no-3d", action="store_true", help="skip the interactive 3D field explorer"
     )
     parser.add_argument(
+        "--capture-force-volumes",
+        action="store_true",
+        help="save full 3D force vectors at selected checkpoints to forces.npz",
+    )
+    parser.add_argument(
+        "--volume-frames",
+        type=int,
+        default=6,
+        help="number of full-volume checkpoints, including both endpoints",
+    )
+    parser.add_argument(
         "--integrator",
         choices=("euler", "rk2"),
         default="rk2",
@@ -210,6 +221,8 @@ def main(argv: list[str] | None = None) -> None:
         cfl=args.cfl,
         max_dt=args.max_dt,
         capture_volumes=not args.no_3d,
+        capture_force_volumes=args.capture_force_volumes,
+        volume_frames=args.volume_frames,
     )
     result = run_simulation(
         cfg,

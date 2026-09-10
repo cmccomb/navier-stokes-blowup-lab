@@ -33,6 +33,7 @@ def test_power_law_fit_recovers_known_exponent(tmp_path) -> None:
         force_slices=empty_slices,
         volume_times=np.empty(0),
         volume_velocity=None,
+        volume_force=None,
     )
     fit = fit_power_law(result, "quantity", exponent)
     assert np.isclose(fit.measured_exponent, exponent)

@@ -96,6 +96,7 @@ def test_tiny_solver_run(tmp_path) -> None:
     assert "mesh_spacing_gain" in rows[-1]
     assert "axial_outflow_alignment" in rows[-1]
     assert result.volume_velocity is None
+    assert result.volume_force is None
 
     restored = load_matching_checkpoint(tmp_path, cfg)
     assert restored is not None
@@ -128,6 +129,31 @@ def test_solver_preserves_exact_initial_rest_interval(tmp_path) -> None:
         assert np.count_nonzero(result.velocity_slices[index]) == 0
         assert result.diagnostics[index]["force_linf"] == 0
     assert result.diagnostics[-1]["peak_speed"] > 0
+
+
+def test_full_force_volumes_are_saved_and_restored(tmp_path) -> None:
+    cfg = SimulationConfig(
+        resolution=8,
+        t_end=0.02,
+        frames=3,
+        paper_time_cutoff_start=0.0,
+        paper_time_cutoff_end=0.005,
+        pressure_projection="fft",
+        capture_volumes=False,
+        capture_force_volumes=True,
+        volume_frames=3,
+    )
+    result = run_simulation(cfg, tmp_path)
+    assert result.volume_velocity is None
+    assert result.volume_force is not None
+    assert result.volume_force.shape == (3, 8, 8, 8, 3)
+    assert np.count_nonzero(result.volume_force[0]) == 0
+    assert np.linalg.norm(result.volume_force[-1]) > 0
+    assert (tmp_path / "forces.npz").is_file()
+
+    restored = load_simulation_result(tmp_path)
+    assert np.array_equal(restored.volume_times, result.volume_times)
+    assert np.array_equal(restored.volume_force, result.volume_force)
 
 
 def test_legacy_checkpoint_cannot_masquerade_as_appendix_b_run(tmp_path) -> None:

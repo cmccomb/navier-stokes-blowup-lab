@@ -46,6 +46,7 @@ uv run ns-blowup --help</code></pre>
   --t-start 0 --t-end 0.99 \
   --frames 121 --frame-spacing similarity \
   --cfl 0.20 --max-dt 0.00065 \
+  --capture-force-volumes --volume-frames 12 \
   --paper-time-cutoff 0.55 0.775 \
   --pressure-projection fft \
   --output outputs/n192-paper-rest-fine \
@@ -76,6 +77,7 @@ uv run ns-blowup --help</code></pre>
           <li><code>diagnostics.csv</code>: complete physical and numerical time history.</li>
           <li><code>slices.npz</code>: saved axial and equatorial solver slices.</li>
           <li><code>partial-checkpoint.npz</code>: atomic resumable state, removed after completion.</li>
+          <li><code>forces.npz</code>: full 3D force vectors at the requested volume checkpoints, including both endpoints.</li>
           <li><code>final-state.npz</code>: optional terminal 3D field for convergence comparisons.</li>
         </ul>
 

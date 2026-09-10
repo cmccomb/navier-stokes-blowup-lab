@@ -93,6 +93,8 @@ class SimulationConfig:
     derivative_epsilon: float = 2e-4
     forcing_end: float | None = None
     capture_volumes: bool = True
+    capture_force_volumes: bool = False
+    volume_frames: int = 6
 
     def validate(self) -> None:
         if self.resolution < 8:
@@ -119,6 +121,8 @@ class SimulationConfig:
             raise ValueError("require 0 <= t_start < t_end < t_star")
         if self.frames < 2:
             raise ValueError("frames must be at least 2")
+        if self.volume_frames < 2:
+            raise ValueError("volume_frames must be at least 2")
         if self.frame_spacing not in {"linear", "similarity"}:
             raise ValueError("frame_spacing must be 'linear' or 'similarity'")
         if self.integrator not in {"euler", "rk2"}:

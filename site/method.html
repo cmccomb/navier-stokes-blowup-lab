@@ -49,7 +49,7 @@
         </ul>
 
         <h2>What is measured</h2>
-        <p>Every saved frame records component maxima, energy, enstrophy, helicity, dissipation, force norms, momentum cancellation, divergence, tracking error, Fourier occupancy, BKM accumulation, and cells per similarity scale. Structure diagnostics additionally measure axial-outflow alignment, upper and lower axial flux, measured versus theoretical core aspect ratio, pulse localization, pulse covariance, exterior leakage, and fixed-mesh clearance.</p>
+        <p>Every saved frame records component maxima, energy, enstrophy, helicity, dissipation, force norms, momentum cancellation, divergence, tracking error, Fourier occupancy, BKM accumulation, and cells per similarity scale. Structure diagnostics additionally measure axial-outflow alignment, upper and lower axial flux, measured versus theoretical core aspect ratio, pulse localization, pulse covariance, exterior leakage, and fixed-mesh clearance. Production runs can also preserve the complete three-component 3D force field in <code>forces.npz</code> for volume rendering and spatial audits.</p>
 
         <div class="callout warning"><strong>Interpretation boundary.</strong> This is not an independent numerical proof and is not yet the paper’s exact all-order construction. The informative interval ends when either similarity scale spans fewer than four cells or the spectral tail audit fails. Overflow, CFL failure, or an under-resolved spike is a numerical failure—not a positive result.</div>
 
