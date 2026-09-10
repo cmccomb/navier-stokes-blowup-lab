@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -119,7 +119,7 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     args = _parser().parse_args(argv)
-    generated_at = args.generated_at or datetime.now(timezone.utc).isoformat()
+    generated_at = args.generated_at or datetime.now(UTC).isoformat()
     payload = build_payload(load_summary(args.summary), args.highlight, generated_at)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
