@@ -1,4 +1,4 @@
-"""Interactive three-dimensional rendering of captured vector fields."""
+"""Time-resolved 3D vector fields with fixed scales and component controls."""
 
 from __future__ import annotations
 
@@ -10,180 +10,143 @@ import plotly.graph_objects as go
 
 from .config import SimulationConfig
 from .solver import SimulationResult
-
-VectorField = Literal["velocity", "force"]
-
-
-def _field_labels(field: VectorField) -> tuple[str, str, str]:
-    if field == "velocity":
-        return "Velocity", "|u|", "u"
-    return "Applied force", "|f|", "f"
+from .volume_series import COMPONENTS, VolumeSeries, scalar_values
 
 
-def _frame_traces(
-    vectors: np.ndarray, axis: np.ndarray, field: VectorField = "velocity"
-) -> tuple[go.Isosurface, go.Cone]:
-    resolution = vectors.shape[0]
-    volume_stride = max(1, resolution // 32)
-    vector_stride = max(1, resolution // 10)
-    _, magnitude_label, symbol = _field_labels(field)
+def build_volume_figure(series: VolumeSeries) -> go.Figure:
+    """One trace per scalar keeps component selection across time changes."""
 
-    sampled_axis = axis[::volume_stride]
-    x, y, z = np.meshgrid(sampled_axis, sampled_axis, sampled_axis, indexing="ij")
-    sampled_vectors = vectors[::volume_stride, ::volume_stride, ::volume_stride]
-    magnitude = np.linalg.norm(sampled_vectors, axis=-1)
-    maximum = max(float(np.max(magnitude)), 1e-12)
-    surface = go.Isosurface(
-        x=x.ravel(),
-        y=y.ravel(),
-        z=z.ravel(),
-        value=magnitude.ravel(),
-        isomin=0.16 * maximum,
-        isomax=0.92 * maximum,
-        surface_count=4,
-        colorscale="Magma",
-        opacity=0.34,
-        caps={"x": {"show": False}, "y": {"show": False}, "z": {"show": False}},
-        colorbar={"title": magnitude_label},
-        name=f"{field} magnitude isosurfaces",
-        showscale=True,
-    )
+    stride = max(1, int(np.ceil(len(series.axis) / 32)))
+    axis = series.axis[::stride]
+    x, y, z = np.meshgrid(axis, axis, axis, indexing="ij")
+    coordinates = {"x": x.ravel(), "y": y.ravel(), "z": z.ravel()}
+    vectors = series.vectors[:, ::stride, ::stride, ::stride]
+    limits = {component: series.peak(component) for component in COMPONENTS}
+    cone_stride = max(1, int(np.ceil(len(axis) / 9)))
+    cone_axis = axis[::cone_stride]
+    cx, cy, cz = np.meshgrid(cone_axis, cone_axis, cone_axis, indexing="ij")
+    half = series.config.half_domain
 
-    vector_axis = axis[::vector_stride]
-    vx, vy, vz = np.meshgrid(vector_axis, vector_axis, vector_axis, indexing="ij")
-    sampled_cones = vectors[::vector_stride, ::vector_stride, ::vector_stride]
-    vector_magnitude = np.linalg.norm(sampled_cones, axis=-1)
-    active = vector_magnitude > 0.08 * maximum
-    cone = go.Cone(
-        x=vx[active],
-        y=vy[active],
-        z=vz[active],
-        u=sampled_cones[..., 0][active],
-        v=sampled_cones[..., 1][active],
-        w=sampled_cones[..., 2][active],
-        colorscale="Viridis",
-        sizemode="absolute",
-        sizeref=0.13,
-        showscale=False,
-        name=f"{field} vectors",
-        hovertemplate=(
-            f"{symbol}_x=%{{u:.3g}}<br>{symbol}_y=%{{v:.3g}}"
-            f"<br>{symbol}_z=%{{w:.3g}}<extra></extra>"
-        ),
-    )
-    return surface, cone
-
-
-def write_interactive_volume(
-    result: SimulationResult,
-    destination: Path,
-    field: Literal["auto", "velocity", "force"] = "auto",
-) -> bool:
-    """Write a self-contained Plotly vector-field explorer with a time slider.
-
-    ``auto`` preserves the original velocity-first behavior but falls back to the
-    captured manufactured force.  The boolean return value lets callers skip
-    links cleanly when the requested volume was not captured.
-    """
-
-    selected: VectorField
-    if field == "auto":
-        selected = "velocity" if result.volume_velocity is not None else "force"
-    else:
-        selected = field
-    volumes = (
-        result.volume_velocity if selected == "velocity" else result.volume_force
-    )
-    if volumes is None or not len(result.volume_times):
-        return False
-    return write_interactive_vector_volume(
-        volumes,
-        result.volume_times,
-        result.config,
-        destination,
-        field=selected,
-    )
-
-
-def write_interactive_vector_volume(
-    volumes: np.ndarray,
-    times: np.ndarray,
-    config: SimulationConfig,
-    destination: Path,
-    *,
-    field: VectorField,
-) -> bool:
-    """Write an explorer directly from captured vector-volume arrays."""
-
-    if not len(times) or not len(volumes):
-        return False
-    if len(times) != len(volumes):
-        raise ValueError("volume times and vector volumes must have equal length")
-    title, magnitude_label, _ = _field_labels(field)
-    axis = (
-        np.linspace(
-            -config.half_domain,
-            config.half_domain,
-            config.resolution,
-            endpoint=False,
+    def traces(i: int) -> list:
+        result = []
+        for component in COMPONENTS:
+            maximum = limits[component]
+            magnitude = component == "magnitude"
+            label = (
+                f"|{series.symbol}|" if magnitude else f"{series.symbol}_{component}"
+            )
+            result.append(
+                go.Isosurface(
+                    **coordinates,
+                    value=scalar_values(vectors[i], component).ravel(),
+                    isomin=0.02 * maximum if magnitude else -0.8 * maximum,
+                    isomax=0.8 * maximum,
+                    cmin=0 if magnitude else -maximum,
+                    cmax=maximum,
+                    cauto=False,
+                    surface_count=3 if magnitude else 6,
+                    colorscale="Magma" if magnitude else "RdBu_r",
+                    opacity=0.25,
+                    caps={a: {"show": False} for a in "xyz"},
+                    colorbar={"title": label, "thickness": 14, "len": 0.65},
+                    name=f"{series.field} {component} isosurfaces",
+                    showlegend=False,
+                    hovertemplate=f"{label}=%{{value:.4g}}<extra></extra>",
+                )
+            )
+        cones = vectors[i, ::cone_stride, ::cone_stride, ::cone_stride]
+        norm = np.linalg.norm(cones, axis=-1)
+        active = norm > 0.005 * limits["magnitude"]
+        result.append(
+            go.Cone(
+                x=cx[active],
+                y=cy[active],
+                z=cz[active],
+                u=cones[..., 0][active],
+                v=cones[..., 1][active],
+                w=cones[..., 2][active],
+                sizemode="raw",
+                sizeref=0.35 * half / limits["magnitude"],
+                cmin=0,
+                cmax=limits["magnitude"],
+                cauto=False,
+                colorscale="Viridis",
+                showscale=False,
+                showlegend=False,
+                anchor="tail",
+                name=f"{series.field} vectors",
+                hovertemplate=(
+                    f"{series.symbol}_x=%{{u:.4g}}<br>"
+                    f"{series.symbol}_y=%{{v:.4g}}<br>"
+                    f"{series.symbol}_z=%{{w:.4g}}<extra></extra>"
+                ),
+            )
         )
-        + config.dx / 2
-    )
-    plotly_frames: list[go.Frame] = []
-    labels: list[str] = []
-    for t, vectors in zip(times, volumes, strict=True):
-        traces = _frame_traces(vectors, axis, field)
-        label = f"t={t:.3f}"
-        labels.append(label)
-        plotly_frames.append(go.Frame(name=label, data=list(traces)))
+        return result
 
-    figure = go.Figure(data=plotly_frames[0].data, frames=plotly_frames)
-    steps = [
-        {
-            "method": "animate",
-            "label": label,
-            "args": [
-                [label],
-                {
-                    "mode": "immediate",
-                    "frame": {"duration": 0, "redraw": True},
-                    "transition": {"duration": 0},
-                },
-            ],
-        }
-        for label in labels
+    def title(i: int) -> str:
+        return (
+            f"{series.title} volume · {series.config.mesh_preset} · "
+            f"{series.config.resolution}³ · t = {series.times[i]:.6f}"
+        )
+
+    frames = [
+        go.Frame(
+            name=f"frame-{i}",
+            data=traces(i),
+            traces=list(range(5)),
+            layout={"title": {"text": title(i)}},
+        )
+        for i in range(len(series.times))
     ]
+    initial = traces(0)
+    for i, trace in enumerate(initial):
+        trace.visible = i in (0, 4)
+    figure = go.Figure(data=initial, frames=frames)
     figure.update_layout(
-        title=(
-            f"{title} volume · {config.resolution}³ · "
-            f"{config.mesh_preset}"
-        ),
-        template="plotly_white",
-        margin={"l": 0, "r": 0, "t": 55, "b": 10},
+        title={"text": title(0), "font": {"size": 19}},
+        template="plotly_dark",
+        paper_bgcolor="#07111f",
+        margin={"l": 15, "r": 20, "t": 95, "b": 100},
+        uirevision="preserve-camera",
         scene={
-            "xaxis_title": "x",
-            "yaxis_title": "y",
-            "zaxis_title": "z",
+            **{
+                f"{a}axis": {"title": a, "range": [-half, half], "autorange": False}
+                for a in "xyz"
+            },
             "aspectmode": "cube",
-            "camera": {"eye": {"x": 1.55, "y": 1.35, "z": 1.15}},
+            "camera": {"eye": {"x": 1.5, "y": 1.4, "z": 1.0}},
+            "uirevision": "preserve-camera",
         },
         sliders=[
             {
-                "active": 0,
-                "currentvalue": {"prefix": "Captured time: "},
-                "pad": {"t": 35},
-                "steps": steps,
+                "currentvalue": {"prefix": "Saved time: "},
+                "steps": [
+                    {
+                        "method": "animate",
+                        "label": f"{t:.6f}",
+                        "args": [
+                            [f"frame-{i}"],
+                            {
+                                "mode": "immediate",
+                                "frame": {"duration": 0, "redraw": True},
+                                "transition": {"duration": 0},
+                            },
+                        ],
+                    }
+                    for i, t in enumerate(series.times)
+                ],
             }
         ],
         updatemenus=[
             {
                 "type": "buttons",
                 "direction": "left",
-                "x": 0.02,
-                "y": 0.02,
+                "x": 0,
+                "y": 1.1,
                 "buttons": [
                     {
-                        "label": "Play",
+                        "label": "Play time",
                         "method": "animate",
                         "args": [
                             None,
@@ -202,28 +165,50 @@ def write_interactive_vector_volume(
                             {
                                 "mode": "immediate",
                                 "frame": {"duration": 0, "redraw": False},
+                                "transition": {"duration": 0},
                             },
                         ],
                     },
                 ],
-            }
+            },
+            {
+                "type": "dropdown",
+                "x": 0.55,
+                "y": 1.1,
+                "buttons": [
+                    {
+                        "label": "Magnitude"
+                        if c == "magnitude"
+                        else f"{series.symbol}_{c}",
+                        "method": "restyle",
+                        "args": [{"visible": [i == j for j in range(4)] + [True]}],
+                    }
+                    for i, c in enumerate(COMPONENTS)
+                ],
+            },
         ],
         annotations=[
             {
                 "text": (
-                    f"Isosurfaces show {magnitude_label}; cones show {field} direction. "
-                    "Captured solver checkpoints only; fixed physical coordinates."
+                    "All three vector components · fixed scales and physical axes"
+                    f"<br>{len(axis)}³ display samples · "
+                    "isosurface levels fixed over time · saved checkpoints only"
                 ),
                 "xref": "paper",
                 "yref": "paper",
                 "x": 0.5,
-                "y": 0.01,
+                "y": -0.22,
                 "showarrow": False,
+                "font": {"size": 11},
             }
         ],
     )
+    return figure
+
+
+def write_series_explorer(series: VolumeSeries, destination: Path) -> bool:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    figure.write_html(
+    build_volume_figure(series).write_html(
         destination,
         include_plotlyjs=True,
         full_html=True,
@@ -231,3 +216,34 @@ def write_interactive_vector_volume(
         config={"responsive": True, "displaylogo": False},
     )
     return True
+
+
+def write_interactive_vector_volume(
+    volumes: np.ndarray,
+    times: np.ndarray,
+    config: SimulationConfig,
+    destination: Path,
+    *,
+    field: Literal["velocity", "force"],
+) -> bool:
+    if not len(times) or not len(volumes):
+        return False
+    axis = (np.arange(config.resolution) + 0.5) * config.dx - config.half_domain
+    return write_series_explorer(
+        VolumeSeries(volumes, times, axis, config, field), destination
+    )
+
+
+def write_interactive_volume(
+    result: SimulationResult,
+    destination: Path,
+    field: Literal["auto", "velocity", "force"] = "auto",
+) -> bool:
+    if field == "auto":
+        field = "velocity" if result.volume_velocity is not None else "force"
+    volumes = result.volume_velocity if field == "velocity" else result.volume_force
+    if volumes is None or not len(result.volume_times):
+        return False
+    return write_interactive_vector_volume(
+        volumes, result.volume_times, result.config, destination, field=field
+    )
