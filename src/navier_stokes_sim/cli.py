@@ -138,6 +138,11 @@ def _parser() -> argparse.ArgumentParser:
         "--no-3d", action="store_true", help="skip the interactive 3D field explorer"
     )
     parser.add_argument(
+        "--capture-velocity-volumes",
+        action="store_true",
+        help="save 3D velocity checkpoints even when --no-3d defers rendering",
+    )
+    parser.add_argument(
         "--capture-force-volumes",
         action="store_true",
         help="save full 3D force vectors at selected checkpoints to forces.npz",
@@ -220,7 +225,7 @@ def main(argv: list[str] | None = None) -> None:
         forcing_end=args.forcing_end,
         cfl=args.cfl,
         max_dt=args.max_dt,
-        capture_volumes=not args.no_3d,
+        capture_volumes=args.capture_velocity_volumes or not args.no_3d,
         capture_force_volumes=args.capture_force_volumes,
         volume_frames=args.volume_frames,
     )
@@ -238,7 +243,7 @@ def main(argv: list[str] | None = None) -> None:
         write_interactive_volume(
             result, result.output_dir / "interactive-3d.html", field="velocity"
         )
-    if args.capture_force_volumes:
+    if args.capture_force_volumes and not args.no_3d:
         write_interactive_volume(
             result, result.output_dir / "interactive-force-3d.html", field="force"
         )

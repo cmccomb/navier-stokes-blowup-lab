@@ -77,6 +77,16 @@ def test_fft_projection_matches_centered_discrete_divergence() -> None:
     assert np.allclose(_as_numpy(projected_twice), projected_np, atol=1e-12)
 
 
+def test_fft_projection_preserves_all_centered_null_modes() -> None:
+    cfg = SimulationConfig(resolution=8, pressure_projection="fft")
+    math.set_global_precision(64)
+    x, y, z = np.indices((8, 8, 8))
+    velocity = np.stack(((-1.0) ** x, (-1.0) ** (y + z), np.ones_like(x)), -1)
+    assert np.max(np.abs(discrete_divergence(velocity, cfg.dx))) == 0
+    projected, _ = _project(_to_field(velocity, cfg), Solve("CG"), cfg)
+    assert np.allclose(_as_numpy(projected), velocity, atol=1e-14)
+
+
 def test_tiny_solver_run(tmp_path) -> None:
     cfg = SimulationConfig(
         resolution=8,

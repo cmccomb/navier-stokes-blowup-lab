@@ -318,6 +318,12 @@ def _project(velocity, pressure_solve, cfg: SimulationConfig):
         values = _as_numpy(velocity)
         frequency = np.fft.fftfreq(cfg.resolution)
         symbol = np.sin(2 * np.pi * frequency) / cfg.dx
+        # Both the constant and even-grid Nyquist modes are exact null modes
+        # of a centered derivative. sin(-pi) is only approximately zero in
+        # floating point; dividing by its square would erase checkerboards.
+        symbol[0] = 0.0
+        if cfg.resolution % 2 == 0:
+            symbol[cfg.resolution // 2] = 0.0
         sx = symbol[:, None, None]
         sy = symbol[None, :, None]
         sz = symbol[None, None, :]
