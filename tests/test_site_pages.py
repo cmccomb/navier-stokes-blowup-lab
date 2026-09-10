@@ -30,6 +30,8 @@ def test_documentation_is_a_native_multipage_site() -> None:
         "running.html",
         "results.html",
         "reproduction.html",
+        "review.html",
+        "accuracy.html",
     ):
         assert (SITE / name).is_file()
 

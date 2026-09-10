@@ -31,7 +31,8 @@ def test_cubic_table_eliminates_slope_jumps_and_clamps_exterior() -> None:
     x = np.linspace(0, 1, 73)
     np.testing.assert_allclose(_interp_table(x, grid, values, spline), x**3, atol=1e-14)
     np.testing.assert_array_equal(
-        _interp_table(np.array([-1, 2]), grid, values, spline), [0, 1]
+        _interp_table(np.array([-1, 2]), grid, values, spline),
+        _interp_table(np.array([0, 1]), grid, values, spline),
     )
     knot, eps = 0.5, 1e-7
 

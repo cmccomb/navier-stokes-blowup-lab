@@ -7,6 +7,7 @@ import json
 import time
 from dataclasses import replace
 from itertools import pairwise
+from math import log2
 from pathlib import Path
 
 import numpy as np
@@ -93,6 +94,9 @@ def main() -> None:
         "relative_velocity_differences": differences,
         "relative_vorticity_differences": curl_differences,
         "successive_difference_ratio": ratio,
+        "observed_order": log2(ratio) if ratio is not None and ratio > 0 else None,
+        "finest_error_estimate_assuming_second_order": differences[-1] / 3,
+        "error_estimate_warning": "Richardson estimate is conditional on a verified second-order asymptotic regime; do not use it when the order check fails.",
         "pilot_gate": bool(
             ratio is not None and 2.5 < ratio < 6 and differences[-1] < 1e-3
         ),

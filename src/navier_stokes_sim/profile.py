@@ -505,7 +505,7 @@ def _paper_vector_potentials(
         # carries (r,z) covariance.  Successive levels use smaller amplitudes,
         # higher integer angular modes, and faster radial/axial phases.  The
         # staggered log-time gates mimic the paper's succession of finer pulse
-        # scales while keeping every retained wavelength resolvable.
+        # scales. Retained wavelengths still need an independent grid audit.
         base_radial_phase = cfg.pulse_radial_frequency * np.log(
             np.maximum(similarity_x, 0.25 * cfg.paper_annulus_xa) / cfg.paper_annulus_xa
         )

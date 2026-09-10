@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07111f" />
+    <title>Accuracy budget · Navier–Stokes Singularity Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="index.html"><span class="mark" aria-hidden="true">∇</span><span>Navier–Stokes Simulation</span></a>
+      <nav aria-label="Project navigation"><a href="index.html">Results</a><a href="documentation.html" aria-current="page">Documentation</a><a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">GitHub ↗</a></nav>
+    </header>
+    <main class="docs-shell" id="content">
+      <nav class="docs-nav" aria-label="Documentation pages">
+        <a href="method.html">Model &amp; method</a><a href="derivation.html">Profile derivation</a><a href="running.html">Run it</a><a href="results.html">Numerical record</a><a href="reproduction.html">Reproduction target</a><a href="review.html">Numerical review</a><a href="accuracy.html" aria-current="page">Accuracy budget</a>
+      </nav>
+      <article class="doc-page">
+        <p class="eyebrow">Guide 07 · September 10, 2026</p>
+        <h1>Design the mesh and clock together</h1>
+        <p class="dek">The prescribed finite hierarchy gives us a candidate spatial metric and a predetermined logarithmic time grid. Neither is an accuracy certificate: the design must resolve the forcing, retain the full domain, and pass independent refinement checks.</p>
+
+        <h2>The temporal launch gate failed</h2>
+        <p>The full-interval 32³ pilot integrated from exact rest to <span class="math">t = 0.985</span> with source <code>14ea695</code>. It halved both the maximum timestep and forcing-phase ceiling twice, holding the force-difference half-window at 10<sup>−6</sup>. Successive final-velocity differences were 1.22316 × 10<sup>−4</sup> and 6.47590 × 10<sup>−5</sup> in relative L². Their ratio was 1.889, corresponding to observed order 0.917, rather than the factor of approximately four expected in a second-order regime.</p>
+        <p>The launcher stopped without starting the 128³/192³ production pair. The <a href="data/temporal-linear-n32.json">pilot summary</a> preserves the measurements; elapsed times for cached levels are reload times, not original integration costs. Small differences alone do not justify a Richardson error estimate when the expected order is absent. The current criterion remains a ratio between 2.5 and 6 and a finest-pair difference below 10<sup>−3</sup>; even passing this coarse-grid criterion would not establish spatial accuracy.</p>
+
+        <h2>Remove an unintended source of temporal roughness</h2>
+        <p>The old profile lookup used piecewise-linear interpolation. Moving similarity coordinates cross table knots, where the interpolated profile has slope jumps. The manufactured force differentiates this time-dependent profile. That gives a plausible numerical source of the reduced convergence order, independently of the intended pulse oscillations.</p>
+        <p>Source <code>9d2afb8</code> adds versioned cubic interpolation using <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.CubicSpline.html">SciPy CubicSpline</a>, which is C² between table endpoints. Inputs are clamped to the table range to preserve the old exterior extension; global smoothness across clamped endpoints is not implied. This changes the numerical interpolant, not the analytical construction. Linear interpolation remains available for controlled comparisons, and old checkpoints explicitly retain it.</p>
+        <p>Four from-rest pilots were dispatched with immutable source snapshots: 32³ cubic interpolation; 64³ cubic interpolation; 32³ cubic interpolation with a five-times-smaller force-difference window; and a 32³ linear-table, background-only ablation. Each has three timestep levels. The no-pulse ablation also disables the pulse-phase ceiling, so it is not an otherwise identical-clock comparison. These are diagnostic jobs, not new production results.</p>
+        <p>The <a href="data/temporal-linear-n32-no-pulses.json">linear background-only ablation</a> completed with successive differences 5.18569 × 10<sup>−4</sup> and 3.05940 × 10<sup>−4</sup>, ratio 1.695. Reduced order therefore persists without the added pulses. A paired cubic background-only run was dispatched next to isolate interpolation under the same no-pulse clock. The remaining cubic comparisons were still in progress when this record was written.</p>
+
+        <h2>A predetermined time grid</h2>
+        <p>Let <span class="math">τ = 1 − t</span> and <span class="math">s = −log τ</span>. The implemented phase-rate bound, including quadratic combinations in the force, is <span class="math">C ≈ 42.693</span> for the default hierarchy. Set a maximum phase advance <span class="math">φ = 0.15</span>:</p>
+        <div class="equation">Δs = φ/C ≈ 0.0035134; &nbsp; tₙ = 1 − exp(−sₙ); &nbsp; Δtₙ = τₙ [1 − exp(−Δs)].</div>
+        <p>This schedule is known before integration. At <span class="math">t = 0.985</span> it gives <span class="math">Δt ≤ 5.26088 × 10<sup>−5</sup></span>. The solver must still subdivide for velocity-dependent CFL, viscous stability, the early activation ramp, and exact output events. For the present uniform-grid explicit method, the additional diffusion cap is <span class="math">0.12 Δx²/ν</span>; a future nonuniform discretization needs its own stability bound.</p>
+        <p>For a single constant-frequency source, midpoint quadrature at phase advance 0.15 has relative integral-amplitude error <span class="math">φ/[2 sin(φ/2)] − 1 ≈ 0.094%</span>. This is a useful scale estimate, not the global Navier–Stokes error. The separate display clock uses phase spacing 0.3; render cadence does not determine integration accuracy.</p>
+
+        <h2>Spatial accuracy is stricter than avoiding aliasing</h2>
+        <p>At the midplane, the finest retained radial phase is <span class="math">α log X</span>, with <span class="math">α = 9.2</span>, <span class="math">X = r²/(2 R²τ)</span>, and <span class="math">R = 0.52</span>. Thus its local radial wavenumber is <span class="math">kᵣ = 2α/r</span>, and wavelength <span class="math">λᵣ = πr/α</span>. At the annulus midpoint <span class="math">X = 1.025</span> and <span class="math">t = 0.985</span>, this gives <span class="math">λᵣ ≈ 0.03114</span>.</p>
+        <p>For a resolved Fourier wave sampled with <span class="math">p</span> cells per wavelength, the centered first derivative has amplitude ratio <span class="math">sin(2π/p)/(2π/p)</span>. The three-point Laplacian has ratio <span class="math">[sin(π/p)/(π/p)]²</span>. Eight cells leave about 10% first-derivative amplitude error; sixteen leave about 2.6%. These local stencil estimates are not solution-error bounds.</p>
+        <table>
+          <thead><tr><th>Full-box grid</th><th>Midpoint cells/wavelength</th><th>First-derivative amplitude error</th></tr></thead>
+          <tbody>
+            <tr><td>128³</td><td>1.99</td><td>Below Nyquist; aliased</td></tr>
+            <tr><td>192³</td><td>2.99</td><td>59.0%</td></tr>
+            <tr><td>512³</td><td>7.97</td><td>10.0%</td></tr>
+            <tr><td>1024³</td><td>15.94</td><td>2.6%</td></tr>
+          </tbody>
+        </table>
+        <p>Eight cells across this velocity phase require an even uniform resolution of at least 514³ at the midpoint, or 600³ at the inner half-height of the radial bump. Quadratic advection can double phase wavenumbers: the corresponding eight-cell requirements become 1028³ and 1200³. These are design estimates for selected locations, not claims that all such modes have substantial amplitude at the endpoint. Gates change their activity; envelopes, axial structure, correction terms, and the background need separate analysis.</p>
+        <p>The measured 192³ capacity preflight reached a 10.31 GiB macOS peak footprint. A crude cubic extrapolation gives about 195 GiB at 512³, before revisiting storage and solver design. Four machines running this solver do not pool their RAM. We therefore need a more efficient discretization, not just a larger uniform run.</p>
+
+        <h2>A fixed pre-refined mesh, not a smaller box</h2>
+        <p>A geometric radial mesh follows directly from the phase: requiring at least <span class="math">p</span> cells per cycle gives <span class="math">Δlog r ≤ π/(αp)</span>. Accounting for doubled radial phase halves that limit. With <span class="math">p = 8</span>, the doubled-phase rule permits approximately 2.16% radial growth per cell in the relevant annulus.</p>
+        <p>The mesh must cover the union of active supports over the entire start-from-rest trajectory, not just the final core. It must also resolve axial and angular phase gradients, the axis, amplitude envelopes, the background field, and the original exterior taper. Those requirements define a spatial metric to evaluate before selecting cell counts. A finite near-axis patch and compatible pressure solve are necessary; geometric spacing cannot continue to <span class="math">r = 0</span>.</p>
+        <p>This is a design proposal, not an implemented mesh. The current solver uses one constant <span class="math">Δx</span> and a uniform-grid FFT projection. A stretched grid needs a compatible nonuniform discretization and projection; changing coordinate arrays alone would be incorrect. The existing <code>core-refined</code> preset shrinks the box and changes the taper, so it does not implement this proposal.</p>
+
+        <h2>Reproduce and test the design</h2>
+        <pre><code>uv run python -m navier_stokes_sim.numerical_budget \
+  --t-end 0.985 --points-per-wavelength 8 \
+  --output artifacts/numerical-budget.json
+uv run python -m scripts.check_forcing_timestep \
+  --resolution 32 --profile-interpolation cubic \
+  --derivative-epsilon 0.000001 --output outputs/cubic-pilot</code></pre>
+        <p>The <a href="data/numerical-budget.json">generated design record</a> contains the configuration, wavelength estimates, stencil responses, candidate radial spacings, and complete phase-only time grid. Regression tests compare the symbol formula with the actual centered stencil and the precomputed clock with the runtime phase ceiling.</p>
+        <p>Next: establish temporal order at fixed spatial resolution and force-difference window; check that window independently; then refine space with a sufficiently tight time clock. Compare velocity, vorticity, force components, spectra, and core/taper quantities at matched times. Manufactured-target tracking alone can hide spatial underresolution because the discrete force is built from the discrete target. No finite grid can demonstrate an infinite singular value.</p>
+        <nav class="page-links" aria-label="Adjacent documentation"><a href="review.html">Numerical review →</a><a href="documentation.html">All documentation →</a></nav>
+      </article>
+    </main>
+    <footer><p>Independent open numerical work · not affiliated with OpenAI.</p></footer>
+  </body>
+</html>
