@@ -11,11 +11,28 @@ from navier_stokes_sim.frontier import compare_frontier
 from navier_stokes_sim.profile import discrete_divergence
 from navier_stokes_sim.solver import (
     _as_numpy,
+    _frame_times,
     _project,
     _to_field,
     load_matching_checkpoint,
     run_simulation,
 )
+
+
+def test_similarity_frame_spacing_concentrates_samples_near_singular_time() -> None:
+    linear = SimulationConfig(t_end=0.99, frames=9)
+    similarity = replace(linear, frame_spacing="similarity")
+
+    linear_times = _frame_times(linear)
+    similarity_times = _frame_times(similarity)
+
+    assert similarity_times[0] == 0
+    assert similarity_times[-1] == pytest.approx(0.99)
+    assert np.all(np.diff(similarity_times) > 0)
+    assert np.diff(similarity_times)[-1] < np.diff(linear_times)[-1]
+    assert np.count_nonzero(similarity_times > 0.9) > np.count_nonzero(
+        linear_times > 0.9
+    )
 
 
 def test_fft_projection_matches_centered_discrete_divergence() -> None:

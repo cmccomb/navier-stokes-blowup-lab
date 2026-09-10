@@ -44,6 +44,7 @@ class SimulationConfig:
     t_end: float = 0.94
     t_star: float = 1.0
     frames: int = 25
+    frame_spacing: str = "linear"
     cfl: float = 0.32
     max_dt: float = 0.02
     pressure_rel_tol: float = 1e-7
@@ -69,6 +70,8 @@ class SimulationConfig:
             raise ValueError("require 0 <= t_start < t_end < t_star")
         if self.frames < 2:
             raise ValueError("frames must be at least 2")
+        if self.frame_spacing not in {"linear", "similarity"}:
+            raise ValueError("frame_spacing must be 'linear' or 'similarity'")
         if self.integrator not in {"euler", "rk2"}:
             raise ValueError("integrator must be 'euler' or 'rk2'")
         if self.pressure_projection not in {"auto", "sparse", "matrix-free", "fft"}:

@@ -20,8 +20,10 @@ toward the normalized singular time `t*=1`.
 
 ## Current best
 
-The [results site](https://cmccomb.com/navier-stokes-blowup-lab/) publishes one
-canonical result: the most complete resolved start-from-rest trajectory.
+The [results site](https://cmccomb.com/navier-stokes-blowup-lab/) publishes only
+complete trajectories initialized from exact rest. It is organized as a
+baseline with temporal and spatial refinements; late-window initializations
+remain in the full results record.
 
 | Complete-run endpoint | Value |
 |---|---:|
@@ -67,8 +69,8 @@ validation, visualization, and documentation. Start with
 [CONTRIBUTING.md](CONTRIBUTING.md) and propose experiments with explicit
 resolution, convergence, and falsification criteria.
 
-Large checkpoints and raw fleet output stay outside Git. Compact current-best
-media and result metadata are published automatically through GitHub Pages.
+Large checkpoints and raw fleet output stay outside Git. Compact featured media
+and result metadata are published automatically through GitHub Pages.
 
 ## Primary sources
 

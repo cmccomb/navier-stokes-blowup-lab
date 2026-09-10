@@ -23,6 +23,9 @@ def _write_run(tmp_path, *, t_start=0.0, resolved=True):
                     "paper_time_cutoff_end": 0.775,
                     "integrator": "rk2",
                     "pressure_projection": "fft",
+                    "cfl": 0.2,
+                    "max_dt": 0.008,
+                    "frame_spacing": "similarity",
                 },
             }
         ),
@@ -51,18 +54,33 @@ def _write_run(tmp_path, *, t_start=0.0, resolved=True):
     return run_dir
 
 
-def test_site_export_publishes_one_complete_run(tmp_path):
-    run = load_run(_write_run(tmp_path))
-    payload = build_payload(run, "2026-09-10T00:00:00+00:00")
+def test_site_export_publishes_start_from_rest_set(tmp_path):
+    run = load_run(_write_run(tmp_path), "baseline", "Baseline")
+    payload = build_payload(
+        [run], "baseline", "2026-09-10T00:00:00+00:00"
+    )
 
-    assert payload["run"]["resolution"] == 64
-    assert payload["run"]["frames"] == 1
-    assert payload["run"]["resolved"] is True
-    assert "path" not in payload["run"]
+    assert payload["featured_id"] == "baseline"
+    assert payload["runs"][0]["resolution"] == 64
+    assert payload["runs"][0]["frames"] == 1
+    assert payload["runs"][0]["resolved"] is True
+    assert payload["runs"][0]["max_dt"] == 0.008
+    assert payload["runs"][0]["media"]["mp4"] == "media/baseline.mp4"
+    assert "path" not in payload["runs"][0]
 
 
 @pytest.mark.parametrize("t_start,resolved", [(0.1, True), (0.0, False)])
 def test_site_export_rejects_incomplete_public_claim(tmp_path, t_start, resolved):
-    run = load_run(_write_run(tmp_path, t_start=t_start, resolved=resolved))
+    run = load_run(
+        _write_run(tmp_path, t_start=t_start, resolved=resolved),
+        "candidate",
+        "Candidate",
+    )
     with pytest.raises(ValueError):
-        build_payload(run, "2026-09-10T00:00:00+00:00")
+        build_payload([run], "candidate", "2026-09-10T00:00:00+00:00")
+
+
+def test_site_export_rejects_missing_featured_id(tmp_path):
+    run = load_run(_write_run(tmp_path), "baseline", "Baseline")
+    with pytest.raises(ValueError, match="featured run"):
+        build_payload([run], "missing", "2026-09-10T00:00:00+00:00")

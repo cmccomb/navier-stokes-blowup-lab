@@ -29,11 +29,13 @@ full 3D arrays, or raw fleet output. In an issue or pull request, report the
 complete command, commit SHA, platform, wall time, peak memory, final
 diagnostics, and whether the geometric and spectral resolution gates passed.
 
-To refresh the public record from one completed start-from-rest run:
+To refresh the public record from completed start-from-rest runs:
 
 ```bash
 uv run python scripts/export_site_results.py \
-  --run outputs/current-best-from-rest \
+  --run baseline=outputs/current-best-from-rest \
+  --label "baseline=Baseline trajectory" \
+  --featured baseline \
   --output site/data/results.json
 ```
 
@@ -43,7 +45,9 @@ To render publishable media from local slice checkpoints:
 uv run python scripts/render_site_media.py \
   --run outputs/current-best-from-rest \
   --output site/media \
-  --endpoint-output site/figures/current-best-endpoint.png
+  --stem baseline \
+  --endpoint-output site/figures/baseline-endpoint.png \
+  --movie-frames 120 --fps 20
 ```
 
 Commit only compact, representative site media. Put substantially larger
@@ -66,7 +70,7 @@ uv run ruff check .
 uv run pytest -q
 ```
 
-If the current-best result changes, update `docs/results.md`, the compact Pages
-data, and the representative media in the same pull request. The public page
-shows only the current best; `docs/results.md` keeps the fuller experimental
-record.
+If the featured start-from-rest set changes, update `docs/results.md`, the
+compact Pages data, and the representative media in the same pull request. The
+public page excludes late-window initializations; `docs/results.md` keeps the
+fuller experimental record.

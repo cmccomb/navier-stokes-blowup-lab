@@ -161,7 +161,7 @@ h2 {
 }
 
 h1 {
-  max-width: 11ch;
+  max-width: 10ch;
   margin-bottom: 1.25rem;
   font-size: clamp(2.8rem, 5.5vw, 5.3rem);
   line-height: 0.96;
@@ -185,9 +185,68 @@ h2 {
   font-size: 1.08rem;
 }
 
+.run-picker {
+  margin-bottom: 1.3rem;
+}
+
+.run-picker > span {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.run-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.run-tab {
+  min-height: 2.35rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.run-tab:hover,
+.run-tab.is-active {
+  border-color: var(--cyan);
+  color: var(--paper);
+}
+
+.run-tab.is-active {
+  background: rgba(105, 210, 231, 0.1);
+}
+
+.case-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.case-line strong {
+  font-size: 0.92rem;
+}
+
+.case-line > span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .headline-metrics {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   margin: 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -306,6 +365,58 @@ dd {
   text-align: right;
 }
 
+.comparison {
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.7fr) minmax(0, 1.3fr);
+  gap: clamp(2rem, 7vw, 7rem);
+  align-items: start;
+  padding: 6rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.comparison-table-wrap {
+  overflow-x: auto;
+}
+
+.comparison table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.comparison th,
+.comparison td {
+  padding: 0.8rem 0.7rem;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.comparison th:first-child,
+.comparison td:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.comparison thead th {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.comparison tbody th {
+  color: var(--paper);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.comparison tbody td {
+  color: #c1d0da;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.82rem;
+}
+
 .interpretation {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -382,6 +493,7 @@ footer a {
 @media (max-width: 900px) {
   .result-stage,
   .endpoint,
+  .comparison,
   .interpretation {
     grid-template-columns: 1fr;
   }

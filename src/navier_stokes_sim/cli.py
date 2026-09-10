@@ -36,6 +36,15 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--frames", type=int, default=25, help="number of saved frames")
     parser.add_argument(
+        "--frame-spacing",
+        choices=("linear", "similarity"),
+        default="linear",
+        help=(
+            "saved-frame clock; similarity spacing adds samples near t*=1 "
+            "for smoother late-time playback"
+        ),
+    )
+    parser.add_argument(
         "--viscosity", type=float, default=0.01, help="kinematic viscosity"
     )
     parser.add_argument(
@@ -101,6 +110,12 @@ def _parser() -> argparse.ArgumentParser:
         help="disable the manufactured force at this time and continue freely",
     )
     parser.add_argument(
+        "--cfl",
+        type=float,
+        default=0.32,
+        help="advective CFL limit (default: 0.32)",
+    )
+    parser.add_argument(
         "--max-dt",
         type=float,
         default=0.02,
@@ -126,6 +141,7 @@ def main(argv: list[str] | None = None) -> None:
         t_start=args.t_start,
         t_end=args.t_end,
         frames=args.frames,
+        frame_spacing=args.frame_spacing,
         viscosity=args.viscosity,
         h=args.h,
         paper_time_cutoff_start=args.paper_time_cutoff[0],
@@ -137,6 +153,7 @@ def main(argv: list[str] | None = None) -> None:
         integrator=args.integrator,
         pressure_projection=args.pressure_projection,
         forcing_end=args.forcing_end,
+        cfl=args.cfl,
         max_dt=args.max_dt,
         capture_volumes=not args.no_3d,
     )

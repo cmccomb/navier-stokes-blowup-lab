@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="The most complete start-from-rest run from the Navier–Stokes Blow-up Lab."
+      content="Start-from-rest refinement cases from the Navier–Stokes Blow-up Lab."
     />
     <meta name="theme-color" content="#07111f" />
-    <title>Current result · Navier–Stokes Blow-up Lab</title>
+    <title>Start-from-rest study · Navier–Stokes Blow-up Lab</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="app.js"></script>
@@ -32,17 +32,31 @@
         <div class="result-summary">
           <p class="eyebrow">
             <span class="status-dot" aria-hidden="true"></span>
-            Canonical run · complete · resolved
+            Start-from-rest study · complete trajectories only
           </p>
           <h1 id="result-title">
-            <span id="run-resolution">192³</span> from rest to
-            <span class="math">t = <span id="run-end">0.99</span></span>
+            Start at zero. Refine from there.
           </h1>
           <p class="dek">
-            One continuous <span id="run-frames">51</span>-frame PhiFlow
-            trajectory. The velocity and force are exactly zero through
+            Every featured case begins at <span class="math">t = 0</span>.
+            The velocity and force are exactly zero through
             <span class="math">t = <span id="rest-until">0.55</span></span>,
-            then the vortex forms and concentrates.
+            then the vortex forms and concentrates. Late-window restarts stay
+            in the technical archive.
+          </p>
+
+          <div class="run-picker" aria-labelledby="run-picker-label">
+            <span id="run-picker-label">Start-from-rest cases</span>
+            <div class="run-tabs" id="run-tabs" role="group" aria-label="Select a completed run">
+              <button type="button" class="run-tab is-active" data-run-id="baseline" aria-pressed="true">
+                Baseline
+              </button>
+            </div>
+          </div>
+
+          <p class="case-line">
+            <strong id="run-label">Baseline trajectory</strong>
+            <span><span id="run-resolution">192³</span> · <span class="math">t = 0 → <span id="run-end">0.99</span></span></span>
           </p>
 
           <dl class="headline-metrics" aria-label="Endpoint summary">
@@ -58,6 +72,10 @@
               <dt>Tracking error</dt>
               <dd id="metric-tracking">1.566%</dd>
             </div>
+            <div>
+              <dt>Saved checkpoints</dt>
+              <dd id="run-frames">51</dd>
+            </div>
           </dl>
 
           <p class="verification" id="data-status" role="status">
@@ -67,23 +85,24 @@
 
         <figure class="player-card">
           <video
+            id="result-video"
             controls
             playsinline
             preload="metadata"
-            poster="media/current-best-poster.png"
+            poster="media/baseline-poster.png"
             aria-label="Computed and target velocity from rest through t equals 0.99"
           >
-            <source src="media/current-best.mp4" type="video/mp4" />
+            <source id="result-video-source" src="media/baseline.mp4" type="video/mp4" />
             Your browser cannot play this result video.
           </video>
           <figcaption>
             <div>
-              <strong>Computed field versus target</strong>
-              <span>Axial speed · shared scale · rest interval compressed</span>
+              <strong id="media-title">Baseline computed field versus target</strong>
+              <span>Center-plane speed · similarity-time playback · rest interval compressed</span>
             </div>
             <div class="downloads" aria-label="Download result media">
-              <a href="media/current-best.mp4" download>MP4</a>
-              <a href="media/current-best.gif" download>GIF</a>
+              <a id="download-mp4" href="media/baseline.mp4" download>MP4</a>
+              <a id="download-gif" href="media/baseline.gif" download>GIF</a>
             </div>
           </figcaption>
         </figure>
@@ -92,7 +111,8 @@
       <section class="endpoint" aria-labelledby="endpoint-title">
         <figure class="endpoint-figure">
           <img
-            src="figures/current-best-endpoint.png"
+            id="endpoint-image"
+            src="figures/baseline-endpoint.png"
             alt="Axial and equatorial velocity slices at rest and at t equals 0.99"
             loading="lazy"
             width="2340"
@@ -101,8 +121,8 @@
         </figure>
 
         <div class="endpoint-summary">
-          <p class="kicker">Endpoint at <span class="math">t = 0.99</span></p>
-          <h2 id="endpoint-title">Resolved through the final frame.</h2>
+          <p class="kicker">Endpoint at <span class="math">t = <span id="endpoint-time">0.99</span></span></p>
+          <h2 id="endpoint-title">Resolved through the selected final frame.</h2>
           <p>
             The geometric and Fourier audits both pass. The discrete velocity
             remains divergence-free near machine precision.
@@ -124,7 +144,44 @@
               <dt>Total kinetic energy</dt>
               <dd id="kinetic-energy">0.007288</dd>
             </div>
+            <div>
+              <dt>Maximum solver step</dt>
+              <dd id="max-dt">0.02</dd>
+            </div>
+            <div>
+              <dt>Advective CFL</dt>
+              <dd id="cfl">0.32</dd>
+            </div>
           </dl>
+        </div>
+      </section>
+
+      <section class="comparison" aria-labelledby="comparison-title">
+        <div>
+          <p class="kicker">Controlled comparison</p>
+          <h2 id="comparison-title">One origin, measured refinements.</h2>
+        </div>
+        <div class="comparison-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Case</th>
+                <th scope="col">Grid</th>
+                <th scope="col">Endpoint</th>
+                <th scope="col">Max Δt</th>
+                <th scope="col">Tracking</th>
+              </tr>
+            </thead>
+            <tbody id="comparison-body">
+              <tr>
+                <th scope="row">Baseline trajectory</th>
+                <td>192³</td>
+                <td>0.990</td>
+                <td>0.02</td>
+                <td>1.566%</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -135,7 +192,7 @@
         </div>
         <div class="interpretation-copy">
           <p>
-            This run reproduces formation from exact rest, similarity-scale
+            Every displayed run reproduces formation from exact rest, similarity-scale
             contraction, velocity and vorticity growth, and incompressibility on
             one resolved trajectory.
           </p>

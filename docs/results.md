@@ -20,11 +20,12 @@ fully active from `t=0.775`. All 51 requested frames completed.
 | Manufactured-force `L2` norm | 28.48 |
 | Geometric resolution gate | Pass |
 
-This is the most complete run because formation, activation, and late-time
-concentration occur within one solver trajectory. It is the sole run displayed
-on the [results site](https://cmccomb.com/navier-stokes-blowup-lab/). The force
-norm still grows, and the finite wave model still omits the analytical infinite
-pulse hierarchy and all-order corrections.
+This is the baseline public run because formation, activation, and late-time
+concentration occur within one solver trajectory. The
+[results site](https://cmccomb.com/navier-stokes-blowup-lab/) is restricted to
+complete start-from-rest trajectories and their temporal or spatial
+refinements. The force norm still grows, and the finite wave model still omits
+the analytical infinite pulse hierarchy and all-order corrections.
 
 ## Version 0.6 resolution maximum: `288^3`
 

@@ -36,6 +36,22 @@ uv run ns-blowup \
   --output outputs/n192-paper-rest --no-animation --no-3d
 ```
 
+Publication-quality temporal refinement from exact rest:
+
+```bash
+uv run ns-blowup \
+  --resolution 192 --t-start 0 --t-end 0.99 \
+  --frames 121 --frame-spacing similarity \
+  --cfl 0.20 --max-dt 0.00065 \
+  --paper-time-cutoff 0.55 0.775 --pressure-projection fft \
+  --output outputs/n192-paper-rest-fine --no-animation --no-3d
+```
+
+Similarity-time frame spacing does not invent intermediate solver states. It
+saves more real checkpoints near `t*=1`, where the physical evolution
+accelerates. The media renderer may additionally interpolate playback between
+saved checkpoints and labels that interpolation in the resulting figure.
+
 Late-window refinement initialized from the manufactured target:
 
 ```bash
@@ -102,8 +118,8 @@ The study, validation, fidelity, and frontier commands write compact JSON/CSV
 summaries and comparison figures into their requested output directories.
 
 `outputs/` is ignored by Git. Do not commit full arrays or raw run directories.
-Follow [CONTRIBUTING.md](../CONTRIBUTING.md) when publishing a new current-best
-result.
+Follow [CONTRIBUTING.md](../CONTRIBUTING.md) when publishing a new featured
+start-from-rest result.
 
 ## Verification
 

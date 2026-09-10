@@ -614,6 +614,19 @@ def _load_partial_checkpoint(
         )
 
 
+def _frame_times(cfg: SimulationConfig) -> np.ndarray:
+    """Return the requested output clock without changing the physical interval."""
+    if cfg.frame_spacing == "linear":
+        return np.linspace(cfg.t_start, cfg.t_end, cfg.frames)
+    similarity_start = -np.log(cfg.t_star - cfg.t_start)
+    similarity_end = -np.log(cfg.t_star - cfg.t_end)
+    similarity_times = np.linspace(similarity_start, similarity_end, cfg.frames)
+    times = cfg.t_star - np.exp(-similarity_times)
+    times[0] = cfg.t_start
+    times[-1] = cfg.t_end
+    return times
+
+
 def run_simulation(
     cfg: SimulationConfig,
     output_dir: Path,
@@ -632,7 +645,7 @@ def run_simulation(
             return completed
     math.set_global_precision(64)
 
-    save_times = np.linspace(cfg.t_start, cfg.t_end, cfg.frames)
+    save_times = _frame_times(cfg)
     pressure_solve = Solve(
         "CG",
         rel_tol=cfg.pressure_rel_tol,
