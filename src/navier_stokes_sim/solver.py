@@ -107,10 +107,6 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
         config_values["paper_profile_revision"] = "legacy-hand-shaped"
     cfg = SimulationConfig(**config_values)
     cfg.validate()
-    started = time.monotonic()
-    steps_this_process = 0
-    min_dt_this_process = float("inf")
-    max_dt_this_process = 0.0
     with diagnostics_path.open(newline="", encoding="utf-8") as handle:
         diagnostics = []
         for source_row in csv.DictReader(handle):
@@ -703,6 +699,10 @@ def run_simulation(
     """Run the manufactured-solution experiment and persist raw outputs."""
 
     cfg.validate()
+    started = time.monotonic()
+    steps_this_process = 0
+    min_dt_this_process = float("inf")
+    max_dt_this_process = 0.0
     output_dir.mkdir(parents=True, exist_ok=True)
     if resume:
         completed = load_matching_checkpoint(output_dir, cfg)
