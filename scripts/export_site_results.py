@@ -62,9 +62,21 @@ def load_run(run_dir: Path, run_id: str, label: str) -> dict[str, Any]:
         "cfl": float(config.get("cfl", 0.32)),
         "max_dt": float(config.get("max_dt", 0.02)),
         "media": {
-            "axial_jet": f"media/{run_id}-axial-jet.gif",
-            "equatorial_swirl": f"media/{run_id}-equatorial-swirl.gif",
-            "pulse_forcing": f"media/{run_id}-pulse-forcing.gif",
+            "similarity_outflow": f"media/{run_id}-similarity-outflow.gif",
+            "speed_vertical": f"media/{run_id}-speed-vertical.gif",
+            "speed_equatorial": f"media/{run_id}-speed-equatorial.gif",
+            "axial_velocity_vertical": (
+                f"media/{run_id}-axial-velocity-vertical.gif"
+            ),
+            "axial_velocity_equatorial": (
+                f"media/{run_id}-axial-velocity-equatorial.gif"
+            ),
+            "normal_vorticity_vertical": (
+                f"media/{run_id}-normal-vorticity-vertical.gif"
+            ),
+            "normal_vorticity_equatorial": (
+                f"media/{run_id}-normal-vorticity-equatorial.gif"
+            ),
         },
         **final,
     }

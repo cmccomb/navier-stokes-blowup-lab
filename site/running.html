@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07111f" />
+    <title>Run it · Navier–Stokes Singularity Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="index.html"><span class="mark" aria-hidden="true">∇</span><span>Navier–Stokes Simulation</span></a>
+      <nav aria-label="Project navigation"><a href="index.html">Results</a><a href="documentation.html" aria-current="page">Documentation</a><a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">GitHub ↗</a></nav>
+    </header>
+    <main class="docs-shell" id="content">
+      <nav class="docs-nav" aria-label="Documentation pages">
+        <a href="method.html">Model &amp; method</a>
+        <a href="derivation.html">Profile derivation</a>
+        <a href="running.html" aria-current="page">Run it</a>
+        <a href="results.html">Numerical record</a>
+        <a href="reproduction.html">Reproduction target</a>
+      </nav>
+      <article class="doc-page">
+        <p class="eyebrow">Guide 03</p>
+        <h1>Run the experiment</h1>
+        <p class="dek">Reproducible commands for a smoke test, a full start-from-rest trajectory, the static core refinement, and site media.</p>
+
+        <h2>Install</h2>
+        <p>Use Python 3.11–3.13 and <a href="https://docs.astral.sh/uv/">uv</a>.</p>
+        <pre><code>git clone https://github.com/cmccomb/navier-stokes-singularity-simulation.git
+cd navier-stokes-singularity-simulation
+uv sync --no-editable --extra dev
+uv run ns-blowup --help</code></pre>
+
+        <h2>Smoke test</h2>
+        <pre><code>uv run ns-blowup \
+  --resolution 20 --t-end 0.85 --frames 16 \
+  --pressure-projection fft \
+  --output outputs/smoke</code></pre>
+
+        <h2>Full-domain start from rest</h2>
+        <pre><code>uv run ns-blowup \
+  --resolution 192 --mesh-preset full-domain \
+  --t-start 0 --t-end 0.99 \
+  --frames 121 --frame-spacing similarity \
+  --cfl 0.20 --max-dt 0.00065 \
+  --paper-time-cutoff 0.55 0.775 \
+  --pressure-projection fft \
+  --output outputs/n192-paper-rest-fine \
+  --no-animation --no-3d</code></pre>
+        <p>Similarity-time spacing saves real solver checkpoints more densely near <span class="math">t = 1</span>; the GIF renderer never blends temporally between checkpoints.</p>
+
+        <h2>Static core refinement</h2>
+        <pre><code>uv run ns-blowup \
+  --resolution 192 --mesh-preset core-refined \
+  --t-start 0 --t-end 0.99 \
+  --frames 121 --frame-spacing similarity \
+  --cfl 0.20 --max-dt 0.00065 \
+  --pressure-projection fft \
+  --output outputs/n192-core-refined \
+  --no-animation --no-3d</code></pre>
+        <p>This uses a fixed periodic box of half-width 0.68 and spends 1.47 times as many cells per physical core length. Pair it with the full-domain command at the same <span class="math">N</span>, time clock, and solver settings. See the <a href="derivation.html">mesh derivation and tradeoff</a>.</p>
+
+        <h2>Render direction-aware GIFs</h2>
+        <pre><code>uv run python -m scripts.render_flow_gifs \
+  --run outputs/n192-paper-rest-fine \
+  --output artifacts --stem best \
+  --frames 72 --fps 8</code></pre>
+        <p>The renderer writes a similarity-core axial-outflow GIF and paired physical-plane GIFs for speed, signed vertical velocity, and plane-normal vorticity. It uses saved solver states only and a fixed color scale for each paired view.</p>
+
+        <h2>Output contract</h2>
+        <ul>
+          <li><code>run.json</code>: exact configuration, solver description, timestamp, and scope warning.</li>
+          <li><code>diagnostics.csv</code>: complete physical and numerical time history.</li>
+          <li><code>slices.npz</code>: saved axial and equatorial solver slices.</li>
+          <li><code>partial-checkpoint.npz</code>: atomic resumable state, removed after completion.</li>
+          <li><code>final-state.npz</code>: optional terminal 3D field for convergence comparisons.</li>
+        </ul>
+
+        <h2>Verify before publishing</h2>
+        <pre><code>uv run ruff check .
+uv run pytest -q</code></pre>
+        <p>Publish only complete <span class="math">t = 0</span> trajectories whose endpoint passes both the geometric scale coverage and spectral-tail audits. Raw arrays and run directories remain outside Git.</p>
+
+        <nav class="page-links" aria-label="Adjacent documentation"><a href="derivation.html">← Profile derivation</a><a href="results.html">Numerical record →</a></nav>
+      </article>
+    </main>
+    <footer><p>Independent open numerical work · not affiliated with OpenAI.</p></footer>
+  </body>
+</html>

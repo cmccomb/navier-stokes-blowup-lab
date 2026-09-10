@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07111f" />
+    <title>Profile derivation · Navier–Stokes Singularity Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="index.html"><span class="mark" aria-hidden="true">∇</span><span>Navier–Stokes Simulation</span></a>
+      <nav aria-label="Project navigation"><a href="index.html">Results</a><a href="documentation.html" aria-current="page">Documentation</a><a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">GitHub ↗</a></nav>
+    </header>
+    <main class="docs-shell" id="content">
+      <nav class="docs-nav" aria-label="Documentation pages">
+        <a href="method.html">Model &amp; method</a>
+        <a href="derivation.html" aria-current="page">Profile derivation</a>
+        <a href="running.html">Run it</a>
+        <a href="results.html">Numerical record</a>
+        <a href="reproduction.html">Reproduction target</a>
+      </nav>
+      <article class="doc-page">
+        <p class="eyebrow">Guide 02 · implementation record</p>
+        <h1>From the paper to a finite grid</h1>
+        <p class="dek">This page is the audit trail for the profile now implemented in the solver: what is explicit in the paper, what is chosen numerically, and what remains outside the present reproduction.</p>
+
+        <div class="callout warning"><strong>The central constraint.</strong> The paper proves existence through parameter ranges, continuation, patching, moment matching, and an all-order correction scheme. It does not publish one unique table of complete numerical functions <span class="math">E(X,η)</span>, <span class="math">U(X,η)</span>, and <span class="math">V₀(X,η)</span>. A solver can reproduce the explicit axis data exactly, but any finite off-axis continuation must be named and recorded as a numerical choice.</div>
+
+        <h2>1. Similarity coordinates</h2>
+        <p>Set <span class="math">τ = 1 − t</span>, <span class="math">D = 1/2 − h</span>, and <span class="math">A = 1/2 + h</span>. With normalized height <span class="math">ζ = z/R₀</span>, the physical branch of the paper’s implicit map is solved cell-by-cell:</p>
+        <div class="equation">q − ζ²q<sup>2h</sup> = τ<br />η = ζ / q<sup>D</sup><br />X = (r/R₀)² / (2q).</div>
+        <p>The implementation uses seven Newton steps from a positive asymptotic guess. Its coordinate-closure residual is measured at every saved frame. The cylindrical leading field is organized as <span class="math">u<sub>θ</sub> = q<sup>−A</sup>E</span>, <span class="math">u<sub>z</sub> = q<sup>−A</sup>U</span>, with the radial component constrained by incompressibility.</p>
+
+        <h2>2. Explicit Appendix-B axis data</h2>
+        <p>The updated solver no longer invents a generic odd axial curve. It evaluates the paper’s explicit axis construction on an 8,193-point <span class="math">η</span> table. For <span class="math">d = 1 − η²</span> and <span class="math">L = 1 − 2hη²</span>:</p>
+        <div class="equation">U<sup>*</sup>(η) = 4η + j₀<br />H<sup>*</sup>(η) = Dη + dU<sup>*</sup>(η)<br />ζ<sup>*</sup>(η) = −LH<sup>*</sup> / ((H<sup>*</sup>)² + σ²)<br />φ<sup>*</sup>(η) = exp(Λ ∫<sub>0</sub><sup>η</sup> ζ<sup>*</sup>(w) dw).</div>
+        <p>The integral is evaluated by cumulative trapezoids and shifted so <span class="math">φ<sup>*</sup>(0) = 1</span>. The default offset <span class="math">j₀ = 0.03</span> lies inside the paper’s stated interval <span class="math">0 &lt; j₀ ≤ 0.05</span>.</p>
+
+        <table>
+          <thead><tr><th>Choice</th><th>Default</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><span class="math">h</span></td><td>0.008</td><td>Inside the theorem’s <span class="math">(0, 0.01)</span> interval</td></tr>
+            <tr><td><span class="math">j₀</span></td><td>0.03</td><td>Inside the published axis-data interval</td></tr>
+            <tr><td><span class="math">Λ</span></td><td>2.0</td><td>Finite numerical choice; not certified as “sufficiently large”</td></tr>
+            <tr><td><span class="math">σ</span></td><td>0.25</td><td>Finite numerical choice; not certified as “sufficiently small”</td></tr>
+            <tr><td><span class="math">|η|</span> plateau / taper</td><td>0.86 / 0.98</td><td>Compact numerical continuation</td></tr>
+          </tbody>
+        </table>
+
+        <h2>3. From axis data to a 3D field</h2>
+        <p>The table supplies the near-axis axial datum and its positive auxiliary swirl profile. The current finite continuation carries those functions across the diagnostic core, applies a compact <span class="math">η</span> taper only near <span class="math">|η| = 1</span>, and combines them with radial inner/annular profiles. The radial profile has zero moment, so the meridional vector potential closes outside the annulus.</p>
+        <p>The paper gives an incompressibility identity of the form</p>
+        <div class="equation">V₀ = (X/L) [2ηU − 2Dη 𝒜<sub>X</sub>(U) − d∂<sub>η</sub>𝒜<sub>X</sub>(U)],</div>
+        <p>with the radial operator <span class="math">𝒜<sub>X</sub></span> defined in its profile construction. Numerically, we enforce the same constraint more robustly by building a vector potential and applying the centered discrete curl. Thus the sampled <span class="math">V₀</span> analogue is determined by the same discrete incompressibility operator used by the solver, and <span class="math">∇·u</span> vanishes to roundoff.</p>
+        <p>This is a deliberate fidelity boundary: the explicit axis equations are reproduced; the complete analytic continuation and its profile-cone proof are not claimed.</p>
+
+        <h2>4. Axial-outflow checks</h2>
+        <p>A vertical “jet” is not expected to become dramatically slender at the times currently resolved. The similarity aspect ratio is</p>
+        <div class="equation">ℓ_z / ℓᵣ = τ<sup>−h</sup>.</div>
+        <p>At <span class="math">t = 0.992</span> and <span class="math">h = 0.008</span>, this is only about 1.04. The new core-frame GIF divides physical coordinates by <span class="math">ℓᵣ</span> and <span class="math">ℓ_z</span>, exposing the signed axial evacuation without asking a physical-frame image to manufacture visible slenderness.</p>
+        <p>Each frame now records the theoretical and energy-weighted measured aspect ratios, the fraction of core axial energy pointing away from the dividing plane, upper and lower signed axial fluxes, and their imbalance.</p>
+
+        <h2>5. Static core-refined mesh</h2>
+        <p>The solver’s FFT projection requires a uniform periodic grid, so the first refinement move is a fixed fine box around the known singular core—not dynamic AMR. The core-refined preset changes the half-width from 1.00 to 0.68 at the same <span class="math">N³</span> cell count:</p>
+        <div class="equation">Δx<sub>full</sub> = 2/N<br />Δx<sub>core</sub> = 1.36/N<br />spacing gain = Δx<sub>full</sub>/Δx<sub>core</sub> = 1/0.68 ≈ 1.47.</div>
+        <p>A <span class="math">224³</span> core-box run therefore has the core spacing of roughly a <span class="math">329³</span> full-box run without increasing the field-array count. The fixed spatial taper moves to 0.61–0.66. At activation, the midplane outer annulus estimate is</p>
+        <div class="equation">r<sub>annulus</sub> = R₀√(2τX<sub>b</sub>)<br />= 0.52√(2 · 0.45 · 1.45) ≈ 0.594.</div>
+        <p>That leaves about 0.066 between the midplane annulus and the taper edge—10.9 cells at <span class="math">224³</span>—plus 0.02, or 3.3 cells, between the cutoff and periodic boundary. Both clearances are written into the diagnostics rather than assumed.</p>
+        <div class="callout warning"><strong>Tradeoff.</strong> The core-refined box intentionally gives up part of the fixed exterior and high-<span class="math">|η|</span> annulus. It is a local core-convergence experiment, not a replacement for the full-domain trajectory. Agreement must be judged inside their overlapping core and against a full-box control.</div>
+
+        <h2>6. Remaining analytical gap</h2>
+        <p>The finite three-level pulse hierarchy and bounded deconvolution corrector remain numerical surrogates. The exact stress matching, successive <span class="math">q<sup>2nh</sup></span> corrections, mean corrections, moment constraints at every order, and smooth extension of the residual force through <span class="math">t = 1</span> are not yet instantiated. Those are the next gates, not details to hide behind a favorable picture.</p>
+
+        <h2>Source and implementation</h2>
+        <p>Equations above are transcribed from <a href="https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf">OpenAI’s paper</a>, especially the leading-profile development and Appendix B. The implementation lives in <a href="https://github.com/cmccomb/navier-stokes-singularity-simulation/blob/main/src/navier_stokes_sim/profile.py"><code>profile.py</code></a>; every finite parameter is serialized into <code>run.json</code>.</p>
+
+        <nav class="page-links" aria-label="Adjacent documentation"><a href="method.html">← Model &amp; method</a><a href="running.html">Run it →</a></nav>
+      </article>
+    </main>
+    <footer><p>Independent open numerical work · not affiliated with OpenAI.</p></footer>
+  </body>
+</html>

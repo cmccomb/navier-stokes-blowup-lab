@@ -30,6 +30,7 @@ from scipy import fft
 
 from .config import SimulationConfig
 from .profile import (
+    axial_outflow_diagnostics,
     cylindrical_components,
     discrete_curl,
     energy_weighted_core_widths,
@@ -40,7 +41,7 @@ from .profile import (
     temporal_activation,
 )
 
-DIAGNOSTIC_SCHEMA_VERSION = 5
+DIAGNOSTIC_SCHEMA_VERSION = 6
 
 
 @dataclass
@@ -79,7 +80,7 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
 
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     schema_version = metadata.get("diagnostic_schema_version")
-    if schema_version not in {2, 3, 4, DIAGNOSTIC_SCHEMA_VERSION}:
+    if schema_version not in {2, 3, 4, 5, DIAGNOSTIC_SCHEMA_VERSION}:
         raise ValueError(f"outdated diagnostics checkpoint in {output_dir}")
     config_values = dict(metadata["config"])
     if schema_version == 2:
@@ -95,6 +96,11 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
         config_values["paper_time_cutoff_end"] = config_values.get(
             "ramp_time", 0.15
         )
+    if schema_version <= 5:
+        # Preserve the target that produced the checkpoint.  Without an
+        # explicit revision, old results could otherwise compare equal to the
+        # Appendix-B default and be mistaken for resumable new-profile work.
+        config_values["paper_profile_revision"] = "legacy-hand-shaped"
     cfg = SimulationConfig(**config_values)
     cfg.validate()
     with diagnostics_path.open(newline="", encoding="utf-8") as handle:
@@ -409,6 +415,7 @@ def _diagnostic_row(
         velocity
     )
     structure = paper_structure_diagnostics(t, cfg)
+    axial_structure = axial_outflow_diagnostics(velocity, t, cfg)
     if cfg.profile_model == "paper-surrogate":
         coordinates = paper_similarity_coordinates(t, cfg)
         core_mask = (
@@ -486,6 +493,7 @@ def _diagnostic_row(
         "cells_per_axial_scale": cells_z,
         "resolved": min(cells_r, cells_z) >= cfg.min_cells_per_scale,
         "forcing_active": _forcing_is_active(t, cfg),
+        **axial_structure,
         **structure,
     }
 
@@ -869,11 +877,11 @@ def run_simulation(
         ),
         "scope_warning": (
             "This is not the exact OpenAI construction or a numerical proof of singularity. "
-            "The paper-surrogate has the paper's exact initial rest interval and smooth temporal "
-            "localization, and resolves a finite multiscale approximation of both annular wave "
-            "families with a bounded grid-deconvolution corrector, but not the infinite pulse "
-            "hierarchy or analytical all-order corrections; the manufactured force need not "
-            "remain smooth as t approaches 1."
+            "The paper-surrogate implements the explicit Appendix-B axis data, the exact initial "
+            "rest interval, and smooth temporal localization, then uses a recorded finite "
+            "off-axis continuation and multiscale approximation of both annular wave families. "
+            "It does not reproduce the infinite pulse hierarchy or analytical all-order "
+            "corrections; the manufactured force need not remain smooth as t approaches 1."
         ),
         "config": cfg.to_dict(),
         "final_state": "final-state.npz" if save_final_state else None,

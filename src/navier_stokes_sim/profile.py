@@ -229,6 +229,52 @@ def _interp_table(x: np.ndarray, grid: np.ndarray, values: np.ndarray) -> np.nda
     return np.interp(x, grid, values, left=values[0], right=values[-1])
 
 
+@lru_cache(maxsize=16)
+def _paper_axis_phi_table(
+    h: float,
+    axial_slope: float,
+    axis_offset: float,
+    axis_lambda: float,
+    axis_sigma: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Tabulate the explicit axis datum from equations (B.1)--(B.3)."""
+
+    eta = np.linspace(-1.0, 1.0, 8193)
+    axial_exponent = 0.5 - h
+    d = 1.0 - eta * eta
+    ell = 1.0 - 2.0 * h * eta * eta
+    axial = axial_slope * eta + axis_offset
+    h_star = axial_exponent * eta + d * axial
+    zeta = -ell * h_star / (h_star * h_star + axis_sigma**2)
+    primitive = _cumulative_trapezoid(zeta, eta)
+    primitive -= primitive[len(primitive) // 2]
+    phi = np.exp(np.clip(axis_lambda * primitive, -30.0, 30.0))
+    return eta, phi
+
+
+def paper_axis_profiles(
+    eta: np.ndarray, cfg: SimulationConfig
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return the paper's explicit finite axis data ``(U*, phi*)``.
+
+    The construction fixes ``U*=4 eta+j0`` (with configurable slope for
+    ablations) and defines ``phi*`` by the integral in (B.3).  The theorem
+    leaves the sufficiently-large/small schedule parameters non-unique, so the
+    numerical lambda and sigma remain recorded configuration choices.
+    """
+
+    axis_eta, axis_phi = _paper_axis_phi_table(
+        cfg.h,
+        cfg.paper_axial_slope,
+        cfg.paper_axis_offset,
+        cfg.paper_axis_lambda,
+        cfg.paper_axis_sigma,
+    )
+    axial = cfg.paper_axial_slope * eta + cfg.paper_axis_offset
+    phi = _interp_table(eta, axis_eta, axis_phi)
+    return axial, phi
+
+
 def _curl_vector_potential(
     a_x: np.ndarray,
     a_y: np.ndarray,
@@ -317,9 +363,19 @@ def _paper_vector_potentials(
         _interp_table(similarity_x, table_x, phi_inner_table) - phi_inner_table[-1]
     )
 
-    eta_window = _bump(eta / cfg.paper_eta_support)
-    axial_profile = (eta + cfg.paper_axial_bias) * eta_window
-    swirl_profile = (1.0 + cfg.paper_swirl_bias * eta) * eta_window
+    if cfg.paper_profile_revision == "legacy-hand-shaped":
+        eta_window = _bump(eta / cfg.paper_eta_support)
+        axial_profile = (eta + cfg.paper_axial_bias) * eta_window
+        swirl_profile = (1.0 + cfg.paper_swirl_bias * eta) * eta_window
+    else:
+        # Equations (B.1)--(B.3) specify the near-axis axial and azimuthal data.
+        # Preserve them across the diagnostic core, then taper only near |eta|=1.
+        axis_axial, axis_phi = paper_axis_profiles(eta, cfg)
+        eta_window = _plateau_cutoff(
+            eta, cfg.paper_eta_support, cfg.paper_eta_taper
+        )
+        axial_profile = axis_axial * eta_window
+        swirl_profile = axis_phi * (1.0 + cfg.paper_swirl_bias * eta) * eta_window
     ramp = temporal_activation(t, cfg)
     a_theta = (
         cfg.velocity_scale
@@ -667,6 +723,85 @@ def paper_structure_diagnostics(
         "pulse_correction_energy_fraction": float(
             np.sum(correction * correction) / max(pulse_total, 1e-30)
         ),
+    }
+
+
+def axial_outflow_diagnostics(
+    velocity: np.ndarray,
+    t: float,
+    cfg: SimulationConfig,
+) -> dict[str, float]:
+    """Measure the signed axial evacuation and physical core aspect ratio."""
+
+    scales = similarity_scales(t, cfg)
+    radial_width, axial_width = energy_weighted_core_widths(velocity, cfg, t)
+    theoretical_aspect = scales.axial_length / scales.radial_length
+    measured_aspect = axial_width / max(radial_width, 1e-30)
+    activation_tau = cfg.t_star - cfg.paper_time_cutoff_start
+    activation_midplane_annulus_radius = cfg.base_radius * np.sqrt(
+        2.0 * activation_tau * cfg.paper_annulus_xb
+    )
+    mesh_metrics = {
+        "mesh_spacing_gain": 1.0 / cfg.half_domain,
+        "cutoff_boundary_clearance_cells": (
+            cfg.half_domain - cfg.localization_outer
+        )
+        / cfg.dx,
+        "activation_annulus_clearance_cells": (
+            cfg.localization_outer - activation_midplane_annulus_radius
+        )
+        / cfg.dx,
+    }
+    if cfg.profile_model != "paper-surrogate":
+        return {
+            "similarity_core_aspect_ratio": theoretical_aspect,
+            "measured_core_aspect_ratio": measured_aspect,
+            "axial_outflow_alignment": float("nan"),
+            "upper_axial_flux": float("nan"),
+            "lower_axial_flux": float("nan"),
+            "axial_flux_imbalance": float("nan"),
+            **mesh_metrics,
+        }
+
+    coordinates = paper_similarity_coordinates(t, cfg)
+    core = (
+        (coordinates.x_similarity < cfg.paper_annulus_xa)
+        & (np.abs(coordinates.eta) < cfg.paper_eta_support)
+    )
+    axial = velocity[..., 2]
+    dividing_eta = (
+        -cfg.paper_axial_bias
+        if cfg.paper_profile_revision == "legacy-hand-shaped"
+        else -cfg.paper_axis_offset / cfg.paper_axial_slope
+    )
+    outward_direction = np.sign(coordinates.eta - dividing_eta)
+    axial_energy = float(np.sum(axial[core] ** 2))
+    aligned = core & (outward_direction * axial > 0)
+    alignment = float(np.sum(axial[aligned] ** 2) / max(axial_energy, 1e-30))
+
+    # Measure outward flux through two fixed similarity-height sections.  At
+    # r=0, q=tau/(1-eta^2), so these planes track the contracting core.
+    plane_eta = 0.5
+    q_plane = scales.tau / (1.0 - plane_eta**2)
+    plane_z = cfg.base_height * q_plane ** (0.5 - cfg.h) * plane_eta
+    _, _, z = cell_centers(cfg)
+    z_axis = z[0, 0, :]
+    upper_index = int(np.argmin(np.abs(z_axis - plane_z)))
+    lower_index = int(np.argmin(np.abs(z_axis + plane_z)))
+    upper_core = coordinates.x_similarity[:, :, upper_index] < cfg.paper_annulus_xa
+    lower_core = coordinates.x_similarity[:, :, lower_index] < cfg.paper_annulus_xa
+    upper_flux = float(np.sum(axial[:, :, upper_index][upper_core]) * cfg.dx**2)
+    lower_flux = float(-np.sum(axial[:, :, lower_index][lower_core]) * cfg.dx**2)
+    flux_scale = abs(upper_flux) + abs(lower_flux)
+    imbalance = abs(upper_flux - lower_flux) / max(flux_scale, 1e-30)
+    return {
+        "similarity_core_aspect_ratio": theoretical_aspect,
+        "measured_core_aspect_ratio": measured_aspect,
+        "axial_outflow_alignment": alignment,
+        "upper_axial_flux": upper_flux,
+        "lower_axial_flux": lower_flux,
+        "axial_flux_imbalance": imbalance,
+        **mesh_metrics,
     }
 
 

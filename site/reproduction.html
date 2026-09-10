@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07111f" />
+    <title>Reproduction target · Navier–Stokes Singularity Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="index.html"><span class="mark" aria-hidden="true">∇</span><span>Navier–Stokes Simulation</span></a>
+      <nav aria-label="Project navigation"><a href="index.html">Results</a><a href="documentation.html" aria-current="page">Documentation</a><a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">GitHub ↗</a></nav>
+    </header>
+    <main class="docs-shell" id="content">
+      <nav class="docs-nav" aria-label="Documentation pages">
+        <a href="method.html">Model &amp; method</a>
+        <a href="derivation.html">Profile derivation</a>
+        <a href="running.html">Run it</a>
+        <a href="results.html">Numerical record</a>
+        <a href="reproduction.html" aria-current="page">Reproduction target</a>
+      </nav>
+      <article class="doc-page">
+        <p class="eyebrow">Guide 05</p>
+        <h1>What counts as reproduction?</h1>
+        <p class="dek">A solver-resolved sequence of controlled finite truncations—not merely a flow with the theorem’s headline scaling and not a numerical crash.</p>
+
+        <h2>Required gates</h2>
+        <h3>1. Initial and global geometry</h3>
+        <p>The field begins identically at rest. Temporal and spatial localization preserve smoothness and incompressibility. The implicit <span class="math">(q,η,X)</span> map and anisotropic scales are used directly.</p>
+
+        <h3>2. Leading local field</h3>
+        <p>The explicit axis data and a controlled numerical continuation of <span class="math">E</span>, <span class="math">U</span>, and <span class="math">V₀</span> must satisfy the profile identities, radial moment constraints, axial-outflow checks, and exact heat exterior to improving accuracy.</p>
+
+        <h3>3. Finite all-order hierarchy</h3>
+        <p>Background corrections through order <span class="math">N</span> in powers of <span class="math">q<sup>2h</sup></span> must each carry their own moment and residual-order audit.</p>
+
+        <h3>4. Oscillatory stress realization</h3>
+        <p>Both labelled pulse families must solve their phase and amplitude equations on the auxiliary torus, live inside the intended tails and annulus, and converge in averaged covariance to the prescribed stress.</p>
+
+        <h3>5. Mean and residual corrections</h3>
+        <p>Compactly supported mean corrections and the residual-improvement cycle must reach the same truncation order. The decisive observable is bounded, converging force derivatives near <span class="math">t = 1</span>.</p>
+
+        <h3>6. Coupled convergence</h3>
+        <p>Grid size, timestep density, pulse frequency, and truncation order must increase together. On every resolved interval <span class="math">t ≤ 1 − ε</span>, solution differences and residual-force derivatives should decrease while peak speed grows and kinetic energy remains bounded.</p>
+
+        <h2>Status</h2>
+        <table>
+          <thead><tr><th>Capability</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Exact initial rest interval and smooth activation</td><td>Implemented</td></tr>
+            <tr><td>Implicit paper coordinates and similarity scales</td><td>Implemented</td></tr>
+            <tr><td>Appendix-B explicit axis data</td><td>Implemented</td></tr>
+            <tr><td>Discrete divergence-free finite continuation</td><td>Implemented, surrogate</td></tr>
+            <tr><td>Static core-refined comparison grid</td><td>Implemented, validation pending</td></tr>
+            <tr><td>Finite pulse hierarchy and grid corrector</td><td>Implemented, surrogate</td></tr>
+            <tr><td>Exact stress-matched pulse construction</td><td>Not implemented</td></tr>
+            <tr><td>All-order background and mean corrections</td><td>Not implemented</td></tr>
+            <tr><td>Smooth residual-force extension through t = 1</td><td>Not demonstrated</td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout"><strong>Finite claim.</strong> No computation reaches <span class="math">t = 1</span> or instantiates an infinite hierarchy. The defensible numerical claim is convergence of increasingly faithful finite truncations on resolved pre-singular intervals. The analytical paper supplies the limit.</div>
+
+        <h2>Failure conditions</h2>
+        <ul>
+          <li>Peak growth disappears under grid or timestep refinement.</li>
+          <li>The spectral tail fills before the geometric scale threshold.</li>
+          <li>The core-refined and full-domain trajectories disagree within their shared core.</li>
+          <li>The force or its derivatives diverge because a required analytical cancellation is absent.</li>
+          <li>A claimed result depends on target initialization instead of starting from rest.</li>
+        </ul>
+
+        <nav class="page-links" aria-label="Adjacent documentation"><a href="results.html">← Numerical record</a><a href="documentation.html">Documentation index →</a></nav>
+      </article>
+    </main>
+    <footer><p>Independent open numerical work · not affiliated with OpenAI.</p></footer>
+  </body>
+</html>

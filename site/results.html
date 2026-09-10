@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07111f" />
+    <title>Numerical record · Navier–Stokes Singularity Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="index.html"><span class="mark" aria-hidden="true">∇</span><span>Navier–Stokes Simulation</span></a>
+      <nav aria-label="Project navigation"><a href="index.html">Results</a><a href="documentation.html" aria-current="page">Documentation</a><a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">GitHub ↗</a></nav>
+    </header>
+    <main class="docs-shell" id="content">
+      <nav class="docs-nav" aria-label="Documentation pages">
+        <a href="method.html">Model &amp; method</a>
+        <a href="derivation.html">Profile derivation</a>
+        <a href="running.html">Run it</a>
+        <a href="results.html" aria-current="page">Numerical record</a>
+        <a href="reproduction.html">Reproduction target</a>
+      </nav>
+      <article class="doc-page">
+        <p class="eyebrow">Guide 04</p>
+        <h1>Numerical record</h1>
+        <p class="dek">The strongest completed trajectories, what they establish, and the claims they do not support.</p>
+
+        <h2>Canonical complete run</h2>
+        <p>The public homepage shows one continuous <span class="math">224³</span> trajectory from exact rest at <span class="math">t = 0</span> through <span class="math">t = 0.992</span>. Velocity and force vanish through 0.55, smoothly activate through 0.775, and all 63 requested frames complete.</p>
+        <table>
+          <thead><tr><th>Endpoint at t = 0.992</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Peak speed, solver / target</td><td>3.30140 / 3.24247</td></tr>
+            <tr><td>Relative tracking error</td><td>1.1057%</td></tr>
+            <tr><td>Divergence L∞</td><td>7.11 × 10<sup>−14</sup></td></tr>
+            <tr><td>Peak vorticity</td><td>294.52</td></tr>
+            <tr><td>Total / core kinetic energy</td><td>0.007728 / 0.000188</td></tr>
+            <tr><td>Radial / axial scale coverage</td><td>5.21 / 5.41 cells</td></tr>
+            <tr><td>Top-third spectral energy</td><td>0.5464%</td></tr>
+            <tr><td>Manufactured-force L2 norm</td><td>36.76</td></tr>
+          </tbody>
+        </table>
+        <div class="callout warning">This run predates the Appendix-B axis-profile revision and the finite three-level pulse correction. It remains the public result because it is the highest-resolution completed start-from-rest trajectory, not because it is the most faithful available profile formula.</div>
+
+        <h2>Highest spatial frontier</h2>
+        <p>A <span class="math">288³</span> late-window run reaches <span class="math">t = 0.995</span> with 0.7438% tracking error, divergence <span class="math">1.03 × 10<sup>−13</sup></span>, 5.29 radial cells per scale, 0.4631% top-third spectral energy, and peak vorticity 492.51. Because it initializes from the manufactured target at <span class="math">t = 0.94</span>, it is a concentrated-regime resolution test—not a formation history from rest.</p>
+
+        <h2>Grid refinement</h2>
+        <table>
+          <thead><tr><th>Grid</th><th>Radial cells</th><th>Tracking error</th><th>Top-third energy</th><th>Peak vorticity</th><th>Gate</th></tr></thead>
+          <tbody>
+            <tr><td>128³</td><td>3.33</td><td>3.760%</td><td>3.042%</td><td>122.90</td><td>Fail</td></tr>
+            <tr><td>160³</td><td>4.16</td><td>2.122%</td><td>1.379%</td><td>166.43</td><td>Marginal</td></tr>
+            <tr><td>192³</td><td>4.99</td><td>1.431%</td><td>0.714%</td><td>217.78</td><td>Pass</td></tr>
+          </tbody>
+        </table>
+        <p>Across these equal-window runs, endpoint tracking error decreases with observed order 2.39 and top-third spectral energy with order 3.57. The geometry and Fourier audits agree at <span class="math">192³</span>.</p>
+
+        <h2>Temporal and projection checks</h2>
+        <p>Five timestep refinements recover order 1.013 for projected Euler and 2.176 for projected midpoint RK2. On a small trajectory, the periodic FFT projection differs from PhiFlow’s sparse conjugate-gradient path by <span class="math">4.93 × 10<sup>−8</sup></span> in relative L2 while reducing centered-grid divergence to machine precision.</p>
+
+        <h2>Negative findings that matter</h2>
+        <ul>
+          <li>The manufactured-force norm and its derivatives still grow toward <span class="math">t = 1</span>; the finite surrogate has not reproduced the analytical residual cancellation.</li>
+          <li>Force-release controls relax instead of maintaining concentration.</li>
+          <li>The theoretical core aspect ratio is only about 1.04 at the canonical endpoint, so lack of a visually needle-like jet is expected.</li>
+          <li>Cross-Mac spatial decomposition loses to communication: the fleet is better used for independent trajectories and parameter controls.</li>
+          <li>A numerical blow-up, NaN, or CFL collapse is not evidence of a singular solution.</li>
+        </ul>
+
+        <h2>Current next comparison</h2>
+        <p>The next controlled pair uses the new Appendix-B axis data on full-domain and static core-refined grids with identical saved times. The core grid has 1.47× finer spacing at equal memory; it must agree with the full-domain run inside their overlap before it can extend the usable endpoint.</p>
+
+        <nav class="page-links" aria-label="Adjacent documentation"><a href="running.html">← Run it</a><a href="reproduction.html">Reproduction target →</a></nav>
+      </article>
+    </main>
+    <footer><p>Independent open numerical work · not affiliated with OpenAI.</p></footer>
+  </body>
+</html>

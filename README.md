@@ -37,7 +37,7 @@ remain in the full results record.
 | Divergence `L-infinity` | `7.11e-14` |
 
 The separate `288^3` late-window calculation remains the resolution maximum and
-is documented in the [full results record](docs/results.md).
+is documented in the [full numerical record](https://cmccomb.com/navier-stokes-singularity-simulation/results.html).
 
 ## Quick start
 
@@ -50,16 +50,17 @@ uv run pytest -q
 ```
 
 Results are written under `outputs/`, which is intentionally excluded from Git.
-See the [experiment runbook](docs/running.md) for start-from-rest, refinement,
+See the [experiment runbook](https://cmccomb.com/navier-stokes-singularity-simulation/running.html) for start-from-rest, refinement,
 control, validation, and media commands.
 
 ## Documentation
 
-- [Documentation index](docs/index.md)
-- [Model and numerical method](docs/model.md)
-- [Experiment runbook and outputs](docs/running.md)
-- [Finite-truncation reproduction target](docs/reproduction.md)
-- [Results and validation record](docs/results.md)
+- [Documentation index](https://cmccomb.com/navier-stokes-singularity-simulation/documentation.html)
+- [Model and numerical method](https://cmccomb.com/navier-stokes-singularity-simulation/method.html)
+- [Profile derivation and mesh calculation](https://cmccomb.com/navier-stokes-singularity-simulation/derivation.html)
+- [Experiment runbook and outputs](https://cmccomb.com/navier-stokes-singularity-simulation/running.html)
+- [Finite-truncation reproduction target](https://cmccomb.com/navier-stokes-singularity-simulation/reproduction.html)
+- [Results and validation record](https://cmccomb.com/navier-stokes-singularity-simulation/results.html)
 - [Contribution guide](CONTRIBUTING.md)
 
 ## Contributing

@@ -1,12 +1,14 @@
 import numpy as np
 
-from navier_stokes_sim.config import SimulationConfig
+from navier_stokes_sim.config import SimulationConfig, mesh_preset_parameters
 from navier_stokes_sim.profile import (
+    axial_outflow_diagnostics,
     cylindrical_components,
     discrete_curl,
     discrete_divergence,
     energy_weighted_core_widths,
     paper_annulus_mask,
+    paper_axis_profiles,
     paper_similarity_coordinates,
     paper_structure_diagnostics,
     similarity_scales,
@@ -95,6 +97,53 @@ def test_paper_similarity_coordinates_close_implicit_equation() -> None:
     )
     assert np.max(np.abs(residual)) < 1e-13
     assert np.max(np.abs(coordinates.eta)) < 1
+
+
+def test_paper_axis_profiles_use_explicit_appendix_b_data() -> None:
+    cfg = SimulationConfig(resolution=16, frames=2, t_end=0.8)
+    eta = np.linspace(-0.8, 0.8, 17)
+    axial, phi = paper_axis_profiles(eta, cfg)
+    np.testing.assert_allclose(
+        axial, cfg.paper_axial_slope * eta + cfg.paper_axis_offset
+    )
+    assert np.all(phi > 0)
+    assert np.isclose(phi[len(phi) // 2], 1.0)
+
+
+def test_appendix_b_revision_is_distinct_from_legacy_profile() -> None:
+    cfg = SimulationConfig(resolution=16, frames=2, t_end=0.8)
+    legacy = SimulationConfig(
+        **(cfg.to_dict() | {"paper_profile_revision": "legacy-hand-shaped"})
+    )
+    assert not np.allclose(target_velocity(0.8, cfg), target_velocity(0.8, legacy))
+
+
+def test_axial_outflow_diagnostics_detect_opposed_lobes() -> None:
+    cfg = SimulationConfig(resolution=32, frames=2, t_end=0.85)
+    t = 0.85
+    diagnostics = axial_outflow_diagnostics(target_velocity(t, cfg), t, cfg)
+    assert diagnostics["axial_outflow_alignment"] > 0.85
+    assert diagnostics["upper_axial_flux"] > 0
+    assert diagnostics["lower_axial_flux"] > 0
+    assert diagnostics["similarity_core_aspect_ratio"] > 1
+    assert diagnostics["measured_core_aspect_ratio"] > 0
+    assert diagnostics["mesh_spacing_gain"] == 1
+    assert diagnostics["cutoff_boundary_clearance_cells"] > 0
+
+
+def test_core_refined_mesh_spends_more_cells_on_the_fixed_core() -> None:
+    mesh = mesh_preset_parameters("core-refined")
+    cfg = SimulationConfig(
+        resolution=32,
+        frames=2,
+        t_end=0.85,
+        mesh_preset="core-refined",
+        **mesh,
+    )
+    diagnostics = axial_outflow_diagnostics(target_velocity(0.85, cfg), 0.85, cfg)
+    assert np.isclose(diagnostics["mesh_spacing_gain"], 1 / 0.68)
+    assert diagnostics["cutoff_boundary_clearance_cells"] > 0
+    assert diagnostics["activation_annulus_clearance_cells"] > 0
 
 
 def test_paper_wave_families_are_localized_and_divergence_free() -> None:

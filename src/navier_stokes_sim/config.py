@@ -3,6 +3,29 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from math import isclose
+
+MESH_PRESETS: dict[str, dict[str, float]] = {
+    "full-domain": {
+        "half_domain": 1.0,
+        "localization_inner": 0.72,
+        "localization_outer": 0.94,
+    },
+    "core-refined": {
+        "half_domain": 0.68,
+        "localization_inner": 0.61,
+        "localization_outer": 0.66,
+    },
+}
+
+
+def mesh_preset_parameters(name: str) -> dict[str, float]:
+    """Return an independent copy of a validated static-grid preset."""
+
+    try:
+        return dict(MESH_PRESETS[name])
+    except KeyError as error:
+        raise ValueError(f"unknown mesh preset {name!r}") from error
 
 
 @dataclass(frozen=True)
@@ -14,6 +37,7 @@ class SimulationConfig:
     """
 
     resolution: int = 32
+    mesh_preset: str = "full-domain"
     half_domain: float = 1.0
     viscosity: float = 0.01
     h: float = 0.008
@@ -22,11 +46,19 @@ class SimulationConfig:
     velocity_scale: float = 0.25
     swirl_ratio: float = 0.85
     profile_model: str = "paper-surrogate"
+    paper_profile_revision: str = "appendix-b-axis-v1"
     paper_annulus_xa: float = 0.60
     paper_annulus_xb: float = 1.45
     paper_eta_support: float = 0.86
+    paper_eta_taper: float = 0.98
+    paper_axial_slope: float = 4.0
+    paper_axis_offset: float = 0.03
+    # Retained only so v0.6/v0.7 checkpoints with the old hand-shaped profile
+    # remain loadable.  The Appendix-B profile does not read this parameter.
     paper_axial_bias: float = 0.12
     paper_swirl_bias: float = 0.08
+    paper_axis_lambda: float = 2.0
+    paper_axis_sigma: float = 0.25
     pulses_enabled: bool = True
     pulse_rtheta_strength: float = 0.075
     pulse_rz_strength: float = 0.060
@@ -69,6 +101,18 @@ class SimulationConfig:
             raise ValueError(
                 "resolution must be even so the singular axis lies between cells"
             )
+        if self.mesh_preset not in MESH_PRESETS:
+            raise ValueError(
+                f"mesh_preset must be one of {sorted(MESH_PRESETS)}"
+            )
+        expected_mesh = MESH_PRESETS[self.mesh_preset]
+        for field_name, expected in expected_mesh.items():
+            actual = float(getattr(self, field_name))
+            if not isclose(actual, expected, rel_tol=0, abs_tol=1e-12):
+                raise ValueError(
+                    f"{self.mesh_preset!r} mesh requires {field_name}={expected:g}; "
+                    f"got {actual:g}"
+                )
         if not (0 < self.h < 0.01):
             raise ValueError("h must satisfy the paper's 0 < h < 1/100")
         if not (0 <= self.t_start < self.t_end < self.t_star):
@@ -87,10 +131,26 @@ class SimulationConfig:
             raise ValueError(
                 "profile_model must be 'separable' or 'paper-surrogate'"
             )
+        if self.paper_profile_revision not in {
+            "legacy-hand-shaped",
+            "appendix-b-axis-v1",
+        }:
+            raise ValueError(
+                "paper_profile_revision must be 'legacy-hand-shaped' or "
+                "'appendix-b-axis-v1'"
+            )
         if not (0 < self.paper_annulus_xa < self.paper_annulus_xb):
             raise ValueError("paper annulus must satisfy 0 < Xa < Xb")
         if not (0 < self.paper_eta_support < 1):
             raise ValueError("paper_eta_support must lie in (0, 1)")
+        if not (self.paper_eta_support < self.paper_eta_taper < 1):
+            raise ValueError(
+                "paper_eta_taper must lie between paper_eta_support and 1"
+            )
+        if not (0 < self.paper_axial_slope <= 8):
+            raise ValueError("paper_axial_slope must lie in (0, 8]")
+        if not (0 < self.paper_axis_offset <= 0.05):
+            raise ValueError("paper_axis_offset must lie in (0, 0.05]")
         if self.pulse_azimuthal_mode < 1:
             raise ValueError("pulse_azimuthal_mode must be positive")
         if self.pulse_hierarchy_levels < 1:
@@ -140,6 +200,8 @@ class SimulationConfig:
                 self.derivative_epsilon,
                 self.pulse_radial_frequency,
                 self.pulse_axial_frequency,
+                self.paper_axis_lambda,
+                self.paper_axis_sigma,
             )
             <= 0
         ):

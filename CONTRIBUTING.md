@@ -6,7 +6,7 @@ model, numerical method, validation suite, visualization, and documentation.
 
 ## Start here
 
-1. Read [the reproduction target](docs/reproduction.md). It defines the fidelity gates and
+1. Read [the reproduction target](https://cmccomb.com/navier-stokes-singularity-simulation/reproduction.html). It defines the fidelity gates and
    distinguishes a controlled finite-truncation reproduction from a numerical
    instability.
 2. Install Python 3.11–3.13 and [`uv`](https://docs.astral.sh/uv/).
@@ -70,7 +70,7 @@ uv run ruff check .
 uv run pytest -q
 ```
 
-If the featured start-from-rest set changes, update `docs/results.md`, the
+If the featured start-from-rest set changes, update `site/results.html`, the
 compact Pages data, and the representative media in the same pull request. The
-public page excludes late-window initializations; `docs/results.md` keeps the
+public homepage excludes late-window initializations; `site/results.html` keeps the
 fuller experimental record.

@@ -26,6 +26,10 @@ def _load(run_dir: Path) -> dict[str, object]:
     payload.update(
         resolution=int(config["resolution"]),
         half_domain=float(config.get("half_domain", 1.0)),
+        base_radius=float(config.get("base_radius", 0.52)),
+        base_height=float(config.get("base_height", 0.52)),
+        h=float(config.get("h", 0.008)),
+        t_star=float(config.get("t_star", 1.0)),
         rest_until=float(config["paper_time_cutoff_start"]),
         max_dt=float(config.get("max_dt", 0.02)),
         cfl=float(config.get("cfl", 0.32)),

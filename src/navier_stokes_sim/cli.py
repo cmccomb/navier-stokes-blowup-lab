@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .config import SimulationConfig
+from .config import MESH_PRESETS, SimulationConfig, mesh_preset_parameters
 from .interactive import write_interactive_volume
 from .plotting import plot_animation, plot_diagnostics, plot_snapshots
 from .solver import run_simulation
@@ -21,6 +21,15 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=32,
         help="even grid size in each dimension (default: 32)",
+    )
+    parser.add_argument(
+        "--mesh-preset",
+        choices=tuple(MESH_PRESETS),
+        default="full-domain",
+        help=(
+            "static periodic box: full-domain or core-refined, which spends "
+            "the same cells on a smaller box around the known core"
+        ),
     )
     parser.add_argument(
         "--t-start",
@@ -69,6 +78,18 @@ def _parser() -> argparse.ArgumentParser:
         choices=("paper-surrogate", "separable"),
         default="paper-surrogate",
         help="paper-coordinate target or the v0.3 separable baseline",
+    )
+    parser.add_argument(
+        "--paper-axis-slope",
+        type=float,
+        default=4.0,
+        help="slope in the paper's explicit U*=slope*eta+j0 axis datum",
+    )
+    parser.add_argument(
+        "--paper-axis-offset",
+        type=float,
+        default=0.03,
+        help="j0 offset in the paper's explicit axis datum (default: 0.03)",
     )
     parser.add_argument(
         "--no-pulses",
@@ -160,8 +181,11 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     args = _parser().parse_args(argv)
+    mesh_parameters = mesh_preset_parameters(args.mesh_preset)
     cfg = SimulationConfig(
         resolution=args.resolution,
+        mesh_preset=args.mesh_preset,
+        **mesh_parameters,
         t_start=args.t_start,
         t_end=args.t_end,
         frames=args.frames,
@@ -171,6 +195,8 @@ def main(argv: list[str] | None = None) -> None:
         paper_time_cutoff_start=args.paper_time_cutoff[0],
         paper_time_cutoff_end=args.paper_time_cutoff[1],
         profile_model=args.profile_model,
+        paper_axial_slope=args.paper_axis_slope,
+        paper_axis_offset=args.paper_axis_offset,
         pulses_enabled=not args.no_pulses and args.profile_model == "paper-surrogate",
         pulse_rtheta_strength=args.pulse_strengths[0],
         pulse_rz_strength=args.pulse_strengths[1],

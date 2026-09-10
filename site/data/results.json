@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-09-10T21:01:51.004222+00:00",
+  "generated_at": "2026-09-10T21:31:40.869850+00:00",
   "scope": "Finite-grid manufactured-solution evidence; not an independent proof and not yet the paper's exact infinite construction.",
   "featured_id": "best",
   "runs": [
@@ -22,9 +22,13 @@
       "cfl": 0.32,
       "max_dt": 0.02,
       "media": {
-        "axial_jet": "media/best-axial-jet.gif",
-        "equatorial_swirl": "media/best-equatorial-swirl.gif",
-        "pulse_forcing": "media/best-pulse-forcing.gif"
+        "similarity_outflow": "media/best-similarity-outflow.gif",
+        "speed_vertical": "media/best-speed-vertical.gif",
+        "speed_equatorial": "media/best-speed-equatorial.gif",
+        "axial_velocity_vertical": "media/best-axial-velocity-vertical.gif",
+        "axial_velocity_equatorial": "media/best-axial-velocity-equatorial.gif",
+        "normal_vorticity_vertical": "media/best-normal-vorticity-vertical.gif",
+        "normal_vorticity_equatorial": "media/best-normal-vorticity-equatorial.gif"
       },
       "t": 0.992,
       "peak_speed": 3.3013962167449127,

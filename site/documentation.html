@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Technical documentation for the Navier–Stokes Singularity Simulation." />
+    <meta name="theme-color" content="#07111f" />
+    <title>Documentation · Navier–Stokes Singularity Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#documentation">Skip to documentation</a>
+    <header class="site-header">
+      <a class="wordmark" href="index.html" aria-label="Navier–Stokes simulation home">
+        <span class="mark" aria-hidden="true">∇</span>
+        <span>Navier–Stokes Simulation</span>
+      </a>
+      <nav aria-label="Project navigation">
+        <a href="index.html">Results</a>
+        <a href="documentation.html" aria-current="page">Documentation</a>
+        <a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">GitHub ↗</a>
+      </nav>
+    </header>
+
+    <main id="documentation">
+      <section class="docs-hero">
+        <p class="eyebrow">Documentation</p>
+        <h1>The complete numerical record.</h1>
+        <p class="dek">
+          The equations we implement, the choices the paper leaves free, the
+          static-refinement argument, reproducible commands, and the boundary
+          between this experiment and the analytical theorem.
+        </p>
+      </section>
+
+      <section class="docs-grid" aria-label="Documentation guides">
+        <a class="docs-card" href="method.html">
+          <span class="card-number">01</span>
+          <h2>Model &amp; method</h2>
+          <p>Similarity coordinates, forcing, discretization, pulse hierarchy, and diagnostics.</p>
+        </a>
+        <a class="docs-card" href="derivation.html">
+          <span class="card-number">02</span>
+          <h2>Profile derivation</h2>
+          <p>The Appendix-B axis data, its numerical continuation, and the fixed-core mesh calculation.</p>
+        </a>
+        <a class="docs-card" href="running.html">
+          <span class="card-number">03</span>
+          <h2>Run the simulation</h2>
+          <p>Install, smoke test, start-from-rest production run, refinement preset, and media export.</p>
+        </a>
+        <a class="docs-card" href="results.html">
+          <span class="card-number">04</span>
+          <h2>Numerical record</h2>
+          <p>The current complete run, refinement frontier, convergence checks, and negative findings.</p>
+        </a>
+        <a class="docs-card" href="reproduction.html">
+          <span class="card-number">05</span>
+          <h2>Reproduction target</h2>
+          <p>The fidelity gates required before this can be called a controlled finite-truncation reproduction.</p>
+        </a>
+      </section>
+    </main>
+
+    <footer><p>Independent open numerical work · not affiliated with OpenAI.</p></footer>
+  </body>
+</html>

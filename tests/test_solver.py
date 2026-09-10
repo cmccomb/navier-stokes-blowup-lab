@@ -1,4 +1,5 @@
 import csv
+import json
 from dataclasses import replace
 
 import numpy as np
@@ -15,6 +16,7 @@ from navier_stokes_sim.solver import (
     _project,
     _to_field,
     load_matching_checkpoint,
+    load_simulation_result,
     run_simulation,
 )
 
@@ -91,6 +93,8 @@ def test_tiny_solver_run(tmp_path) -> None:
     assert "paper_coordinate_residual_linf" in rows[-1]
     assert "pulse_annulus_energy_fraction" in rows[-1]
     assert "kinetic_energy_core" in rows[-1]
+    assert "mesh_spacing_gain" in rows[-1]
+    assert "axial_outflow_alignment" in rows[-1]
     assert result.volume_velocity is None
 
     restored = load_matching_checkpoint(tmp_path, cfg)
@@ -124,6 +128,28 @@ def test_solver_preserves_exact_initial_rest_interval(tmp_path) -> None:
         assert np.count_nonzero(result.velocity_slices[index]) == 0
         assert result.diagnostics[index]["force_linf"] == 0
     assert result.diagnostics[-1]["peak_speed"] > 0
+
+
+def test_legacy_checkpoint_cannot_masquerade_as_appendix_b_run(tmp_path) -> None:
+    cfg = SimulationConfig(
+        resolution=8,
+        t_end=0.02,
+        frames=2,
+        paper_time_cutoff_start=0.0,
+        paper_time_cutoff_end=0.005,
+        pressure_projection="fft",
+        capture_volumes=False,
+    )
+    run_simulation(cfg, tmp_path)
+    metadata_path = tmp_path / "run.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    metadata["diagnostic_schema_version"] = 5
+    metadata["config"].pop("paper_profile_revision")
+    metadata_path.write_text(json.dumps(metadata), encoding="utf-8")
+
+    loaded = load_simulation_result(tmp_path)
+    assert loaded.config.paper_profile_revision == "legacy-hand-shaped"
+    assert load_matching_checkpoint(tmp_path, cfg) is None
 
 
 def test_partial_checkpoint_resumes_after_interruption(tmp_path, monkeypatch) -> None:

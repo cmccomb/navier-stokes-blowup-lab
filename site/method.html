@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07111f" />
+    <title>Model &amp; method · Navier–Stokes Singularity Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="index.html"><span class="mark" aria-hidden="true">∇</span><span>Navier–Stokes Simulation</span></a>
+      <nav aria-label="Project navigation"><a href="index.html">Results</a><a href="documentation.html" aria-current="page">Documentation</a><a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">GitHub ↗</a></nav>
+    </header>
+    <main class="docs-shell" id="content">
+      <nav class="docs-nav" aria-label="Documentation pages">
+        <a href="method.html" aria-current="page">Model &amp; method</a>
+        <a href="derivation.html">Profile derivation</a>
+        <a href="running.html">Run it</a>
+        <a href="results.html">Numerical record</a>
+        <a href="reproduction.html">Reproduction target</a>
+      </nav>
+      <article class="doc-page">
+        <p class="eyebrow">Guide 01</p>
+        <h1>Model &amp; numerical method</h1>
+        <p class="dek">A finite, proof-informed manufactured-solution experiment advanced with PhiFlow on a periodic Cartesian grid.</p>
+
+        <h2>Analytical target</h2>
+        <p>Let <span class="math">τ = 1 − t</span>. The paper’s leading core contracts anisotropically while its peak velocity grows:</p>
+        <div class="equation">ℓᵣ ∼ τ<sup>1/2</sup><br />ℓ_z ∼ τ<sup>1/2−h</sup><br />U ∼ τ<sup>−1/2−h</sup><br />E<sub>core</sub> ∼ τ<sup>1/2−3h</sup>, &nbsp;0 &lt; h &lt; 1/100.</div>
+        <p>The solver evaluates the paper’s implicit <span class="math">(q, η, X)</span> map at every cell. Fixed profiles in those coordinates create the contracting inner core, annular transition, and a localized azimuthal exterior. The <a href="derivation.html">profile derivation</a> records exactly which formulas come from the paper and where a finite numerical continuation is introduced.</p>
+
+        <h2>Governing equation</h2>
+        <div class="equation">∂<sub>t</sub>u + (u · ∇)u − νΔu + ∇p = f, &nbsp;&nbsp; ∇ · u = 0.</div>
+        <p>The experiment computes a continuous-time manufactured force from the target’s numerical time derivative and the same discrete momentum operators used by the solver. This makes trajectory tracking testable, but it also means growth of the residual force is a limitation—not evidence of a reproduced singularity.</p>
+
+        <h2>Start from rest</h2>
+        <p>Velocity and force are exactly zero through <span class="math">t = 0.55</span>. A compact-flat smooth cutoff activates the target over <span class="math">0.55 &lt; t &lt; 0.775</span>; the target is fully active afterward. The solver advances the exact-zero interval analytically.</p>
+
+        <h2>Discrete representation</h2>
+        <ul>
+          <li>Cell-centered periodic Cartesian grid and double precision.</li>
+          <li>Velocity generated as a centered discrete curl, giving divergence-free target fields to roundoff.</li>
+          <li>Projected midpoint RK2 by default, with CFL- and viscosity-limited substeps.</li>
+          <li>Exact periodic FFT Helmholtz projection matched to the centered divergence operator for production runs.</li>
+          <li>Finite multiscale annular pulse families plus a bounded grid-deconvolution correction at vector-potential level.</li>
+        </ul>
+
+        <h2>What is measured</h2>
+        <p>Every saved frame records component maxima, energy, enstrophy, helicity, dissipation, force norms, momentum cancellation, divergence, tracking error, Fourier occupancy, BKM accumulation, and cells per similarity scale. Structure diagnostics additionally measure axial-outflow alignment, upper and lower axial flux, measured versus theoretical core aspect ratio, pulse localization, pulse covariance, exterior leakage, and fixed-mesh clearance.</p>
+
+        <div class="callout warning"><strong>Interpretation boundary.</strong> This is not an independent numerical proof and is not yet the paper’s exact all-order construction. The informative interval ends when either similarity scale spans fewer than four cells or the spectral tail audit fails. Overflow, CFL failure, or an under-resolved spike is a numerical failure—not a positive result.</div>
+
+        <h2>Primary sources</h2>
+        <ul>
+          <li><a href="https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf">OpenAI, <em>Finite Time Blowup for Navier–Stokes</em></a>, especially Sections 3–7, 10, and Appendix B.</li>
+          <li><a href="https://github.com/tum-pbs/PhiFlow">PhiFlow</a>, the established PDE framework used for time advancement.</li>
+        </ul>
+
+        <nav class="page-links" aria-label="Adjacent documentation"><a href="documentation.html">← Documentation</a><a href="derivation.html">Profile derivation →</a></nav>
+      </article>
+    </main>
+    <footer><p>Independent open numerical work · not affiliated with OpenAI.</p></footer>
+  </body>
+</html>
