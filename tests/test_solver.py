@@ -15,6 +15,7 @@ from navier_stokes_sim.solver import (
     _frame_times,
     _project,
     _to_field,
+    _volume_frame_indices,
     load_matching_checkpoint,
     load_simulation_result,
     run_simulation,
@@ -35,6 +36,22 @@ def test_similarity_frame_spacing_concentrates_samples_near_singular_time() -> N
     assert np.count_nonzero(similarity_times > 0.9) > np.count_nonzero(
         linear_times > 0.9
     )
+
+
+def test_force_volume_slots_focus_on_active_interval() -> None:
+    cfg = SimulationConfig(
+        t_end=0.985,
+        frames=81,
+        frame_spacing="similarity",
+        capture_volumes=False,
+        capture_force_volumes=True,
+        volume_frames=24,
+    )
+    times = _frame_times(cfg)
+    indices = sorted(_volume_frame_indices(times, cfg))
+    assert len(indices) == 24
+    assert indices[0] == 0
+    assert np.all(times[indices[1:]] > cfg.paper_time_cutoff_start)
 
 
 def test_fft_projection_matches_centered_discrete_divergence() -> None:

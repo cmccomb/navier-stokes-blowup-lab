@@ -658,6 +658,27 @@ def _frame_times(cfg: SimulationConfig) -> np.ndarray:
     return times
 
 
+def _volume_frame_indices(
+    save_times: np.ndarray, cfg: SimulationConfig
+) -> set[int]:
+    """Keep one rest baseline and spend remaining 3D slots on active forcing."""
+
+    if not (cfg.capture_volumes or cfg.capture_force_volumes):
+        return set()
+    count = min(cfg.volume_frames, cfg.frames)
+    if count == 1:
+        return {0}
+    active_start = int(
+        np.searchsorted(save_times, cfg.paper_time_cutoff_start, side="right")
+    )
+    active_start = min(max(active_start, 1), cfg.frames - 1)
+    active_count = min(count - 1, cfg.frames - active_start)
+    active_indices = np.linspace(
+        active_start, cfg.frames - 1, active_count, dtype=int
+    )
+    return {0, *active_indices.tolist()}
+
+
 def run_simulation(
     cfg: SimulationConfig,
     output_dir: Path,
@@ -727,14 +748,7 @@ def run_simulation(
                 else np.zeros_like(force_target_np)
             )
             recent_forces.append((force_time, force_np))
-    volume_indices = set(
-        np.linspace(
-            0,
-            cfg.frames - 1,
-            min(cfg.volume_frames, cfg.frames),
-            dtype=int,
-        ).tolist()
-    )
+    volume_indices = _volume_frame_indices(save_times, cfg)
     center_y = cfg.resolution // 2
 
     def save_frame(save_t: float) -> None:
