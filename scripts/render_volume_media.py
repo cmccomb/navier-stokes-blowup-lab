@@ -53,6 +53,9 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--stem", default="volume")
     parser.add_argument("--component", choices=COMPONENTS, default="magnitude")
     parser.add_argument("--camera", choices=("orbit", "fixed"), default="orbit")
+    parser.add_argument(
+        "--style", choices=("isosurface", "cloud"), default="isosurface"
+    )
     parser.add_argument("--format", choices=("gif", "mp4", "both"), default="both")
     parser.add_argument("--t-end", type=float, help="last allowed saved time")
     parser.add_argument(
@@ -81,6 +84,7 @@ def main(argv: list[str] | None = None) -> None:
             orbit=args.camera == "orbit",
             vmax=args.vmax,
             vector_max=args.vector_max,
+            style=args.style,
         )
         print(f"wrote {destination}")
     manifest = {
@@ -91,6 +95,8 @@ def main(argv: list[str] | None = None) -> None:
         "display_samples_per_axis": len(series.axis),
         "mesh": series.config.mesh_preset,
         "coordinates": "physical",
+        "style": args.style,
+        "surface_mesh_stride": 2 if args.style == "isosurface" else None,
         "camera": args.camera,
         "scalar_limit": args.vmax or series.peak(args.component),
         "vector_limit": args.vector_max or series.peak("magnitude"),

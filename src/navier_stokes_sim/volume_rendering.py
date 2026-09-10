@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.animation import FFMpegWriter, FuncAnimation, PillowWriter
 from matplotlib.colors import LinearSegmentedColormap, SymLogNorm
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from skimage.measure import marching_cubes
 
 from .config import SimulationConfig
 from .volume_series import Component, VolumeSeries, scalar_values
@@ -189,6 +191,7 @@ def write_time_animation(
     maximum_points: int = 7_000,
     vmax: float | None = None,
     vector_max: float | None = None,
+    style: Literal["isosurface", "cloud"] = "isosurface",
 ) -> None:
     """Animate measured states; camera motion never interpolates fluid fields.
 
@@ -200,11 +203,36 @@ def write_time_animation(
         raise ValueError("fps, holds and maximum_points must be positive")
     if destination.suffix.lower() not in {".gif", ".mp4"}:
         raise ValueError("animation destination must end in .gif or .mp4")
+    if style not in {"isosurface", "cloud"}:
+        raise ValueError("style must be isosurface or cloud")
     peak = series.peak(component) if vmax is None else float(vmax)
     vector_peak = series.peak("magnitude") if vector_max is None else float(vector_max)
     if not np.isfinite([peak, vector_peak]).all() or min(peak, vector_peak) <= 0:
         raise ValueError("color and vector limits must be finite and positive")
     magnitude = component == "magnitude"
+    surface_levels = peak * np.asarray(
+        [0.02, 0.10, 0.40] if magnitude else [-0.4, -0.1, 0.1, 0.4]
+    )
+    meshes = []
+    spacing = float(series.axis[1] - series.axis[0])
+    if not np.allclose(np.diff(series.axis), spacing):
+        raise ValueError("isosurfaces require uniformly spaced sample coordinates")
+    if style == "isosurface":
+        for frame in series.vectors:
+            scalar = scalar_values(frame, component)
+            frame_meshes = []
+            for level in surface_levels:
+                if scalar.min() < level < scalar.max():
+                    vertices, faces, _, _ = marching_cubes(
+                        scalar,
+                        level=float(level),
+                        spacing=(spacing,) * 3,
+                        step_size=2,
+                        allow_degenerate=False,
+                    )
+                    vertices += series.axis[0]
+                    frame_meshes.append((vertices[faces], float(level)))
+            meshes.append(frame_meshes)
     norm = SymLogNorm(
         linthresh=0.0001 * peak,
         linscale=0.7,
@@ -244,6 +272,8 @@ def write_time_animation(
     )
     axis.set_box_aspect((1, 1, 1))
     axis.tick_params(colors=MUTED, labelsize=9, length=0)
+    for setter in (axis.set_xticks, axis.set_yticks, axis.set_zticks):
+        setter([-half, 0, half])
     for item in (axis.xaxis, axis.yaxis, axis.zaxis):
         item.label.set_color(MUTED)
         item.pane.fill = False
@@ -258,6 +288,7 @@ def write_time_animation(
         depthshade=False,
         linewidths=0,
     )
+    scatter.set_visible(style == "cloud")
     colorbar = fig.colorbar(scatter, ax=axis, fraction=0.035, pad=0.025)
     scalar_label = f"|{series.symbol}|" if magnitude else f"{series.symbol}_{component}"
     colorbar.set_label(scalar_label, color=MUTED, fontsize=13)
@@ -271,11 +302,17 @@ def write_time_animation(
         y=0.97,
     )
     time_label = fig.text(0.5, 0.87, "", color=PAPER, ha="center", fontsize=13)
+    representation = (
+        "fixed isosurfaces at 2%, 10%, 40% of sequence peak"
+        if magnitude
+        else "fixed isosurfaces at ±10%, ±40% of sequence peak"
+    )
     fig.text(
         0.5,
         0.035,
         "Saved states · fixed physical axes and color scale · arrows use x, y, z\n"
-        f"{len(series.axis)}³ spatial samples · equal checkpoint holds; rest compressed",
+        + (representation if style == "isosurface" else "fixed voxel sample")
+        + f"\n{len(series.axis)}³ input samples · equal checkpoint holds; rest compressed",
         color=MUTED,
         ha="center",
         fontsize=9,
@@ -286,9 +323,11 @@ def write_time_animation(
         saved = [0]
     frame_indices = np.repeat(saved, holds)
     quiver = None
+    surface_artists = []
+    last_saved_index = None
 
     def update(animation_frame: int):
-        nonlocal quiver
+        nonlocal quiver, surface_artists, last_saved_index
         i = int(frame_indices[animation_frame])
         v = series.vectors[i]
         values = scalar_values(v, component).ravel()[indices]
@@ -299,6 +338,21 @@ def write_time_animation(
         scatter.set_array(None)
         scatter.set_facecolors(rgba)
         scatter.set_edgecolors(rgba)
+        if style == "isosurface" and i != last_saved_index:
+            for artist in surface_artists:
+                artist.remove()
+            surface_artists = []
+            for triangles, level in meshes[i]:
+                artist = Poly3DCollection(
+                    triangles,
+                    facecolors=cmap(norm(level)),
+                    linewidths=0,
+                    alpha=0.14 + 0.7 * abs(level) / peak,
+                    shade=True,
+                )
+                axis.add_collection3d(artist)
+                surface_artists.append(artist)
+            last_saved_index = i
         if quiver is not None:
             quiver.remove()
         arrows = v[selection].reshape(-1, 3)
