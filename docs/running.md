@@ -68,6 +68,11 @@ uv run ns-blowup --forcing-end 0.55 --output outputs/released
 uv run ns-blowup --no-pulses --output outputs/no-pulses
 ```
 
+The default pulse surrogate retains three scales and one bounded grid-
+correction pass. For finite-hierarchy studies, use `--pulse-levels`,
+`--pulse-scale-ratio`, `--pulse-correction-strength`, and
+`--pulse-correction-passes`.
+
 Each saved frame writes an atomic checkpoint. Repeating the same command resumes
 matching work. Use `--no-resume` only when a clean recomputation is intentional.
 
@@ -112,7 +117,18 @@ A standalone run writes:
 - `interactive-3d.html`: self-contained Plotly field explorer, unless disabled.
 - `slices.npz` and optional `volumes.npz`: compressed follow-on arrays.
 - `partial-checkpoint.npz` and optional `final-state.npz`: restart and comparison
-  state.
+state.
+
+Direction-aware GIFs can be rendered from any completed checkpoint without
+re-running the solver:
+
+```bash
+uv run python -m scripts.render_flow_gifs \
+  --run outputs/n192-paper-rest --output artifacts --stem best
+```
+
+This writes separate axial-jet, equatorial-swirl, and pulse-forcing GIFs. None
+of the three views uses a target-comparison panel.
 
 The study, validation, fidelity, and frontier commands write compact JSON/CSV
 summaries and comparison figures into their requested output directories.

@@ -40,7 +40,7 @@ from .profile import (
     temporal_activation,
 )
 
-DIAGNOSTIC_SCHEMA_VERSION = 4
+DIAGNOSTIC_SCHEMA_VERSION = 5
 
 
 @dataclass
@@ -79,7 +79,7 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
 
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     schema_version = metadata.get("diagnostic_schema_version")
-    if schema_version not in {2, 3, DIAGNOSTIC_SCHEMA_VERSION}:
+    if schema_version not in {2, 3, 4, DIAGNOSTIC_SCHEMA_VERSION}:
         raise ValueError(f"outdated diagnostics checkpoint in {output_dir}")
     config_values = dict(metadata["config"])
     if schema_version == 2:
@@ -870,9 +870,10 @@ def run_simulation(
         "scope_warning": (
             "This is not the exact OpenAI construction or a numerical proof of singularity. "
             "The paper-surrogate has the paper's exact initial rest interval and smooth temporal "
-            "localization, and resolves two annular wave families, but not the infinite pulse "
-            "hierarchy or all-order corrections; the manufactured force need not remain smooth "
-            "as t approaches 1."
+            "localization, and resolves a finite multiscale approximation of both annular wave "
+            "families with a bounded grid-deconvolution corrector, but not the infinite pulse "
+            "hierarchy or analytical all-order corrections; the manufactured force need not "
+            "remain smooth as t approaches 1."
         ),
         "config": cfg.to_dict(),
         "final_state": "final-state.npz" if save_final_state else None,

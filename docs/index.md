@@ -1,7 +1,7 @@
 # Documentation
 
 This directory is the authoritative technical documentation for the
-Navier–Stokes Blow-up Lab. The root README is intentionally limited to project
+Navier–Stokes Singularity Simulation. The root README is intentionally limited to project
 orientation and a smoke-run command.
 
 ## Guides
@@ -17,5 +17,5 @@ orientation and a smoke-run command.
 
 Repository policy and review expectations live in
 [CONTRIBUTING.md](../CONTRIBUTING.md). The public
-[current-best results page](https://cmccomb.com/navier-stokes-blowup-lab/)
+[current-best results page](https://cmccomb.com/navier-stokes-singularity-simulation/)
 intentionally shows less than these documents.

@@ -1,31 +1,33 @@
 # Results from the expanded numerical study
 
-## Current canonical run: `192^3` from rest
+## Current canonical run: `224^3` from rest
 
-The public result is one continuous `192^3` trajectory from exact rest at
-`t=0` through `t=0.99`. The velocity and manufactured force vanish identically
+The public result is one continuous `224^3` trajectory from exact rest at
+`t=0` through `t=0.992`. The velocity and manufactured force vanish identically
 through `t=0.55`, transition with the compact-flat temporal cutoff, and are
-fully active from `t=0.775`. All 51 requested frames completed.
+fully active from `t=0.775`. All 63 requested frames completed.
 
-| Endpoint diagnostic at `t=0.99` | Result |
+| Endpoint diagnostic at `t=0.992` | Result |
 |---|---:|
-| Peak speed, solver / target | 2.83834 / 2.75790 |
-| Relative target-tracking error | 1.5661% |
-| Divergence `L-infinity` | `4.44e-14` |
-| Peak vorticity | 215.52 |
-| Total / core kinetic energy | 0.007288 / 0.000204 |
-| Radial / axial scale coverage | 4.99 / 5.18 cells |
-| 95%-energy Fourier mode | 56.87 |
-| Top-third spectral energy | 0.7301% |
-| Manufactured-force `L2` norm | 28.48 |
+| Peak speed, solver / target | 3.30140 / 3.24247 |
+| Relative target-tracking error | 1.1057% |
+| Divergence `L-infinity` | `7.11e-14` |
+| Peak vorticity | 294.52 |
+| Total / core kinetic energy | 0.007728 / 0.000188 |
+| Radial / axial scale coverage | 5.21 / 5.41 cells |
+| 95%-energy Fourier mode | 63.54 |
+| Top-third spectral energy | 0.5464% |
+| Manufactured-force `L2` norm | 36.76 |
 | Geometric resolution gate | Pass |
 
-This is the baseline public run because formation, activation, and late-time
+This is the canonical public run because formation, activation, and late-time
 concentration occur within one solver trajectory. The
-[results site](https://cmccomb.com/navier-stokes-blowup-lab/) is restricted to
+[results site](https://cmccomb.com/navier-stokes-singularity-simulation/) is restricted to
 complete start-from-rest trajectories and their temporal or spatial
-refinements. The force norm still grows, and the finite wave model still omits
-the analytical infinite pulse hierarchy and all-order corrections.
+refinements. The force norm still grows. This completed trajectory predates the
+new finite three-level pulse hierarchy and grid-deconvolution corrector; it
+remains public because it is the highest-resolution complete start-from-rest
+result.
 
 ## Version 0.6 resolution maximum: `288^3`
 

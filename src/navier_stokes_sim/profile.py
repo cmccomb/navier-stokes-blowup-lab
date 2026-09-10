@@ -2,9 +2,10 @@
 
 ``paper-surrogate`` follows the paper's implicit similarity coordinates,
 inner/annular/exterior decomposition, axial bias, and two oscillatory annular
-wave families.  The waves are resolved surrogates for the paper's pulse
-hierarchy, not its all-order convex-integration construction.  ``separable``
-retains the earlier compact leading-vortex baseline for controlled comparison.
+wave families.  Each family is represented by a finite scale hierarchy and a
+grid-aware deconvolution corrector.  These remain resolved surrogates, not the
+paper's infinite all-order correction construction.  ``separable`` retains the
+earlier compact leading-vortex baseline for controlled comparison.
 """
 
 from __future__ import annotations
@@ -132,6 +133,19 @@ def cell_centers(cfg: SimulationConfig) -> tuple[np.ndarray, np.ndarray, np.ndar
 
 def _central_difference(values: np.ndarray, axis: int, dx: float) -> np.ndarray:
     return (np.roll(values, -1, axis=axis) - np.roll(values, 1, axis=axis)) / (2 * dx)
+
+
+def _discrete_laplacian(values: np.ndarray, dx: float) -> np.ndarray:
+    """Periodic seven-point Laplacian used by the pulse corrector."""
+
+    result = np.zeros_like(values)
+    for axis in range(3):
+        result += (
+            np.roll(values, -1, axis=axis)
+            - 2.0 * values
+            + np.roll(values, 1, axis=axis)
+        ) / dx**2
+    return result
 
 
 def paper_similarity_coordinates(t: float, cfg: SimulationConfig) -> PaperCoordinates:
@@ -269,14 +283,18 @@ def _separable_target_velocity(t: float, cfg: SimulationConfig) -> np.ndarray:
 
 def _paper_vector_potentials(
     t: float, cfg: SimulationConfig
-) -> tuple[tuple[np.ndarray, np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray, np.ndarray]]:
-    """Return background and two-family pulse vector potentials."""
+) -> tuple[
+    tuple[np.ndarray, np.ndarray, np.ndarray],
+    tuple[np.ndarray, np.ndarray, np.ndarray],
+    tuple[np.ndarray, np.ndarray, np.ndarray],
+]:
+    """Return background, finite pulse hierarchy, and grid corrector potentials."""
 
     scales = similarity_scales(t, cfg)
     shape = (cfg.resolution,) * 3
     zeros = np.zeros(shape, dtype=np.float64)
     if scales.velocity == 0:
-        return (zeros, zeros, zeros), (zeros, zeros, zeros)
+        return (zeros, zeros, zeros), (zeros, zeros, zeros), (zeros, zeros, zeros)
 
     coordinates = paper_similarity_coordinates(t, cfg)
     q = coordinates.q
@@ -373,7 +391,6 @@ def _paper_vector_potentials(
         )
         pulse_eta = _bump(eta / cfg.paper_eta_support)
         envelope = annulus * pulse_eta * localization
-        mode = cfg.pulse_azimuthal_mode
         log_phase = (
             2
             * np.pi
@@ -394,41 +411,96 @@ def _paper_vector_potentials(
         local_length = cfg.base_radius * np.sqrt(q)
 
         # curl(A_z e_z) carries (r,theta) covariance; curl(A_theta e_theta)
-        # carries (r,z) covariance.  Integer angular modes close around the
-        # complete ring and have zero angular mean, as required in Section 7.
-        radial_phase = cfg.pulse_radial_frequency * np.log(
+        # carries (r,z) covariance.  Successive levels use smaller amplitudes,
+        # higher integer angular modes, and faster radial/axial phases.  The
+        # staggered log-time gates mimic the paper's succession of finer pulse
+        # scales while keeping every retained wavelength resolvable.
+        base_radial_phase = cfg.pulse_radial_frequency * np.log(
             np.maximum(similarity_x, 0.25 * cfg.paper_annulus_xa)
             / cfg.paper_annulus_xa
         )
-        phase_one = mode * theta + radial_phase + log_phase
-        phase_two = (
-            (mode + 1) * theta
-            + radial_phase
-            + cfg.pulse_axial_frequency * eta
-            - 0.73 * log_phase
-            + np.pi / 3
-        )
-        pulse_z = (
-            cfg.pulse_rtheta_strength
-            * pulse_gate(0.18)
-            * local_velocity
-            * local_length
-            * envelope
-            * np.sin(phase_one)
-            / mode
-        )
-        pulse_theta = (
-            cfg.pulse_rz_strength
-            * pulse_gate(0.68)
-            * local_velocity
-            * local_length
-            * envelope
-            * np.cos(phase_two)
-            / (mode + 1)
-        )
+        pulse_theta = np.zeros_like(a_theta)
+        for level in range(cfg.pulse_hierarchy_levels):
+            amplitude = cfg.pulse_scale_ratio**level
+            mode = cfg.pulse_azimuthal_mode + level * cfg.pulse_mode_stride
+            frequency_scale = 1.0 + 0.65 * level
+            level_phase = 0.41 * level * np.pi
+            phase_one = (
+                mode * theta
+                + frequency_scale * base_radial_phase
+                + (1.0 + 0.17 * level) * log_phase
+                + level_phase
+            )
+            phase_two = (
+                (mode + 1) * theta
+                + frequency_scale * base_radial_phase
+                + frequency_scale * cfg.pulse_axial_frequency * eta
+                - (0.73 + 0.09 * level) * log_phase
+                + np.pi / 3
+                - level_phase
+            )
+            pulse_z += (
+                cfg.pulse_rtheta_strength
+                * amplitude
+                * pulse_gate((0.18 + 0.21 * level) % 1.0)
+                * local_velocity
+                * local_length
+                * envelope
+                * np.sin(phase_one)
+                / mode
+            )
+            pulse_theta += (
+                cfg.pulse_rz_strength
+                * amplitude
+                * pulse_gate((0.68 + 0.21 * level) % 1.0)
+                * local_velocity
+                * local_length
+                * envelope
+                * np.cos(phase_two)
+                / (mode + 1)
+            )
         pulse_x = -sine * pulse_theta
         pulse_y = cosine * pulse_theta
-    return background, (pulse_x, pulse_y, pulse_z)
+
+    primary = (pulse_x, pulse_y, pulse_z)
+    correction = tuple(np.zeros_like(component) for component in primary)
+    if cfg.pulse_correction_strength > 0 and cfg.pulse_correction_passes > 0:
+        corrected_components: list[np.ndarray] = []
+        correction_components: list[np.ndarray] = []
+        for component in primary:
+            corrected = component.copy()
+            for _ in range(cfg.pulse_correction_passes):
+                # A bounded unsharp/deconvolution step pre-emphasizes structure
+                # lost by the centered grid.  Applying it to A (not u) retains
+                # the exact discrete div(curl(A)) identity.
+                corrected -= (
+                    cfg.pulse_correction_strength
+                    * cfg.dx**2
+                    * _discrete_laplacian(corrected, cfg.dx)
+                )
+            corrected_components.append(corrected)
+            correction_components.append(corrected - component)
+        correction = tuple(correction_components)
+    return background, primary, correction
+
+
+def target_velocity_decomposition(
+    t: float, cfg: SimulationConfig
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return background, finite pulse hierarchy, and numerical correction."""
+
+    if cfg.profile_model == "separable":
+        background = _separable_target_velocity(t, cfg)
+        zeros = np.zeros_like(background)
+        return background, zeros, zeros
+    background_potential, pulse_potential, correction_potential = (
+        _paper_vector_potentials(t, cfg)
+    )
+    return (
+        _curl_vector_potential(*background_potential, cfg.dx),
+        _curl_vector_potential(*pulse_potential, cfg.dx),
+        _curl_vector_potential(*correction_potential, cfg.dx),
+    )
 
 
 def target_velocity_components(
@@ -436,20 +508,15 @@ def target_velocity_components(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return paper-surrogate background and oscillatory pulse velocities."""
 
-    if cfg.profile_model == "separable":
-        background = _separable_target_velocity(t, cfg)
-        return background, np.zeros_like(background)
-    background_potential, pulse_potential = _paper_vector_potentials(t, cfg)
-    return (
-        _curl_vector_potential(*background_potential, cfg.dx),
-        _curl_vector_potential(*pulse_potential, cfg.dx),
-    )
+    background, pulses, correction = target_velocity_decomposition(t, cfg)
+    return background, pulses + correction
 
 
 def target_velocity(t: float, cfg: SimulationConfig) -> np.ndarray:
     """Sample the selected target as an exactly divergence-free discrete curl."""
 
-    background, pulses = target_velocity_components(t, cfg)
+    background, primary_pulses, correction = target_velocity_decomposition(t, cfg)
+    pulses = primary_pulses + correction
     return background + pulses
 
 
@@ -480,6 +547,8 @@ def paper_structure_diagnostics(
             "pulse_annulus_energy_fraction": 0.0,
             "pulse_axisymmetric_mean_fraction": 0.0,
             "pulse_covariance_rms": 0.0,
+            "pulse_hierarchy_levels": 0.0,
+            "pulse_correction_energy_fraction": 0.0,
         }
 
     coordinates = paper_similarity_coordinates(t, cfg)
@@ -491,7 +560,8 @@ def paper_structure_diagnostics(
         - zeta * zeta * coordinates.q ** (2 * cfg.h)
         - tau
     )
-    background, pulses = target_velocity_components(t, cfg)
+    background, primary_pulses, correction = target_velocity_decomposition(t, cfg)
+    pulses = primary_pulses + correction
     background_energy = np.sum(background * background, axis=-1)
     pulse_energy = np.sum(pulses * pulses, axis=-1)
     total_energy = float(np.sum((background + pulses) ** 2))
@@ -499,7 +569,10 @@ def paper_structure_diagnostics(
     background_radial, background_theta, background_axial = cylindrical_components(
         background, cfg
     )
-    exterior_margin = max(0.15, 2 * cfg.dx / max(similarity_scales(t, cfg).radial_length, cfg.dx))
+    exterior_margin = max(
+        0.15,
+        2 * cfg.dx / max(similarity_scales(t, cfg).radial_length, cfg.dx),
+    )
     exterior = (
         (coordinates.x_similarity > cfg.paper_annulus_xb + exterior_margin)
         & (coordinates.radius < cfg.localization_inner)
@@ -588,6 +661,12 @@ def paper_structure_diagnostics(
         "pulse_annulus_energy_fraction": annulus_fraction,
         "pulse_axisymmetric_mean_fraction": float(mean_fraction),
         "pulse_covariance_rms": float(covariance_rms),
+        "pulse_hierarchy_levels": float(
+            cfg.pulse_hierarchy_levels if cfg.pulses_enabled else 0
+        ),
+        "pulse_correction_energy_fraction": float(
+            np.sum(correction * correction) / max(pulse_total, 1e-30)
+        ),
     }
 
 

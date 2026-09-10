@@ -12,6 +12,7 @@ from navier_stokes_sim.profile import (
     similarity_scales,
     target_velocity,
     target_velocity_components,
+    target_velocity_decomposition,
     temporal_activation,
 )
 
@@ -108,6 +109,27 @@ def test_paper_wave_families_are_localized_and_divergence_free() -> None:
     # A centered curl spreads the sampled support by one cell at each edge.
     assert diagnostics["pulse_annulus_energy_fraction"] > 0.85
     assert diagnostics["pulse_covariance_rms"] > 0
+
+
+def test_pulse_hierarchy_and_correction_are_separately_divergence_free() -> None:
+    cfg = SimulationConfig(resolution=32, frames=2, t_end=0.85)
+    background, pulses, correction = target_velocity_decomposition(0.85, cfg)
+    for component in (background, pulses, correction):
+        assert np.max(np.abs(discrete_divergence(component, cfg.dx))) < 1e-11
+    assert np.linalg.norm(pulses) > 0
+    assert np.linalg.norm(correction) > 0
+    diagnostics = paper_structure_diagnostics(0.85, cfg)
+    assert diagnostics["pulse_hierarchy_levels"] == cfg.pulse_hierarchy_levels
+    assert diagnostics["pulse_correction_energy_fraction"] > 0
+
+
+def test_multiple_pulse_levels_change_the_resolved_wave_field() -> None:
+    common = {"resolution": 32, "frames": 2, "t_end": 0.85}
+    one_level = SimulationConfig(**common, pulse_hierarchy_levels=1)
+    three_levels = SimulationConfig(**common, pulse_hierarchy_levels=3)
+    _, one = target_velocity_components(0.85, one_level)
+    _, three = target_velocity_components(0.85, three_levels)
+    assert not np.allclose(one, three)
 
 
 def test_legacy_profile_remains_available() -> None:

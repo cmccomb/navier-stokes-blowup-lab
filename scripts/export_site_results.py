@@ -62,10 +62,9 @@ def load_run(run_dir: Path, run_id: str, label: str) -> dict[str, Any]:
         "cfl": float(config.get("cfl", 0.32)),
         "max_dt": float(config.get("max_dt", 0.02)),
         "media": {
-            "mp4": f"media/{run_id}.mp4",
-            "gif": f"media/{run_id}.gif",
-            "poster": f"media/{run_id}-poster.png",
-            "endpoint": f"figures/{run_id}-endpoint.png",
+            "axial_jet": f"media/{run_id}-axial-jet.gif",
+            "equatorial_swirl": f"media/{run_id}-equatorial-swirl.gif",
+            "pulse_forcing": f"media/{run_id}-pulse-forcing.gif",
         },
         **final,
     }

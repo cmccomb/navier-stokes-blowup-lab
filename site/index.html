@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="The best complete start-from-rest trajectory from the Navier–Stokes Blow-up Lab."
+      content="Direction-aware GIFs from the best complete start-from-rest Navier–Stokes simulation."
     />
     <meta name="theme-color" content="#07111f" />
-    <title>Start from rest · Navier–Stokes Blow-up Lab</title>
+    <title>Start from rest · Navier–Stokes Singularity Lab</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="app.js"></script>
@@ -16,15 +16,15 @@
   <body>
     <a class="skip-link" href="#result">Skip to the simulation</a>
     <header class="site-header">
-      <a class="wordmark" href="#top" aria-label="Navier–Stokes Blow-up Lab home">
+      <a class="wordmark" href="#top" aria-label="Navier–Stokes lab home">
         <span class="mark" aria-hidden="true">∇</span>
-        <span>NS Blow-up Lab</span>
+        <span>NS Singularity Lab</span>
       </a>
       <nav aria-label="Project navigation">
-        <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/index.md">
+        <a href="https://github.com/cmccomb/navier-stokes-singularity-simulation/blob/main/docs/index.md">
           Documentation
         </a>
-        <a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-blowup-lab">
+        <a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">
           GitHub ↗
         </a>
       </nav>
@@ -35,71 +35,83 @@
         <div class="result-summary">
           <p class="eyebrow">
             <span class="status-dot" aria-hidden="true"></span>
-            Complete start-from-rest trajectory
+            Best complete start-from-rest run
           </p>
-          <h1 id="result-title">
-            <span id="run-resolution">192³</span> from rest.
-          </h1>
+          <h1 id="result-title"><span id="run-resolution">224³</span> from rest.</h1>
           <p class="dek">
-            Velocity and force remain exactly zero through
-            <span class="math">t = <span id="rest-until">0.55</span></span>.
-            The manufactured force then activates smoothly and the vortex
-            concentrates through
-            <span class="math">t = <span id="run-end">0.990</span></span>.
-          </p>
-
-          <p class="run-line">
-            <strong id="run-label">Baseline trajectory</strong>
-            <span><span id="run-frames">51</span> solver checkpoints</span>
+            Zero velocity and zero force through
+            <span class="math">t = <span id="rest-until">0.55</span></span>;
+            smooth forcing then drives the concentrating flow through
+            <span class="math">t = <span id="run-end">0.992</span></span>.
           </p>
 
           <dl class="headline-metrics" aria-label="Final-frame summary">
             <div>
               <dt>Peak speed</dt>
-              <dd id="metric-peak">2.838</dd>
+              <dd id="metric-peak">—</dd>
             </div>
             <div>
               <dt>Peak vorticity</dt>
-              <dd id="metric-vorticity">215.52</dd>
+              <dd id="metric-vorticity">—</dd>
             </div>
             <div>
-              <dt>Tracking error</dt>
-              <dd id="metric-tracking">1.566%</dd>
+              <dt>Smallest scale</dt>
+              <dd id="metric-scale">—</dd>
             </div>
           </dl>
 
-          <p class="verification" id="data-status" role="status">
-            Verified September 10, 2026
-          </p>
+          <p class="verification" id="data-status" role="status">Loading run record…</p>
           <p class="boundary">
             Finite manufactured-solution experiment—not an independent proof.
-            <a href="https://github.com/cmccomb/navier-stokes-blowup-lab/blob/main/docs/results.md">
-              Full record
-            </a>
           </p>
         </div>
 
-        <figure class="player-card">
-          <video
-            id="result-video"
-            controls
-            playsinline
-            preload="metadata"
-            poster="media/baseline-poster.png"
-            aria-label="Computed and target velocity from rest through t equals 0.99"
-          >
-            <source id="result-video-source" src="media/baseline.mp4" type="video/mp4" />
-            Your browser cannot play this result video.
-          </video>
+        <figure class="gif-card gif-card-primary">
+          <img
+            id="axial-gif"
+            src="media/best-axial-jet.gif"
+            alt="Signed vertical velocity and flow direction in the axial plane"
+          />
           <figcaption>
             <div>
-              <strong id="media-title">PhiFlow versus target</strong>
-              <span>Center-plane speed · similarity-time playback</span>
+              <strong>Axial jet</strong>
+              <span>Signed vertical velocity · x–z plane</span>
             </div>
-            <div class="downloads" aria-label="Download simulation media">
-              <a id="download-mp4" href="media/baseline.mp4" download>MP4</a>
-              <a id="download-gif" href="media/baseline.gif" download>GIF</a>
+            <a id="download-axial" href="media/best-axial-jet.gif" download>GIF ↓</a>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="gif-grid" aria-label="Additional simulation views">
+        <figure class="gif-card">
+          <img
+            id="swirl-gif"
+            src="media/best-equatorial-swirl.gif"
+            loading="lazy"
+            alt="Vertical vorticity and flow direction in the equatorial plane"
+          />
+          <figcaption>
+            <div>
+              <strong>Perpendicular swirl</strong>
+              <span>Signed vertical vorticity · x–y plane</span>
             </div>
+            <a id="download-swirl" href="media/best-equatorial-swirl.gif" download>GIF ↓</a>
+          </figcaption>
+        </figure>
+
+        <figure class="gif-card">
+          <img
+            id="forcing-gif"
+            src="media/best-pulse-forcing.gif"
+            loading="lazy"
+            alt="Signed vertical manufactured force and direction in the axial plane"
+          />
+          <figcaption>
+            <div>
+              <strong>Pulse forcing</strong>
+              <span>Signed force · x–z plane</span>
+            </div>
+            <a id="download-forcing" href="media/best-pulse-forcing.gif" download>GIF ↓</a>
           </figcaption>
         </figure>
       </section>

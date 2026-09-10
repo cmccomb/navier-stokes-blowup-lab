@@ -65,7 +65,10 @@ def test_site_export_publishes_start_from_rest_set(tmp_path):
     assert payload["runs"][0]["frames"] == 1
     assert payload["runs"][0]["resolved"] is True
     assert payload["runs"][0]["max_dt"] == 0.008
-    assert payload["runs"][0]["media"]["mp4"] == "media/baseline.mp4"
+    assert (
+        payload["runs"][0]["media"]["axial_jet"]
+        == "media/baseline-axial-jet.gif"
+    )
     assert "path" not in payload["runs"][0]
 
 

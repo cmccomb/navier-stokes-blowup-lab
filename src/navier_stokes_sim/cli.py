@@ -84,6 +84,30 @@ def _parser() -> argparse.ArgumentParser:
         help="strengths of the radial-angular and radial-axial wave families",
     )
     parser.add_argument(
+        "--pulse-levels",
+        type=int,
+        default=3,
+        help="number of retained multiscale pulse levels (default: 3)",
+    )
+    parser.add_argument(
+        "--pulse-scale-ratio",
+        type=float,
+        default=0.68,
+        help="amplitude ratio between successive pulse levels (default: 0.68)",
+    )
+    parser.add_argument(
+        "--pulse-correction-strength",
+        type=float,
+        default=0.04,
+        help="grid-deconvolution correction per pass (default: 0.04)",
+    )
+    parser.add_argument(
+        "--pulse-correction-passes",
+        type=int,
+        default=1,
+        help="number of bounded grid-correction passes (default: 1)",
+    )
+    parser.add_argument(
         "--output", type=Path, default=Path("outputs/default"), help="output directory"
     )
     parser.add_argument(
@@ -150,6 +174,10 @@ def main(argv: list[str] | None = None) -> None:
         pulses_enabled=not args.no_pulses and args.profile_model == "paper-surrogate",
         pulse_rtheta_strength=args.pulse_strengths[0],
         pulse_rz_strength=args.pulse_strengths[1],
+        pulse_hierarchy_levels=args.pulse_levels,
+        pulse_scale_ratio=args.pulse_scale_ratio,
+        pulse_correction_strength=args.pulse_correction_strength,
+        pulse_correction_passes=args.pulse_correction_passes,
         integrator=args.integrator,
         pressure_projection=args.pressure_projection,
         forcing_end=args.forcing_end,

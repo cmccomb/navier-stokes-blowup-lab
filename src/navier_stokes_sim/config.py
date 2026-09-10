@@ -35,6 +35,11 @@ class SimulationConfig:
     pulse_axial_frequency: float = 2.5
     pulse_log_frequency: float = 1.0
     pulse_time_width: float = 0.46
+    pulse_hierarchy_levels: int = 3
+    pulse_mode_stride: int = 1
+    pulse_scale_ratio: float = 0.68
+    pulse_correction_strength: float = 0.04
+    pulse_correction_passes: int = 1
     localization_inner: float = 0.72
     localization_outer: float = 0.94
     paper_time_cutoff_start: float = 0.55
@@ -88,6 +93,16 @@ class SimulationConfig:
             raise ValueError("paper_eta_support must lie in (0, 1)")
         if self.pulse_azimuthal_mode < 1:
             raise ValueError("pulse_azimuthal_mode must be positive")
+        if self.pulse_hierarchy_levels < 1:
+            raise ValueError("pulse_hierarchy_levels must be positive")
+        if self.pulse_mode_stride < 1:
+            raise ValueError("pulse_mode_stride must be positive")
+        if not (0 < self.pulse_scale_ratio <= 1):
+            raise ValueError("pulse_scale_ratio must lie in (0, 1]")
+        if not (0 <= self.pulse_correction_strength <= 0.25):
+            raise ValueError("pulse_correction_strength must lie in [0, 0.25]")
+        if not (0 <= self.pulse_correction_passes <= 4):
+            raise ValueError("pulse_correction_passes must lie in [0, 4]")
         if not (0 < self.pulse_time_width < 0.5):
             raise ValueError("pulse_time_width must lie in (0, 0.5)")
         if min(self.pulse_rtheta_strength, self.pulse_rz_strength) < 0:

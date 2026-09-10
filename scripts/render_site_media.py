@@ -25,6 +25,7 @@ def _load(run_dir: Path) -> dict[str, object]:
     config = metadata["config"]
     payload.update(
         resolution=int(config["resolution"]),
+        half_domain=float(config.get("half_domain", 1.0)),
         rest_until=float(config["paper_time_cutoff_start"]),
         max_dt=float(config.get("max_dt", 0.02)),
         cfl=float(config.get("cfl", 0.32)),

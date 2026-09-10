@@ -1,14 +1,14 @@
 cff-version: 1.2.0
 message: "If you use this numerical experiment, please cite the repository and the OpenAI paper linked below."
-title: "Navier–Stokes Blow-up Lab"
+title: "Navier–Stokes Singularity Simulation"
 type: software
 authors:
   - family-names: McComb
     given-names: Chris
-repository-code: "https://github.com/cmccomb/navier-stokes-blowup-lab"
-url: "https://cmccomb.com/navier-stokes-blowup-lab/"
+repository-code: "https://github.com/cmccomb/navier-stokes-singularity-simulation"
+url: "https://cmccomb.com/navier-stokes-singularity-simulation/"
 license: MIT
-version: 0.6.0
+version: 0.7.0
 date-released: 2026-09-10
 references:
   - type: article

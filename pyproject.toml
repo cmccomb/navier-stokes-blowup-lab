@@ -1,6 +1,6 @@
 [project]
-name = "navier-stokes-blowup-lab"
-version = "0.6.0"
+name = "navier-stokes-singularity-simulation"
+version = "0.7.0"
 description = "Independent, proof-informed 3D CFD experiments for a Navier-Stokes blow-up construction"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"

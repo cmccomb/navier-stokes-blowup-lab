@@ -1,7 +1,7 @@
-# Navier–Stokes Blow-up Lab
+# Navier–Stokes Singularity Simulation
 
-[![CI](https://github.com/cmccomb/navier-stokes-blowup-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/cmccomb/navier-stokes-blowup-lab/actions/workflows/ci.yml)
-[![Results site](https://github.com/cmccomb/navier-stokes-blowup-lab/actions/workflows/pages.yml/badge.svg)](https://cmccomb.com/navier-stokes-blowup-lab/)
+[![CI](https://github.com/cmccomb/navier-stokes-singularity-simulation/actions/workflows/ci.yml/badge.svg)](https://github.com/cmccomb/navier-stokes-singularity-simulation/actions/workflows/ci.yml)
+[![Results site](https://github.com/cmccomb/navier-stokes-singularity-simulation/actions/workflows/pages.yml/badge.svg)](https://cmccomb.com/navier-stokes-singularity-simulation/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-69d2e7.svg)](LICENSE)
 
 An open, reproducible 3D incompressible-flow experiment informed by OpenAI's
@@ -15,26 +15,26 @@ toward the normalized singular time `t*=1`.
 
 > [!IMPORTANT]
 > This is a finite surrogate, not an independent proof and not yet the paper's
-> exact infinite pulse hierarchy. Numerical instability, overflow, or a
+> exact infinite pulse hierarchy or all-order correction cycle. Numerical instability, overflow, or a
 > grid-dependent peak is not evidence of blow-up.
 
 ## Current best
 
-The [results site](https://cmccomb.com/navier-stokes-blowup-lab/) publishes only
+The [results site](https://cmccomb.com/navier-stokes-singularity-simulation/) publishes only
 complete trajectories initialized from exact rest. It is organized as a
 baseline with temporal and spatial refinements; late-window initializations
 remain in the full results record.
 
 | Complete-run endpoint | Value |
 |---|---:|
-| Grid | `192^3` |
-| Time interval | `0` to `0.99` |
+| Grid | `224^3` |
+| Time interval | `0` to `0.992` |
 | Exact rest interval | `0` to `0.55` |
-| Peak vorticity | `215.52` |
-| Relative target-tracking error | `1.566%` |
-| Top-third spectral energy | `0.730%` |
-| Radial scale coverage | `4.99` cells |
-| Divergence `L-infinity` | `4.44e-14` |
+| Peak vorticity | `294.52` |
+| Relative target-tracking error | `1.106%` |
+| Top-third spectral energy | `0.546%` |
+| Radial scale coverage | `5.21` cells |
+| Divergence `L-infinity` | `7.11e-14` |
 
 The separate `288^3` late-window calculation remains the resolution maximum and
 is documented in the [full results record](docs/results.md).

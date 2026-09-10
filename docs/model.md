@@ -28,9 +28,17 @@ A zero radial moment makes the meridional streamfunction vanish outside the
 annulus. A slight axial bias keeps the midplane shear nonzero.
 
 Two complete-ring wave families carry radial-angular and radial-axial quadratic
-momentum flux. Integer angular modes give zero angular mean, `N log(X)` supplies
-radial oscillation, and smooth dyadic-time gates mimic the pulse sequence. A
-centered periodic discrete curl preserves incompressibility to roundoff.
+momentum flux. Each family now retains three staggered scales by default:
+successive levels use higher integer angular modes, faster radial and axial
+phases, smaller amplitudes, and shifted smooth dyadic-time gates. Integer modes
+give zero angular mean. A centered periodic discrete curl preserves
+incompressibility to roundoff.
+
+A bounded deconvolution pass on the pulse vector potential pre-emphasizes
+features attenuated by the centered grid. Because the correction is applied to
+the potential before taking its curl, the corrected velocity remains exactly
+discretely divergence-free. This is a numerical leading corrector for retained
+grid scales; it is not the paper's all-order analytical correction cycle.
 
 ## Governing equations
 
@@ -52,8 +60,10 @@ benign.
   `q` map.
 - Inner, annular, and fixed-exterior profiles followed by a smooth compact
   support cutoff.
-- Two divergence-free, zero-mean annular wave families with independently
-  adjustable covariance directions.
+- Two divergence-free, zero-mean annular wave families, each with a configurable
+  finite scale hierarchy and independently adjustable covariance directions.
+- A configurable bounded grid-deconvolution corrector applied at the vector-
+  potential level.
 - Second-order centered finite-difference advection and viscous diffusion from
   PhiFlow.
 - Projected midpoint RK2 by default, with projected Euler for comparison.
@@ -78,9 +88,9 @@ tracking, Fourier occupancy, the accumulated BKM quantity, and grid coverage.
 
 Paper-specific diagnostics include the implicit-coordinate residual, exterior
 meridional leakage, exterior swirl energy, pulse energy and annular support,
-coarse-grained angular mean, and pulse covariance. Core widths and energy
-exclude the fixed exterior so they can be compared directly with the similarity
-laws.
+coarse-grained angular mean, pulse covariance, retained hierarchy depth, and
+corrector energy. Core widths and energy exclude the fixed exterior so they can
+be compared directly with the similarity laws.
 
 ## Interpretation boundary
 

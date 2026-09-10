@@ -1,36 +1,36 @@
-const percent = (value) => `${(100 * value).toFixed(3)}%`;
-
 function setText(selector, value) {
   document.querySelector(selector).textContent = value;
 }
 
+function setMedia(selector, path) {
+  document.querySelector(selector).setAttribute("src", path);
+}
+
+function setDownload(selector, path) {
+  document.querySelector(selector).setAttribute("href", path);
+}
+
 function showRun(run, generatedAt) {
-  setText("#run-label", run.label);
   setText("#run-resolution", `${run.resolution}³`);
   setText("#run-end", run.t_end.toFixed(3));
-  setText("#run-frames", run.frames);
   setText("#rest-until", run.rest_until.toFixed(2));
   setText("#metric-peak", run.peak_speed.toFixed(3));
   setText("#metric-vorticity", run.peak_vorticity.toFixed(2));
-  setText("#metric-tracking", percent(run.tracking_relative_l2));
-
-  const video = document.querySelector("#result-video");
-  const source = document.querySelector("#result-video-source");
-  if (source.getAttribute("src") !== run.media.mp4) {
-    source.setAttribute("src", run.media.mp4);
-    video.setAttribute("poster", run.media.poster);
-    video.load();
-  }
-  video.setAttribute(
-    "aria-label",
-    `Computed and target velocity from rest through t equals ${run.t_end.toFixed(3)}`,
+  setText(
+    "#metric-scale",
+    `${Math.min(run.cells_per_radial_scale, run.cells_per_axial_scale).toFixed(2)} cells`,
   );
-  document.querySelector("#download-mp4").setAttribute("href", run.media.mp4);
-  document.querySelector("#download-gif").setAttribute("href", run.media.gif);
-  setText("#media-title", `${run.label}: PhiFlow versus target`);
+
+  setMedia("#axial-gif", run.media.axial_jet);
+  setMedia("#swirl-gif", run.media.equatorial_swirl);
+  setMedia("#forcing-gif", run.media.pulse_forcing);
+  setDownload("#download-axial", run.media.axial_jet);
+  setDownload("#download-swirl", run.media.equatorial_swirl);
+  setDownload("#download-forcing", run.media.pulse_forcing);
+
   setText(
     "#data-status",
-    `Verified ${new Date(generatedAt).toLocaleDateString(undefined, {
+    `${run.frames} solver checkpoints · verified ${new Date(generatedAt).toLocaleDateString(undefined, {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -44,8 +44,7 @@ async function loadResult() {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     const run =
-      data.runs.find((candidate) => candidate.id === data.featured_id) ??
-      data.runs[0];
+      data.runs.find((candidate) => candidate.id === data.featured_id) ?? data.runs[0];
     showRun(run, data.generated_at);
   } catch (error) {
     setText("#data-status", "Published values shown · live record unavailable");
