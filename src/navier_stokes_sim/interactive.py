@@ -86,7 +86,7 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
 
     def title(i: int) -> str:
         return (
-            f"{series.title} volume · {series.config.mesh_preset} · "
+            f"{series.title} volume · {series.config.mesh_preset}<br>"
             f"{series.config.resolution}³ · t = {series.times[i]:.6f}"
         )
 
@@ -104,10 +104,11 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
         trace.visible = i in (0, 4)
     figure = go.Figure(data=initial, frames=frames)
     figure.update_layout(
-        title={"text": title(0), "font": {"size": 19}},
+        title={"text": title(0), "font": {"size": 16}, "x": 0.04, "y": 0.98},
+        height=740,
         template="plotly_dark",
         paper_bgcolor="#07111f",
-        margin={"l": 15, "r": 20, "t": 95, "b": 100},
+        margin={"l": 15, "r": 20, "t": 155, "b": 135},
         uirevision="preserve-camera",
         scene={
             **{
@@ -141,9 +142,11 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
         updatemenus=[
             {
                 "type": "buttons",
+                "bgcolor": "#dbe9f0",
+                "font": {"color": "#07111f"},
                 "direction": "left",
                 "x": 0,
-                "y": 1.1,
+                "y": 1.12,
                 "buttons": [
                     {
                         "label": "Play time",
@@ -173,6 +176,8 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
             },
             {
                 "type": "dropdown",
+                "bgcolor": "#dbe9f0",
+                "font": {"color": "#07111f"},
                 "x": 0.55,
                 "y": 1.1,
                 "buttons": [

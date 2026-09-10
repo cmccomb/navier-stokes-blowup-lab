@@ -183,6 +183,19 @@ def _parser() -> argparse.ArgumentParser:
         help="maximum integration timestep (default: 0.02)",
     )
     parser.add_argument(
+        "--forcing-phase-step",
+        type=float,
+        default=0.15,
+        help="maximum retained forcing-phase advance in radians (default: 0.15)",
+    )
+    parser.add_argument(
+        "--no-forcing-phase-limit",
+        dest="forcing_phase_step",
+        action="store_const",
+        const=None,
+        help="legacy numerical comparison only: disable the forcing clock limit",
+    )
+    parser.add_argument(
         "--save-final-state",
         action="store_true",
         help="persist the full 3D terminal velocity for cross-run comparisons",
@@ -225,6 +238,7 @@ def main(argv: list[str] | None = None) -> None:
         forcing_end=args.forcing_end,
         cfl=args.cfl,
         max_dt=args.max_dt,
+        forcing_phase_step=args.forcing_phase_step,
         capture_volumes=args.capture_velocity_volumes or not args.no_3d,
         capture_force_volumes=args.capture_force_volumes,
         volume_frames=args.volume_frames,

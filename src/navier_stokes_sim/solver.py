@@ -40,8 +40,9 @@ from .profile import (
     target_velocity,
     temporal_activation,
 )
+from .time_stepping import forcing_step_limit
 
-DIAGNOSTIC_SCHEMA_VERSION = 6
+DIAGNOSTIC_SCHEMA_VERSION = 7
 
 
 @dataclass
@@ -81,9 +82,11 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
 
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     schema_version = metadata.get("diagnostic_schema_version")
-    if schema_version not in {2, 3, 4, 5, DIAGNOSTIC_SCHEMA_VERSION}:
+    if schema_version not in {2, 3, 4, 5, 6, DIAGNOSTIC_SCHEMA_VERSION}:
         raise ValueError(f"outdated diagnostics checkpoint in {output_dir}")
     config_values = dict(metadata["config"])
+    # A legacy run never used the newly introduced forcing-phase controller.
+    config_values.setdefault("forcing_phase_step", None)
     if schema_version == 2:
         # v0.3 checkpoints predate the paper-coordinate model and therefore
         # unambiguously refer to the original separable target.
@@ -94,9 +97,7 @@ def load_simulation_result(output_dir: Path) -> SimulationResult:
         # those checkpoint semantics rather than silently relabeling them as
         # the paper's initial rest interval.
         config_values["paper_time_cutoff_start"] = 0.0
-        config_values["paper_time_cutoff_end"] = config_values.get(
-            "ramp_time", 0.15
-        )
+        config_values["paper_time_cutoff_end"] = config_values.get("ramp_time", 0.15)
     if schema_version <= 5:
         # Preserve the target that produced the checkpoint.  Without an
         # explicit revision, old results could otherwise compare equal to the
@@ -254,9 +255,7 @@ def _spectral_diagnostics(velocity: np.ndarray) -> tuple[float, float, float]:
     """Return energy-weighted mode, 95% mode, and top-third energy fraction."""
 
     resolution = velocity.shape[0]
-    transformed = fft.fftn(
-        velocity, axes=(0, 1, 2), norm="ortho", workers=-1
-    )
+    transformed = fft.fftn(velocity, axes=(0, 1, 2), norm="ortho", workers=-1)
     modal_energy = np.sum(np.abs(transformed) ** 2, axis=-1)
     total = float(np.sum(modal_energy))
     if total == 0:
@@ -276,11 +275,12 @@ def _forcing_is_active(t: float, cfg: SimulationConfig) -> bool:
 def _manufactured_force(t: float, target, cfg: SimulationConfig):
     """Continuous-time manufactured force for the discrete target field."""
 
-    epsilon = min(cfg.derivative_epsilon, 0.2 * (cfg.t_star - t))
-    if (
-        cfg.profile_model == "paper-surrogate"
-        and t <= cfg.paper_time_cutoff_start
-    ):
+    epsilon = min(
+        cfg.derivative_epsilon,
+        0.2 * (cfg.t_star - t),
+        0.1 * forcing_step_limit(t, cfg),
+    )
+    if cfg.profile_model == "paper-surrogate" and t <= cfg.paper_time_cutoff_start:
         # Proposition 10.1 leaves a genuine open interval on which u=p=f=0.
         # Avoid constructing similarity coordinates for an identically zero
         # residual, especially in high-resolution from-rest trajectories.
@@ -343,9 +343,7 @@ def _project(velocity, pressure_solve, cfg: SimulationConfig):
         transformed[..., 0] -= sx * factor
         transformed[..., 1] -= sy * factor
         transformed[..., 2] -= sz * factor
-        projected = fft.ifftn(
-            transformed, axes=(0, 1, 2), workers=-1
-        ).real
+        projected = fft.ifftn(transformed, axes=(0, 1, 2), workers=-1).real
         return _to_field(projected, cfg), None
     if mode == "matrix-free":
         divergence = field.divergence(velocity, order=2)
@@ -434,9 +432,8 @@ def _diagnostic_row(
     axial_structure = axial_outflow_diagnostics(velocity, t, cfg)
     if cfg.profile_model == "paper-surrogate":
         coordinates = paper_similarity_coordinates(t, cfg)
-        core_mask = (
-            (coordinates.x_similarity < cfg.paper_annulus_xa)
-            & (np.abs(coordinates.eta) < cfg.paper_eta_support)
+        core_mask = (coordinates.x_similarity < cfg.paper_annulus_xa) & (
+            np.abs(coordinates.eta) < cfg.paper_eta_support
         )
         kinetic_energy_core = float(
             0.5 * np.sum(np.sum(velocity * velocity, axis=-1)[core_mask]) * cfg.dx**3
@@ -603,18 +600,21 @@ def _write_partial_checkpoint(
 
 def _load_partial_checkpoint(
     output_dir: Path, cfg: SimulationConfig
-) -> tuple[
-    float,
-    np.ndarray,
-    list[dict[str, float | bool]],
-    list[np.ndarray],
-    list[np.ndarray],
-    list[np.ndarray],
-    list[np.ndarray],
-    list[float],
-    list[np.ndarray],
-    list[np.ndarray],
-] | None:
+) -> (
+    tuple[
+        float,
+        np.ndarray,
+        list[dict[str, float | bool]],
+        list[np.ndarray],
+        list[np.ndarray],
+        list[np.ndarray],
+        list[np.ndarray],
+        list[float],
+        list[np.ndarray],
+        list[np.ndarray],
+    ]
+    | None
+):
     arrays_path = output_dir / "partial-checkpoint.npz"
     if not arrays_path.exists():
         return None
@@ -664,9 +664,7 @@ def _frame_times(cfg: SimulationConfig) -> np.ndarray:
     return times
 
 
-def _volume_frame_indices(
-    save_times: np.ndarray, cfg: SimulationConfig
-) -> set[int]:
+def _volume_frame_indices(save_times: np.ndarray, cfg: SimulationConfig) -> set[int]:
     """Keep one rest baseline and spend remaining 3D slots on active forcing."""
 
     if not (cfg.capture_volumes or cfg.capture_force_volumes):
@@ -679,9 +677,7 @@ def _volume_frame_indices(
     )
     active_start = min(max(active_start, 1), cfg.frames - 1)
     active_count = min(count - 1, cfg.frames - active_start)
-    active_indices = np.linspace(
-        active_start, cfg.frames - 1, active_count, dtype=int
-    )
+    active_indices = np.linspace(active_start, cfg.frames - 1, active_count, dtype=int)
     return {0, *active_indices.tolist()}
 
 
@@ -831,7 +827,13 @@ def run_simulation(
             )
             advective_dt = cfg.cfl * cfg.dx / current_peak
             diffusive_dt = 0.12 * cfg.dx**2 / cfg.viscosity
-            dt = min(cfg.max_dt, advective_dt, diffusive_dt, frame_time - t)
+            dt = min(
+                cfg.max_dt,
+                advective_dt,
+                diffusive_dt,
+                forcing_step_limit(t, cfg),
+                frame_time - t,
+            )
             if cfg.forcing_end is not None and t < cfg.forcing_end < t + dt:
                 dt = cfg.forcing_end - t
 

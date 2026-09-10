@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from math import isclose
+from math import isclose, isfinite
 
 MESH_PRESETS: dict[str, dict[str, float]] = {
     "full-domain": {
@@ -91,12 +91,18 @@ class SimulationConfig:
     integrator: str = "rk2"
     pressure_projection: str = "auto"
     derivative_epsilon: float = 2e-4
+    forcing_phase_step: float | None = 0.15
     forcing_end: float | None = None
     capture_volumes: bool = True
     capture_force_volumes: bool = False
     volume_frames: int = 6
 
     def validate(self) -> None:
+        if self.forcing_phase_step is not None and (
+            not isfinite(self.forcing_phase_step)
+            or not 0 < self.forcing_phase_step <= 1
+        ):
+            raise ValueError("forcing_phase_step must lie in (0, 1] or be None")
         if self.resolution < 8:
             raise ValueError("resolution must be at least 8")
         if self.resolution % 2:
@@ -104,9 +110,7 @@ class SimulationConfig:
                 "resolution must be even so the singular axis lies between cells"
             )
         if self.mesh_preset not in MESH_PRESETS:
-            raise ValueError(
-                f"mesh_preset must be one of {sorted(MESH_PRESETS)}"
-            )
+            raise ValueError(f"mesh_preset must be one of {sorted(MESH_PRESETS)}")
         expected_mesh = MESH_PRESETS[self.mesh_preset]
         for field_name, expected in expected_mesh.items():
             actual = float(getattr(self, field_name))
@@ -132,9 +136,7 @@ class SimulationConfig:
                 "pressure_projection must be 'auto', 'sparse', 'matrix-free', or 'fft'"
             )
         if self.profile_model not in {"separable", "paper-surrogate"}:
-            raise ValueError(
-                "profile_model must be 'separable' or 'paper-surrogate'"
-            )
+            raise ValueError("profile_model must be 'separable' or 'paper-surrogate'")
         if self.paper_profile_revision not in {
             "legacy-hand-shaped",
             "appendix-b-axis-v1",
@@ -148,9 +150,7 @@ class SimulationConfig:
         if not (0 < self.paper_eta_support < 1):
             raise ValueError("paper_eta_support must lie in (0, 1)")
         if not (self.paper_eta_support < self.paper_eta_taper < 1):
-            raise ValueError(
-                "paper_eta_taper must lie between paper_eta_support and 1"
-            )
+            raise ValueError("paper_eta_taper must lie between paper_eta_support and 1")
         if not (0 < self.paper_axial_slope <= 8):
             raise ValueError("paper_axial_slope must lie in (0, 8]")
         if not (0 < self.paper_axis_offset <= 0.05):
@@ -178,10 +178,7 @@ class SimulationConfig:
                 "localization radii must satisfy 0 < inner < outer < half_domain"
             )
         if not (
-            0
-            <= self.paper_time_cutoff_start
-            < self.paper_time_cutoff_end
-            < self.t_star
+            0 <= self.paper_time_cutoff_start < self.paper_time_cutoff_end < self.t_star
         ):
             raise ValueError(
                 "paper temporal cutoff must satisfy 0 <= start < end < t_star"
