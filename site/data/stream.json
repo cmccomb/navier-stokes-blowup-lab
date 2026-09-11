@@ -3,7 +3,7 @@
   "id": "best-guess-n192-rest-t0985",
   "label": "Current best \u00b7 streaming from rest",
   "status": "running",
-  "observed_at": "2026-09-11T00:01:24.077934+00:00",
+  "observed_at": "2026-09-11T00:06:18.724723+00:00",
   "started_at": "2026-09-10T23:45:33.743960+00:00",
   "source_commit": "9d2afb89096c869c1be3a7fb654cb8b797f03b35",
   "config": {
@@ -70,12 +70,13 @@
     "preview_phase_step": 0.3,
     "preview_resolution": 32
   },
-  "revision": "97045daf4892",
-  "latest_t": 0.55,
-  "captured_frames": 2,
+  "revision": "74c885f00f02",
+  "latest_t": 0.5531447106810116,
+  "captured_frames": 3,
   "clip_times": [
     0.0,
-    0.55
+    0.55,
+    0.5531447106810116
   ],
   "display_resolution": 32,
   "diagnostics": {
