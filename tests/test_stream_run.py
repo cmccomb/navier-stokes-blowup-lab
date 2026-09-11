@@ -123,6 +123,40 @@ def test_stream_preserves_plane_orientation_and_rejects_nonfinite(tmp_path):
         read_frames(tmp_path)
 
 
+def test_native_planes_are_taken_before_browser_reduction(tmp_path):
+    n = 64
+    axis = (np.arange(n) + 0.5) * 2 / n - 1
+    vectors = np.arange(n**3 * 3, dtype=np.float32).reshape(n, n, n, 3)
+    path = tmp_path / "frame-000000.npz"
+    np.savez_compressed(path, time=0.56, axis=axis, velocity=vectors, force=-vectors)
+    original = path.read_bytes()
+    frames, _ = read_frames(tmp_path)
+    frame = frames[0]
+    vertical, equatorial, coordinate = plane_vectors(frame, "velocity")
+    assert coordinate == axis[31]
+    np.testing.assert_array_equal(vertical, vectors[:, 31, :, :])
+    np.testing.assert_array_equal(equatorial, vectors[:, :, 31, :])
+    np.testing.assert_array_equal(frame["velocity"], vectors[::2, ::2, ::2])
+    assert frame["velocity"].shape == (32, 32, 32, 3)
+    assert len(frame["volume_axis"]) == 32
+    assert frame["velocity"].flags.owndata
+    assert frame["velocity_planes"].flags.owndata
+    assert path.read_bytes() == original
+    remote = {
+        "id": "native-run",
+        "source_commit": "abc",
+        "status": "running",
+        "observed_at": "now",
+        "started_at": "then",
+        "config": {"resolution": n},
+    }
+    manifest = build_manifest(remote, frames, 1, {})
+    assert manifest["id"] == "native-run"
+    assert manifest["archive"]["resolution"] == manifest["display_resolution"] == 64
+    assert manifest["archive"]["dtype"] == "float32"
+    assert manifest["display_resolution_3d"] == 32
+
+
 @pytest.mark.skipif(
     not shutil.which("ffmpeg") or not shutil.which("ffprobe"),
     reason="video tools unavailable",

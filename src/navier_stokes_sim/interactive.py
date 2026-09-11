@@ -19,6 +19,7 @@ RESPONSIVE_VOLUME_SCRIPT = r"""
     const plot = document.getElementById('{plot_id}');
     const fullNote = plot.layout.annotations[0].text;
     const samples = (fullNote.match(/\d+³ display samples/) || ['Saved samples'])[0];
+    const archive = (fullNote.match(/Derived from \d+³ saved fields/) || [''])[0];
     let lastWidth = 0;
     let pending;
     function resizeVolume() {
@@ -51,7 +52,8 @@ RESPONSIVE_VOLUME_SCRIPT = r"""
             'sliders[0].y': -0.12,
             'sliders[0].pad.t': 12,
             'annotations[0].text': narrow
-                ? samples + ' · actual checkpoints<br>All vector components · fixed scales<br>Drag to orbit · scroll to zoom'
+                ? samples + ' · actual checkpoints<br>All vector components · fixed scales<br>'
+                    + (archive ? archive + '<br>' : '') + 'Drag to orbit · scroll to zoom'
                 : fullNote,
             'annotations[0].x': 0.5,
             'annotations[0].y': narrow ? -0.44 : -0.40,

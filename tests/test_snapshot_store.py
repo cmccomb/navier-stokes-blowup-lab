@@ -122,9 +122,10 @@ def test_native_float32_capture_preserves_every_cell_and_solver(tmp_path) -> Non
     np.testing.assert_array_equal(native.velocity_slices, reduced.velocity_slices)
     files = sorted((tmp_path / "native/preview-volumes").glob("frame-*.npz"))
     assert len(files) == len(preview_times(cfg))
-    with np.load(files[-1]) as archive, np.load(
-        tmp_path / "native/full-volumes/frame-000002.npz"
-    ) as full:
+    with (
+        np.load(files[-1]) as archive,
+        np.load(tmp_path / "native/full-volumes/frame-000002.npz") as full,
+    ):
         assert len(archive["axis"]) == 16
         for field in ("velocity", "force"):
             assert archive[field].shape == (16, 16, 16, 3)

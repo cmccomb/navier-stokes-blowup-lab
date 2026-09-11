@@ -83,6 +83,15 @@ should not depend on it. Keep one full-resolution production run active
 at a time and retain its archive outside Git. Extract native 192² planes
 and reduce browser 3D samples only after the full snapshot is finalized.
 
+To refresh compact media once on the archive's machine, run
+`python -m scripts.stream_run --host local --once --no-push --run <run-directory>
+--repo <checkout> --cache <receipt-directory> --deadline <ISO-time-with-timezone>`.
+The exporter reads one native field at a time, retaining only native 2D planes
+and a 32³ browser copy for up to 24 frames. It never rewrites the archive.
+Publish the compact outputs from the authorized publishing checkout. Remote
+publication rejects dense-archive transfers; raw histories are not rsynced to
+another machine or committed to Git.
+
 The separate `288^3` late-window calculation remains the resolution maximum and
 is documented in the [full numerical record](https://cmccomb.com/navier-stokes-singularity-simulation/results.html).
 

@@ -168,23 +168,44 @@ def build_playback(times: list[float], slow_motion_after: float | None = None) -
 
 
 def read_frames(folder: Path, window: int = 24) -> tuple[list[dict], int]:
-    """Read only atomic finalized frames; never blend simulated states."""
+    """Derive native planes and browser volumes from each finalized archive.
+
+    Keep at most one native vector field in memory, independent of clip length.
+    The archival file is never rewritten, moved, or reduced.
+    """
+    if not 1 <= window <= 24:
+        raise ValueError("display window must contain 1 to 24 source frames")
     paths = sorted(folder.glob("frame-*.npz"))
     paths = [p for p in paths if not p.name.endswith(".tmp.npz")]
     count = len(paths)
     frames = []
     for path in paths[-window:]:
         with np.load(path, allow_pickle=False) as values:
-            frame = {
-                key: values[key].copy() for key in ("time", "axis", "velocity", "force")
-            }
-        if not all(np.isfinite(v).all() for v in frame.values()):
-            raise ValueError(f"nonfinite snapshot: {path.name}")
-        n = len(frame["axis"])
-        if any(frame[k].shape != (n, n, n, 3) for k in ("velocity", "force")):
-            raise ValueError("invalid vector shape")
-        if not np.all(np.diff(frame["axis"]) > 0):
-            raise ValueError("coordinates must increase")
+            frame = {key: values[key].copy() for key in ("time", "axis")}
+            if not all(np.isfinite(v).all() for v in frame.values()):
+                raise ValueError(f"nonfinite snapshot: {path.name}")
+            n = len(frame["axis"])
+            if n < 2 or not np.all(np.diff(frame["axis"]) > 0):
+                raise ValueError("coordinates must increase")
+            if frames and not np.array_equal(frame["axis"], frames[0]["axis"]):
+                raise ValueError("archive coordinates changed within the clip")
+            index = int(np.argmin(np.abs(frame["axis"])))
+            stride = max(1, int(np.ceil(n / 32)))
+            frame["volume_axis"] = frame["axis"][::stride].copy()
+            for field in ("velocity", "force"):
+                vectors = values[field]
+                if vectors.shape != (n, n, n, 3):
+                    raise ValueError("invalid vector shape")
+                if not np.isfinite(vectors).all():
+                    raise ValueError(f"nonfinite snapshot: {path.name}")
+                frame[f"{field}_planes"] = np.stack(
+                    (vectors[:, index, :, :], vectors[:, :, index, :])
+                ).astype(np.float32)
+                frame[field] = np.array(
+                    vectors[::stride, ::stride, ::stride], dtype=np.float32, copy=True
+                )
+                frame[f"{field}_archive_dtype"] = str(vectors.dtype)
+                del vectors
         frames.append(frame)
     if frames and not np.all(np.diff([float(f["time"]) for f in frames]) > 0):
         raise ValueError("snapshot times must increase")
@@ -194,6 +215,9 @@ def read_frames(folder: Path, window: int = 24) -> tuple[list[dict], int]:
 def plane_vectors(frame: dict, field: str) -> tuple[np.ndarray, np.ndarray, float]:
     """Nearest saved planes to zero, with their actual coordinate retained."""
     index = int(np.argmin(np.abs(frame["axis"])))
+    if f"{field}_planes" in frame:
+        planes = frame[f"{field}_planes"]
+        return planes[0], planes[1], float(frame["axis"][index])
     vectors = frame[field]
     return vectors[:, index, :, :], vectors[:, :, index, :], float(frame["axis"][index])
 
@@ -273,7 +297,7 @@ def render_pair(
     fig.text(
         0.5,
         0.035,
-        f"{resolution}³ solver → {len(coord)}³ display · actual saved frames · shared scale per clip",
+        f"{resolution}³ solver · {len(coord)}² planes · actual saved frames · shared scale per clip",
         ha="center",
         color="#9fb3c2",
         fontsize=11.2,
@@ -412,11 +436,20 @@ def render_pair(
 def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -> dict:
     times = [float(f["time"]) for f in frames]
     revision = hashlib.sha256(
-        json.dumps([remote["source_commit"], times, count, "renderer-v7"]).encode()
+        json.dumps(
+            [
+                remote.get("id"),
+                remote["source_commit"],
+                remote["config"],
+                times,
+                count,
+                "renderer-v8",
+            ]
+        ).encode()
     ).hexdigest()[:12]
     return {
         "schema_version": 1,
-        "id": "best-guess-n192-rest-t0985",
+        "id": remote.get("id", "best-guess-n192-rest-t0985"),
         "label": "Current best · streaming from rest",
         "status": remote["status"],
         "observed_at": remote["observed_at"],
@@ -424,7 +457,7 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
         "source_commit": remote["source_commit"],
         "config": remote["config"],
         "revision": revision,
-        "render_revision": 7,
+        "render_revision": 8,
         "latest_t": times[-1],
         "captured_frames": count,
         "clip_times": times,
@@ -432,7 +465,14 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
             times, remote["config"].get("paper_time_cutoff_start")
         ),
         "display_resolution": len(frames[-1]["axis"]),
-        "display_resolution_3d": len(frames[-1]["axis"]),
+        "display_resolution_3d": len(frames[-1].get("volume_axis", frames[-1]["axis"])),
+        "archive": {
+            "resolution": len(frames[-1]["axis"]),
+            "fields": ["velocity", "force"],
+            "components_per_field": 3,
+            "dtype": frames[-1].get("velocity_archive_dtype", "unknown"),
+            "policy": "Immutable saved fields; native planes and reduced browser volumes derived after capture",
+        },
         "diagnostics": remote.get("diagnostics"),
         "progress": remote.get("progress"),
         "media": {
@@ -449,11 +489,11 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
 
 
 def render_3d(frames: list[dict], field: str, destination: Path, config: dict) -> None:
-    """Use every captured preview sample, with no additional spatial decimation."""
+    """Render the browser copy; native three-component archives remain intact."""
     series = VolumeSeries(
         np.stack([f[field] for f in frames]),
         np.asarray([float(f["time"]) for f in frames]),
-        frames[-1]["axis"],
+        frames[-1].get("volume_axis", frames[-1]["axis"]),
         SimulationConfig(**config),
         field,
     )
@@ -467,6 +507,8 @@ def render_3d(frames: list[dict], field: str, destination: Path, config: dict) -
         )
     for annotation in figure.layout.annotations:
         annotation.font.size = 14
+        if len(series.axis) < len(frames[-1]["axis"]):
+            annotation.text += f"<br>Derived from {len(frames[-1]['axis'])}³ saved fields; archive retained"
     for slider in figure.layout.sliders:
         slider.font.size = 14
         slider.currentvalue.font.size = 16
@@ -515,10 +557,12 @@ if (p/'partial-checkpoint.npz').exists():
   history=json.loads(str(f['metadata'].item()))['diagnostics']
   diagnostics=history[-1] if history else None
 complete=(p/'run.json').exists() and (p/'final-state.npz').exists()
-print(json.dumps(dict(status='complete' if complete else ('running' if alive else 'stopped'),observed_at=datetime.now(timezone.utc).isoformat(),started_at=launch['started_at'],source_commit=launch['source_commit'],config=cfg,progress=progress,diagnostics=diagnostics)))
+print(json.dumps(dict(id=p.name,status='complete' if complete else ('running' if alive else 'stopped'),observed_at=datetime.now(timezone.utc).isoformat(),started_at=launch['started_at'],source_commit=launch['source_commit'],config=cfg,progress=progress,diagnostics=diagnostics)))
 """
     # The simulation interpreter, not an ambient system Python lacking NumPy.
     python = str(Path(run).parents[1] / ".venv/bin/python")
+    if host == "local":
+        return json.loads(command([python, "-c", script]))
     return json.loads(command([*ssh, host, shlex.join([python, "-c", script])]))
 
 
@@ -543,11 +587,11 @@ def publish(repo: Path, message: str) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--host", required=True)
+    parser.add_argument("--host", required=True, help="Source SSH host, or local")
     parser.add_argument("--run", required=True)
     parser.add_argument("--repo", type=Path, required=True)
     parser.add_argument("--cache", type=Path, required=True)
-    parser.add_argument("--identity", type=Path, required=True)
+    parser.add_argument("--identity", type=Path)
     parser.add_argument(
         "--deadline",
         required=True,
@@ -557,6 +601,10 @@ def main() -> None:
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--no-push", action="store_true")
     args = parser.parse_args()
+    if args.host != "local" and args.identity is None:
+        parser.error("an explicit SSH identity is required for a remote source")
+    if args.host == "local" and not args.once:
+        parser.error("local publication is a bounded --once operation")
     deadline = datetime.fromisoformat(args.deadline)
     if deadline.tzinfo is None:
         parser.error("deadline needs a timezone")
@@ -580,22 +628,31 @@ def main() -> None:
     while datetime.now(UTC) < deadline:
         try:
             remote = read_remote(ssh, args.host, args.run)
-            folder = args.cache / "preview-volumes"
-            folder.mkdir(exist_ok=True)
-            command(
-                [
-                    "rsync",
-                    "-az",
-                    "--exclude",
-                    "*.tmp*",
-                    "--exclude",
-                    ".*",
-                    "-e",
-                    shlex.join(ssh),
-                    f"{args.host}:{args.run}/preview-volumes/",
-                    str(folder) + "/",
-                ]
-            )
+            if args.host == "local":
+                folder = Path(args.run) / "preview-volumes"
+            else:
+                # Dense archives stay on their owning machine. Render there
+                # with --host local --once, then transfer only compact outputs.
+                if remote["config"]["preview_resolution"] > 32:
+                    raise RuntimeError(
+                        "render native archives on their source with --host local --once"
+                    )
+                folder = args.cache / "preview-volumes"
+                folder.mkdir(exist_ok=True)
+                command(
+                    [
+                        "rsync",
+                        "-az",
+                        "--exclude",
+                        "*.tmp*",
+                        "--exclude",
+                        ".*",
+                        "-e",
+                        shlex.join(ssh),
+                        f"{args.host}:{args.run}/preview-volumes/",
+                        str(folder) + "/",
+                    ]
+                )
             frames, count = read_frames(folder)
             if not frames:
                 raise RuntimeError("no finalized preview snapshot yet")
