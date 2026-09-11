@@ -54,3 +54,19 @@ def test_site_pages_have_no_broken_local_links() -> None:
             if not target.exists():
                 missing.append(f"{page.name}: {reference}")
     assert not missing, f"broken site links: {missing}"
+
+
+def test_site_keeps_peak_speed_without_illustrative_comparisons() -> None:
+    index = (SITE / "index.html").read_text(encoding="utf-8")
+    app = (SITE / "app.js").read_text(encoding="utf-8")
+    faq = (SITE / "faq.html").read_text(encoding="utf-8")
+    styles = (SITE / "styles.css").read_text(encoding="utf-8")
+    assert 'id="peak-speed"' in index
+    assert 'id="speed-time"' in index
+    assert "How is peak speed measured?" in faq
+    content = f"{index}\n{app}\n{faq}\n{styles}"
+    for removed in (
+        "speed-comparison", "comparison-scale", "slowReferences",
+        "fingernail", "Arctic coast", "Statue speed", "emoji comparison",
+    ):
+        assert removed not in content
