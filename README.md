@@ -20,21 +20,33 @@ toward the normalized singular time `t*=1`.
 
 ## Current best
 
-The [results site](https://cmccomb.com/navier-stokes-singularity-simulation/) publishes only
-complete trajectories initialized from exact rest. It is organized as a
-baseline with temporal and spatial refinements; late-window initializations
-remain in the full results record.
+The [results site](https://cmccomb.com/navier-stokes-singularity-simulation/)
+features the current **192³ start-from-rest run while it is still in progress**.
+The [stream record](site/data/stream.json) is the authoritative published
+configuration and latest saved time; it is not a completed endpoint claim.
 
-| Complete-run endpoint | Value |
+| Current streaming configuration | Value |
 |---|---:|
-| Grid | `224^3` |
-| Time interval | `0` to `0.992` |
+| Grid / domain | `192^3`, full `[-1,1]^3` box |
+| Planned time interval | `0` to `0.985` |
 | Exact rest interval | `0` to `0.55` |
-| Peak vorticity | `294.52` |
-| Relative target-tracking error | `1.106%` |
-| Top-third spectral energy | `0.546%` |
-| Radial scale coverage | `5.21` cells |
-| Divergence `L-infinity` | `7.11e-14` |
+| Profile interpolation | Cubic, source `9d2afb8` |
+| Maximum timestep / phase advance | `0.00025` / `0.0375` radians |
+| Force-difference half-window | `2e-7` |
+
+The from-rest 32³ cubic-profile temporal pilot recovered a successive-difference
+ratio of 3.989, consistent with second-order time convergence at that coarse
+resolution. Spatial convergence is not established. This remains a best-guess
+finite-surrogate experiment, not a singularity demonstration.
+
+The publisher detects finalized phase-clock snapshots every 30 seconds and
+commits the latest manifest plus compact rolling GIF/MP4 clips to `main`.
+GitHub Pages adds build and cache latency. Each clip uses up to 24 actual
+saved frames, with perpendicular velocity/forcing views; full-volume archives
+stay outside Git. The manifest labels the display resolution, actual plane
+coordinates, color scale, clip times, and the separate diagnostic timestamp.
+No fluid states are interpolated. An initial rest-only clip is real data, not
+a placeholder for an older run.
 
 The separate `288^3` late-window calculation remains the resolution maximum and
 is documented in the [full numerical record](https://cmccomb.com/navier-stokes-singularity-simulation/results.html).
