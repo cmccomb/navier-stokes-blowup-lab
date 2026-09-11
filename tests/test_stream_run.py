@@ -236,21 +236,22 @@ def test_stream_media_can_encode_real_rest_frames(tmp_path, times, activation):
         verify_gif(tmp_path / "rest.gif", [200] * (len(times) + 1))
 
 
-def test_stream_3d_is_self_contained_with_real_time_controls(tmp_path):
+def test_stream_3d_bundles_runtime_but_loads_every_saved_volume_on_demand(tmp_path):
     axis = np.linspace(-0.875, 0.875, 8)
     frames = [
         {"time": np.asarray(t), "axis": axis, "velocity": np.zeros((8, 8, 8, 3))}
-        for t in (0.0, 0.55)
+        for t in [0, *np.linspace(0.55, 0.8, 29)]
     ]
     destination = tmp_path / "rest.html"
-    render_3d(frames, "velocity", destination, SimulationConfig(resolution=8).to_dict())
+    history = render_3d(
+        frames, "velocity", destination, SimulationConfig(resolution=8).to_dict()
+    )
     html = destination.read_text()
-    assert "Play time" in html and "Saved time:" in html
-    assert "0.550000" in html
-    assert json.dumps("8³ display samples")[1:-1] in html
+    assert 'id="play"' in html and 'id="timeline"' in html
+    assert [f["time"] for f in history["frames"]] == [float(f["time"]) for f in frames]
+    assert len(history["frames"]) == 30
+    assert history["cache_frames"] == 3
     assert "Arial, Helvetica, sans-serif" in html
-    assert ".modebar{top:55px!important}" in html
-    assert "resizeVolume" in html and "autoexpand: false" in html
-    assert "{plot_id}" not in html
-    assert "document.getElementById('stream-volume')" in html
+    assert "preserve-camera" in html and "DecompressionStream" in html
+    assert "Math.hypot" in html
     assert '<script src="https://cdn.plot.ly' not in html

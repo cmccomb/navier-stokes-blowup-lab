@@ -21,13 +21,14 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from scripts.stream_run import (
-    OUTPUTS,
     RENDER_REVISION,
     command,
+    package_outputs,
     publish,
     read_remote,
     verify_gif,
 )
+from scripts.volume_history import embedded_history, validate_history
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -86,7 +87,8 @@ def validate_package(folder: Path, observed: dict, previous: dict | None) -> dic
         isinstance(v, (int, float)) and math.isfinite(v) for v in diagnostics.values()
     ):
         raise ValueError("nonfinite diagnostics")
-    for filename in OUTPUTS:
+    outputs = package_outputs(run)
+    for filename in outputs:
         path = folder / filename
         if not path.is_file() or path.stat().st_size == 0:
             raise ValueError(f"missing or empty compact output: {filename}")
@@ -101,6 +103,14 @@ def validate_package(folder: Path, observed: dict, previous: dict | None) -> dic
             "frames"
         ] != len(times):
             raise ValueError("encoded GIF does not match the complete saved history")
+        history = run["render"][field]["volume_history"]
+        if (
+            history["source_resolution"] != run["archive"]["resolution"]
+            or len(history["axis"]) != run["display_resolution_3d"]
+            or embedded_history(folder / f"site/media/stream-{name}-3d.html") != history
+        ):
+            raise ValueError("3D viewer does not match the published history")
+        validate_history(folder, history, field, times)
     return run
 
 
@@ -127,8 +137,21 @@ def render_and_collect(
     ]
     remote_command = f"cd {shlex.quote(str(source_repo))} && {shlex.join(argv)}"
     command([*ssh, args.host, remote_command], timeout=900)
+    descriptor = json.loads(
+        command(
+            [
+                *ssh,
+                args.host,
+                shlex.join(["/bin/cat", str(source_repo / "site/data/stream.json")]),
+            ]
+        )
+    )
+    for key in ("id", "source_commit", "config"):
+        if descriptor[key] != observed[key]:
+            raise ValueError(f"source export {key} changed before collection")
+    outputs = package_outputs(descriptor)
     allowlist = args.cache / "compact-files.txt"
-    allowlist.write_text("\n".join(OUTPUTS) + "\n")
+    allowlist.write_text("\n".join(outputs) + "\n")
     with tempfile.TemporaryDirectory(dir=args.cache, prefix="incoming-") as temporary:
         incoming = Path(temporary)
         command(
@@ -145,7 +168,9 @@ def render_and_collect(
             timeout=300,
         )
         run = validate_package(incoming, observed, previous)
-        for filename in OUTPUTS:
+        if package_outputs(run) != outputs:
+            raise ValueError("source export changed during collection")
+        for filename in outputs:
             destination = args.repo / filename
             destination.parent.mkdir(parents=True, exist_ok=True)
             pending = destination.with_suffix(destination.suffix + ".publish-tmp")

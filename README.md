@@ -47,8 +47,11 @@ include **every finalized saved snapshot, from the actual zero-velocity start
 through the latest saved time**, in order. There is no rolling window or frame
 thinning in the movies. This means every saved output, not every internal solver
 timestep; unsaved states cannot be recovered from the movies. Raw volumes stay
-outside Git. The interactive 3D explorers have a separately labeled latest-24
-window to bound browser memory, recorded in `clip_times_3d`.
+outside Git. Both interactive 3D explorers cover the same complete history,
+recorded in `clip_times_3d`. Each selected 32³, three-component float32 volume
+loads on demand; a three-frame browser cache bounds memory without dropping
+saved times. Magnitude and signed x/y/z views retain fixed scales and camera
+position. Playback waits for each frame and does not interpolate simulation time.
 
 Movies play at **5 saved snapshots per second** (200 ms per state), with a
 1-second initial-rest hold and a 0.5-second final hold. A single-state movie
@@ -90,7 +93,12 @@ The exporter reads one native field at a time and caches derived native 2D
 planes and 32³ browser copies outside Git. The complete 2D history is read
 lazily from this cache, and GIF frames are encoded individually instead of
 buffering a growing image history in RAM. Subsequent updates reuse the compact
-cache; the native archive is never rewritten. Browser 3D retains only 24 frames.
+cache; the native archive is never rewritten. Browser 3D exports every cached
+32³ vector field as a losslessly gzip-compressed, content-addressed chunk. The
+HTML bundles Plotly and a small time index, not the entire volume history.
+Serve the HTML and its `stream-volumes/` directory together over HTTPS (or
+localhost); these explorers are no longer standalone single-file downloads.
+Sandboxed embedding requires CORS access to the chunks, as GitHub Pages provides.
 Publish the compact outputs from the authorized publishing checkout. Remote
 publication rejects dense-archive transfers; raw histories are not rsynced to
 another machine or committed to Git.
@@ -107,10 +115,19 @@ to the same macOS Keychain credentials. Never copy credentials between hosts.
 
 The controller polls finalized frame headers every 30 seconds, also watching
 the diagnostic clock and completion status. On change, it invokes a serial
-`--host local --once --no-push` render on the source, collects only the seven
-allowlisted website files, verifies run identity and finite ordered times,
+`--host local --once --no-push` render on the source, collects the seven fixed
+website files plus explicitly indexed 32³ frame chunks, verifies run identity,
+finite ordered times, complete 2D/3D coverage, and each chunk's SHA-256 and shape,
 and commits/pushes them to `main`. It checks the public Pages manifest before
 recording deployment as live. Raw fields stay on the source machine.
+
+The source and controller reject missing, corrupt, nonfinite, or out-of-order
+3D frames. Frame paths are restricted to content-addressed browser assets;
+native volume paths cannot enter the transfer allowlist. Published chunks are
+immutable and retained so an already-open explorer can keep loading its history
+after a new update. Each explorer needs a current browser with WebGL, gzip
+decompression, and Web Crypto. Failed loads pause playback and keep the last
+successfully displayed frame labeled until the reader retries.
 
 The cache contains an exclusive controller lock, atomic `status.json`,
 `receipt.json`, and a failure record. Transient failures retry with bounded
