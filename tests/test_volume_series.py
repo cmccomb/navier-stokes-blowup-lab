@@ -27,6 +27,17 @@ def test_non_axial_motion_is_visible_and_scales_stay_fixed() -> None:
     assert np.max(np.abs(scalar_values(series.vectors, "z"))) == 0
     figure = build_volume_figure(series)
     assert len(figure.frames) == 3
+    assert all(len(trace.x) == len(series.axis) ** 3 for trace in figure.data[:4])
+    assert all(
+        trace.x is None and trace.y is None and trace.z is None
+        for frame in figure.frames
+        for trace in frame.data[:4]
+    )
+    assert all(
+        len(trace.value) == len(series.axis) ** 3
+        for frame in figure.frames
+        for trace in frame.data[:4]
+    )
     assert all(f.data[0].cmax == 10 for f in figure.frames)
     assert all(f.data[1].cmin == -6 for f in figure.frames)
     assert all(f.data[4].sizeref == figure.data[4].sizeref for f in figure.frames)

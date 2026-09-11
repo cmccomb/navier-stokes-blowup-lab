@@ -3,7 +3,7 @@
   "id": "best-guess-n192-rest-t0985",
   "label": "Current best \u00b7 streaming from rest",
   "status": "running",
-  "observed_at": "2026-09-11T00:14:23.921499+00:00",
+  "observed_at": "2026-09-11T00:17:33.841692+00:00",
   "started_at": "2026-09-10T23:45:33.743960+00:00",
   "source_commit": "9d2afb89096c869c1be3a7fb654cb8b797f03b35",
   "config": {
@@ -70,18 +70,19 @@
     "preview_phase_step": 0.3,
     "preview_resolution": 32
   },
-  "revision": "ca6a9d2aef41",
-  "render_revision": 2,
-  "latest_t": 0.556267445350318,
-  "captured_frames": 4,
+  "revision": "cb559ee98975",
+  "render_revision": 3,
+  "latest_t": 0.5593683575816945,
+  "captured_frames": 5,
   "clip_times": [
     0.0,
     0.55,
     0.5531447106810116,
-    0.556267445350318
+    0.556267445350318,
+    0.5593683575816945
   ],
   "display_resolution": 32,
-  "display_resolution_3d": 16,
+  "display_resolution_3d": 32,
   "diagnostics": {
     "t": 0.5449940131030537,
     "tau": 0.45500598689694627,
@@ -168,12 +169,12 @@
   },
   "render": {
     "velocity": {
-      "color_max": 1e-12,
+      "color_max": 7.900333165444806e-11,
       "plane_coordinate": 0.005208333333333259,
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication"
     },
     "force": {
-      "color_max": 3.1126646399259883e-12,
+      "color_max": 2.0573014580804738e-07,
       "plane_coordinate": 0.005208333333333259,
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication"
     }

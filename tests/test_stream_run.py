@@ -111,6 +111,6 @@ def test_stream_3d_is_self_contained_with_real_time_controls(tmp_path):
     html = destination.read_text()
     assert "Play time" in html and "Saved time:" in html
     assert "0.550000" in html
-    assert json.dumps("4³ display samples")[1:-1] in html
+    assert json.dumps("8³ display samples")[1:-1] in html
     assert "Arial, Helvetica, sans-serif" in html
     assert '<script src="https://cdn.plot.ly' not in html

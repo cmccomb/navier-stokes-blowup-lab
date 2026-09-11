@@ -172,7 +172,7 @@ def render_pair(
 def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -> dict:
     times = [float(f["time"]) for f in frames]
     revision = hashlib.sha256(
-        json.dumps([remote["source_commit"], times, count, "renderer-v2"]).encode()
+        json.dumps([remote["source_commit"], times, count, "renderer-v3"]).encode()
     ).hexdigest()[:12]
     return {
         "schema_version": 1,
@@ -184,12 +184,12 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
         "source_commit": remote["source_commit"],
         "config": remote["config"],
         "revision": revision,
-        "render_revision": 2,
+        "render_revision": 3,
         "latest_t": times[-1],
         "captured_frames": count,
         "clip_times": times,
         "display_resolution": len(frames[-1]["axis"]),
-        "display_resolution_3d": len(frames[-1]["axis"][::2]),
+        "display_resolution_3d": len(frames[-1]["axis"]),
         "diagnostics": remote.get("diagnostics"),
         "progress": remote.get("progress"),
         "media": {
@@ -206,11 +206,11 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
 
 
 def render_3d(frames: list[dict], field: str, destination: Path, config: dict) -> None:
-    """Reuse the saved-time explorer with bounded 16³ samples from 32³ previews."""
+    """Use every captured preview sample, with no additional spatial decimation."""
     series = VolumeSeries(
-        np.stack([f[field][::2, ::2, ::2] for f in frames]),
+        np.stack([f[field] for f in frames]),
         np.asarray([float(f["time"]) for f in frames]),
-        frames[-1]["axis"][::2],
+        frames[-1]["axis"],
         SimulationConfig(**config),
         field,
     )

@@ -27,7 +27,7 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
     cx, cy, cz = np.meshgrid(cone_axis, cone_axis, cone_axis, indexing="ij")
     half = series.config.half_domain
 
-    def traces(i: int) -> list:
+    def traces(i: int, *, frame_update: bool = False) -> list:
         result = []
         for component in COMPONENTS:
             maximum = limits[component]
@@ -37,7 +37,7 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
             )
             result.append(
                 go.Isosurface(
-                    **coordinates,
+                    **({} if frame_update else coordinates),
                     value=scalar_values(vectors[i], component).ravel(),
                     isomin=0.02 * maximum if magnitude else -0.8 * maximum,
                     isomax=0.8 * maximum,
@@ -93,7 +93,7 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
     frames = [
         go.Frame(
             name=f"frame-{i}",
-            data=traces(i),
+            data=traces(i, frame_update=True),
             traces=list(range(5)),
             layout={"title": {"text": title(i)}},
         )
