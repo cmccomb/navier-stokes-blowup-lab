@@ -3,7 +3,7 @@
   "id": "best-guess-n192-native-f32-rest-t0985",
   "label": "Current best \u00b7 streaming from rest",
   "status": "running",
-  "observed_at": "2026-09-11T18:43:15.404301+00:00",
+  "observed_at": "2026-09-11T18:46:45.336994+00:00",
   "started_at": "2026-09-11T01:09:27.084010+00:00",
   "source_commit": "9d2afb89096c869c1be3a7fb654cb8b797f03b35",
   "config": {
@@ -70,10 +70,10 @@
     "preview_phase_step": 0.3,
     "preview_resolution": 192
   },
-  "revision": "e92e7d38f439",
+  "revision": "c99727605eae",
   "render_revision": 12,
-  "latest_t": 0.942746383001742,
-  "captured_frames": 296,
+  "latest_t": 0.9431464853592997,
+  "captured_frames": 297,
   "clip_times": [
     0.0,
     0.55,
@@ -370,7 +370,8 @@
     0.9415291023862571,
     0.9419377114001555,
     0.9423434649537642,
-    0.942746383001742
+    0.942746383001742,
+    0.9431464853592997
   ],
   "history_policy": "every finalized saved snapshot from rest; no frame thinning",
   "clip_times_3d": [
@@ -669,7 +670,8 @@
     0.9415291023862571,
     0.9419377114001555,
     0.9423434649537642,
-    0.942746383001742
+    0.942746383001742,
+    0.9431464853592997
   ],
   "history_policy_3d": "every saved snapshot from rest; on-demand volumes with a three-frame browser cache",
   "playback": {
@@ -680,16 +682,17 @@
       "force_gif",
       "force_mp4"
     ],
-    "simulation_time_span": 0.942746383001742,
+    "simulation_time_span": 0.9431464853592997,
     "saved_frames_per_second": 5,
     "simulation_time_proportional": false,
     "initial_rest_hold_seconds": 1,
-    "traversal_seconds": 59.8,
+    "traversal_seconds": 60.0,
     "terminal_hold_seconds": 0.5,
-    "duration_seconds": 60.3,
+    "duration_seconds": 60.5,
     "mp4_fps": 50,
     "mp4_frame_repeats": [
       50,
+      10,
       10,
       10,
       10,
@@ -1283,6 +1286,7 @@
       200,
       200,
       200,
+      200,
       500
     ],
     "terminal_hold_policy": "editorial pause at the final saved time, not additional simulated time",
@@ -1386,11 +1390,11 @@
   },
   "render": {
     "velocity": {
-      "color_max": 2.1392291745820473,
+      "color_max": 2.146513355762999,
       "plane_coordinate": 0.005208333333333259,
       "gif_verification": {
-        "frames": 296,
-        "sha256": "d1b1af4a5672802c0cde822c591b0bb9d970a64ae6c7ae36baf6992d5da00a32"
+        "frames": 297,
+        "sha256": "96e35d0dc2fc36ba8e4a496d0512e6e82d348574e638c7b594635239641cee15"
       },
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication",
       "volume_history": {
@@ -3513,22 +3517,29 @@
             "path": "site/media/stream-volumes/velocity-717bbdab7bb9451590aec0acfde1c4a799c57e4107f840dc85e4368053c1bb94.f32.gz",
             "sha256": "717bbdab7bb9451590aec0acfde1c4a799c57e4107f840dc85e4368053c1bb94",
             "bytes": 356434
+          },
+          {
+            "index": 296,
+            "time": 0.9431464853592997,
+            "path": "site/media/stream-volumes/velocity-dd8f02483b8d0da12e3dbb03018c242e7bf94d28ae33189d4545fbec55601286.f32.gz",
+            "sha256": "dd8f02483b8d0da12e3dbb03018c242e7bf94d28ae33189d4545fbec55601286",
+            "bytes": 356408
           }
         ],
         "limits": {
-          "magnitude": 2.1392291745820473,
-          "x": 1.0728685855865479,
-          "y": 1.0680229663848877,
-          "z": 2.139214038848877
+          "magnitude": 2.146513355762999,
+          "x": 1.0759187936782837,
+          "y": 1.0722004175186157,
+          "z": 2.146497964859009
         }
       }
     },
     "force": {
-      "color_max": 188.41477563559442,
+      "color_max": 193.07443339443049,
       "plane_coordinate": 0.005208333333333259,
       "gif_verification": {
-        "frames": 296,
-        "sha256": "dc1df2298eb97c6a409222105b486a9c479a3865fb5002abde83e7461bc1e7f2"
+        "frames": 297,
+        "sha256": "c87c11ba099c3a8b6068d92389c6d3cee8dc113c2ea845b7f469e2114142a5ac"
       },
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication",
       "volume_history": {
@@ -5651,13 +5662,20 @@
             "path": "site/media/stream-volumes/force-4c5d3846e0c0fceb498b16eeb2ce0e1679db12bbed4eaf3a8188aa0ad3949c41.f32.gz",
             "sha256": "4c5d3846e0c0fceb498b16eeb2ce0e1679db12bbed4eaf3a8188aa0ad3949c41",
             "bytes": 135789
+          },
+          {
+            "index": 296,
+            "time": 0.9431464853592997,
+            "path": "site/media/stream-volumes/force-0a20e73bcf1b6ae51a4c54e3981546fc58db800ba8573c8ecda3918abb94001e.f32.gz",
+            "sha256": "0a20e73bcf1b6ae51a4c54e3981546fc58db800ba8573c8ecda3918abb94001e",
+            "bytes": 135835
           }
         ],
         "limits": {
-          "magnitude": 135.58364296008708,
+          "magnitude": 141.683113174411,
           "x": 115.6663818359375,
           "y": 112.2530517578125,
-          "z": 70.43936157226562
+          "z": 71.58357238769531
         }
       }
     }
