@@ -59,17 +59,8 @@
         <p>The configured output clocks, maximum timestep, diffusion limit, and forcing-phase limit give about 4,113 active steps. Each RK2 step makes two pressure projections, each requiring three forward and three inverse complex 3D Fourier transforms. Using the conventional approximation 5 N log₂(N) per transform, with N = 192³, gives about 40 TFLOP for those transforms. This is an operation-count convention, not a hardware measurement. <a href="https://www.fftw.org/speed/method.html">FFT benchmark methodology ↗</a></p>
         <p>We allow <strong>3–10 times that FFT work</strong> for the full calculation, including repeated target and force evaluations and finite-difference kernels. That multiplier is an explicit planning assumption, not a profile or a rigorous bound. Velocity-dependent CFL limits may require more steps. Restarts, validation runs, and rendering are excluded. <a href="https://github.com/cmccomb/navier-stokes-singularity-simulation/blob/main/scripts/estimate_run_compute.py">Estimate script ↗</a> · <a href="data/compute-estimate.json">Inputs and calculation</a></p>
 
-        <h2 id="velocity-scale">What does the speed comparison mean?</h2>
+        <h2 id="velocity-scale">How is peak speed measured?</h2>
         <p>Peak speed is the largest velocity magnitude across the full solver grid at the latest saved diagnostic time. That clock can lag the movie frames. It is reported in model units, with its own timestamp.</p>
-        <p>The emoji comparison is a playful illustration: imagine one model velocity unit as one meter per second. The page picks the closer of two slow benchmarks on a logarithmic scale and shows the ratio of speeds. At zero speed, the flow is a statue. This chosen scale does not give the mathematical fluid a physical size or predict a real-world water speed.</p>
-        <table>
-          <thead><tr><th>Slow rival</th><th>Reference rate</th><th>Source</th></tr></thead>
-          <tbody>
-            <tr><td>💅 Fingernail growth</td><td>3.47 mm/month</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/19744178/">Measured average in healthy young adults ↗</a></td></tr>
-            <tr><td>🏖️ Alaska’s Arctic coast retreat</td><td>1.4 m/year</td><td><a href="https://www.usgs.gov/centers/pcmsc/science/climate-impacts-arctic-coasts">USGS north-coast average ↗</a></td></tr>
-          </tbody>
-        </table>
-        <p>These are average rates: nail growth varies among people, and erosion varies by location and often happens in bursts. The coastline figure applies to Alaska’s north coast, not every beach. Calculations use a 365.25-day year and one-twelfth of that year per month.</p>
 
         <p class="archive-link"><a href="index.html#result">Back to the simulation →</a></p>
       </article>

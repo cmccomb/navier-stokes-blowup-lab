@@ -2,11 +2,6 @@ const refreshInterval = 60_000;
 let shownRevision = null;
 let lastObservedAt = null;
 let computeEstimate = null;
-const secondsPerYear = 365.25 * 24 * 60 * 60;
-const slowReferences = [
-  { emoji: "💅", label: "fingernail growth", metersPerSecond: 0.00347 / (secondsPerYear / 12) },
-  { emoji: "🏖️", label: "Alaska’s Arctic coast retreat", metersPerSecond: 1.4 / secondsPerYear },
-];
 
 function number(value, digits = 3) {
   return Number.isFinite(value) ? value.toFixed(digits) : "—";
@@ -188,17 +183,6 @@ function showNumbers(run) {
   document.querySelector("#peak-speed").textContent = valid ? compact(speed) : "—";
   document.querySelector("#speed-time").textContent = valid
     ? `Model units · saved t = ${number(run.diagnostics.t, 5)}` : "Awaiting a saved diagnostic";
-  const comparison = document.querySelector("#speed-comparison");
-  const scale = document.querySelector("#comparison-scale");
-  if (!valid || speed === 0) {
-    comparison.textContent = valid ? "🗿 Statue speed" : "—";
-    scale.textContent = valid ? "No motion at this saved time" : "Awaiting a saved diagnostic";
-  } else {
-    const reference = slowReferences.reduce((best, candidate) =>
-      Math.abs(Math.log(speed / candidate.metersPerSecond)) < Math.abs(Math.log(speed / best.metersPerSecond)) ? candidate : best);
-    comparison.textContent = `${reference.emoji} ${compact(speed / reference.metersPerSecond)}×`;
-    scale.textContent = reference.label;
-  }
 }
 
 fetch("data/compute-estimate.json", { cache: "no-store" })

@@ -413,14 +413,13 @@ footer p { margin-bottom: 0; }
 [hidden] { display: none !important; }
 
 .faq-page { max-width: 52rem; padding-block: 3rem; }
-.big-numbers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0 0 2rem; border-block: 1px solid var(--line); }
+.big-numbers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 2rem; border-block: 1px solid var(--line); }
 .big-numbers > div { padding: 1.4rem 1.2rem; min-width: 0; }
 .big-numbers > div + div { border-left: 1px solid var(--line); }
 .number-label { color: var(--muted); font-size: 0.875rem; margin-bottom: 0.55rem; }
 .number-value { font-size: clamp(1.6rem, 2.1vw, 2rem); line-height: 1.25; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.035em; margin-bottom: 0.65rem; }
 .number-note { font-size: 0.875rem; color: var(--muted); margin: 0; }
 .number-note a, .mesh-diagram a { color: var(--cyan); }
-.speed-comparison { font-size: 1.6rem; }
 .mesh-diagram img { display: block; width: 720px; height: auto; }
 .plot-viewport { overflow-x: auto; overscroll-behavior-x: contain; }
 .plot-scroll-hint { display: none; margin: 0.5rem 0; color: var(--muted); font-size: 0.875rem; }
