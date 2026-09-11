@@ -57,7 +57,15 @@
 
         <h2 id="velocity-scale">What does the speed comparison mean?</h2>
         <p>Peak speed is the largest velocity magnitude across the full solver grid at the latest saved diagnostic time. That clock can lag the movie frames. It is reported in model units, with its own timestamp.</p>
-        <p>The emoji comparison is a playful illustration: imagine one model velocity unit as one meter per second, and compare it with a stroll at 1 m/s. At zero speed, the flow is a statue. This chosen scale does not give the mathematical fluid a physical size or predict a real-world water speed.</p>
+        <p>The emoji comparison is a playful illustration: imagine one model velocity unit as one meter per second. The page picks the closer of two slow benchmarks on a logarithmic scale and shows the ratio of speeds. At zero speed, the flow is a statue. This chosen scale does not give the mathematical fluid a physical size or predict a real-world water speed.</p>
+        <table>
+          <thead><tr><th>Slow rival</th><th>Reference rate</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td>💅 Fingernail growth</td><td>3.47 mm/month</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/19744178/">Measured average in healthy young adults ↗</a></td></tr>
+            <tr><td>🏖️ Alaska’s Arctic coast retreat</td><td>1.4 m/year</td><td><a href="https://www.usgs.gov/centers/pcmsc/science/climate-impacts-arctic-coasts">USGS north-coast average ↗</a></td></tr>
+          </tbody>
+        </table>
+        <p>These are average rates: nail growth varies among people, and erosion varies by location and often happens in bursts. The coastline figure applies to Alaska’s north coast, not every beach. Calculations use a 365.25-day year and one-twelfth of that year per month.</p>
 
         <p class="archive-link"><a href="index.html#result">Back to the simulation →</a></p>
       </article>
