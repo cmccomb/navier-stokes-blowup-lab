@@ -31,6 +31,7 @@ function mediaUrl(path, revision) {
 function showMedia(kind, media, revision) {
   const video = document.querySelector(`#${kind}-video`);
   const firstLoad = !video.hasAttribute("src");
+  const previousTime = firstLoad ? 0 : video.currentTime;
   const continuePlaying = firstLoad || !video.paused;
   const mp4 = mediaUrl(media[`${kind}_mp4`], revision);
   const gif = mediaUrl(media[`${kind}_gif`], revision);
@@ -40,6 +41,11 @@ function showMedia(kind, media, revision) {
   document.querySelector(`#${kind}-pending`).hidden = true;
   video.onloadeddata = () => {
     document.querySelector(`#${kind}-pending`).hidden = true;
+  };
+  video.onloadedmetadata = () => {
+    if (Number.isFinite(previousTime) && previousTime > 0) {
+      video.currentTime = Math.min(previousTime, Math.max(0, video.duration - 0.02));
+    }
   };
   video.onerror = () => {
     const pending = document.querySelector(`#${kind}-pending`);
@@ -56,7 +62,8 @@ function showMedia(kind, media, revision) {
 function showRun(run) {
   showNumbers(run);
   document.querySelectorAll("[data-volume-resolution]").forEach((node) => {
-    node.textContent = `${run.display_resolution_3d}³ browser samples derived from ${run.archive.resolution}³ saved fields`;
+    const times3d = run.clip_times_3d || run.clip_times;
+    node.textContent = `${run.display_resolution_3d}³ browser samples derived from ${run.archive.resolution}³ saved fields; recent ${times3d.length} frames, t = ${number(times3d[0], 5)}–${number(times3d.at(-1), 5)}`;
   });
   for (const kind of ["flow", "force"]) {
     if (!document.querySelector(`#${kind}-video`).error) {
@@ -66,7 +73,7 @@ function showRun(run) {
   const times = run.clip_times;
   const range = times.length === 1
     ? `one saved frame at t = ${number(times[0], 5)} (held)`
-    : `saved t = ${number(times[0], 5)} to ${number(times.at(-1), 5)}`;
+    : `${times.length} saved frames · t = ${number(times[0], 5)} to ${number(times.at(-1), 5)}${run.history_policy ? " · complete saved history from rest" : ""}`;
   document.querySelectorAll("[data-clip-range]").forEach((node) => {
     node.textContent = range;
   });

@@ -81,6 +81,16 @@ uv run ns-blowup --help</code></pre>
   --frames 72 --fps 8</code></pre>
         <p>The renderer writes a similarity-core axial-outflow GIF and paired physical-plane GIFs for speed, signed vertical velocity, and plane-normal vorticity. It uses saved solver states only and a fixed color scale for each paired view.</p>
 
+        <h2>Publish the complete saved history from rest</h2>
+        <p>The home-page velocity and forcing GIFs and MP4s include every finalized snapshot in <code>preview-volumes/</code>, starting with the actual zero field at <span class="math">t = 0</span>. No rolling window, frame thinning, or interpolated fluid states are used. This includes every saved snapshot, not every internal solver timestep.</p>
+        <pre><code>uv run python -m scripts.stream_run \
+  --host local --once --no-push \
+  --run outputs/n192-paper-rest-fine \
+  --repo . --cache .publish-cache \
+  --deadline &lt;future-ISO-time-with-timezone&gt;</code></pre>
+        <p>Run this bounded export on the archive machine. Native planes and browser samples are cached outside Git; encoding reads one derived frame at a time. The live controller transfers only the seven website outputs and checks both GIFs against the complete saved-frame count before pushing to <code>main</code>.</p>
+        <p>Playback uses five saved snapshots per second, a one-second initial-rest hold, and a half-second final hold. Movie duration grows with the archive. Simulation-time spacing varies, and every frame displays its actual time and frame number. The interactive 3D explorers retain a separately labeled latest-24 window to limit browser memory; the complete native archive remains available.</p>
+
         <h2>Animate three-dimensional histories</h2>
         <pre><code>uv run python -m scripts.render_volume_media \
   --run outputs/n192-paper-rest-fine \
@@ -108,7 +118,7 @@ uv run python -m scripts.render_volume_media \
         <h2>Verify before publishing</h2>
         <pre><code>uv run ruff check .
 uv run pytest -q</code></pre>
-        <p>Publish only complete <span class="math">t = 0</span> trajectories whose endpoint passes both the geometric scale coverage and spectral-tail audits. Raw arrays and run directories remain outside Git.</p>
+        <p>A live partial trajectory must include its full saved history from <span class="math">t = 0</span> and remain labeled as running. Do not describe it as a completed or convergence-validated endpoint. Check geometric scale coverage and spectral tails before making resolution claims. Raw arrays, derived caches, and run directories remain outside Git.</p>
 
         <nav class="page-links" aria-label="Adjacent documentation"><a href="derivation.html">← Profile derivation</a><a href="results.html">Numerical record →</a></nav>
       </article>

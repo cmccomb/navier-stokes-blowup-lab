@@ -8,65 +8,82 @@ from PIL import Image, ImageSequence
 
 from navier_stokes_sim.config import SimulationConfig
 from scripts.stream_run import (
+    CachedFrames,
     build_manifest,
     build_playback,
     plane_vectors,
     read_frames,
     render_3d,
     render_pair,
+    verify_gif,
 )
 
 
-def test_playback_holds_are_proportional_and_share_gif_mp4_clock():
+def test_playback_keeps_all_saved_frames_on_a_shared_gif_mp4_clock():
     plan = build_playback([0, 0.1, 0.3])
-    assert plan["mp4_frame_repeats"] == [100, 200, 25]
-    assert plan["source_frame_duration_ms"] == [2000, 4000, 500]
-    assert plan["duration_seconds"] == 6.5
-    assert plan["segments"][0]["simulation_units_per_playback_second"] == pytest.approx(
-        0.05
-    )
-    assert plan["max_transition_rounding_error_ms"] < 1e-10
+    assert plan["mp4_frame_repeats"] == [50, 10, 25]
+    assert plan["source_frame_duration_ms"] == [1000, 200, 500]
+    assert plan["duration_seconds"] == 1.7
+    assert plan["simulation_time_proportional"] is False
+    assert plan["saved_frames_per_second"] == 5
 
 
-def test_playback_rounds_cumulative_edges_and_bounds_duration():
-    times = np.linspace(0.55, 0.57, 24).tolist()
+def test_playback_grows_instead_of_dropping_history():
+    times = [0, *np.linspace(0.55, 0.985, 486)]
     plan = build_playback(times)
-    assert plan["traversal_seconds"] == 4
-    assert plan["max_transition_rounding_error_ms"] <= 10
-    assert sum(plan["source_frame_duration_ms"]) == 4500
-    assert all(n >= 1 for n in plan["mp4_frame_repeats"])
-    assert build_playback([0, 1, 100])["duration_seconds"] == 12
+    assert len(plan["source_frame_duration_ms"]) == 487
+    assert plan["source_frame_duration_ms"] == [1000, *([200] * 485), 500]
+    assert plan["duration_seconds"] == 98.5
     skewed = build_playback([0, 1e-12, 1e-11, 1])
-    assert min(skewed["mp4_frame_repeats"]) >= 1
-    assert skewed["max_transition_rounding_error_ms"] >= 39
+    assert min(skewed["mp4_frame_repeats"]) == 10
     still = build_playback([0.55])
     assert still["source_frame_duration_ms"] == [4000]
-    assert still["segments"] == []
-    for invalid in ([], [0, 0], [1, 0], [0, np.nan], [0, np.inf], list(range(25))):
+    for invalid in ([], [0, 0], [1, 0], [0, np.nan], [0, np.inf]):
         with pytest.raises(ValueError):
             build_playback(invalid)
 
 
-def test_labeled_bullet_time_does_not_let_rest_dominate_early_clip():
+def test_activation_does_not_change_saved_frame_playback_speed():
     plan = build_playback([0, 0.55, 0.553, 0.556, 0.559], slow_motion_after=0.55)
-    assert plan["duration_seconds"] == 8.5
-    normal, slow = plan["segments"]
-    assert normal["end_t"] == slow["start_t"] == 0.55
-    assert normal["duration_seconds"] / plan["duration_seconds"] < 0.5
-    assert slow["label"] == "Slow motion"
-    assert slow["slowdown_factor"] > 60
-    assert plan["mp4_frame_repeats"] == [200, 67, 66, 67, 25]
-    # A rolling active clip slows only the final six actual intervals.
-    rolling = build_playback(
-        np.linspace(0.6, 0.66, 24).tolist(), slow_motion_after=0.55
-    )
-    assert rolling["segments"][-1]["start_index"] == 17
-    assert rolling["segments"][-1]["slowdown_factor"] > 1
-    assert rolling["duration_seconds"] <= 12
-    assert (
-        build_playback([0, 0.5, 0.55], slow_motion_after=0.55)["segments"][0]["label"]
-        == "Replay"
-    )
+    assert plan["mp4_frame_repeats"] == [50, 10, 10, 10, 25]
+    assert plan == build_playback([0, 0.55, 0.553, 0.556, 0.559])
+
+
+def test_full_history_cache_is_incremental_and_not_a_24_frame_window(
+    tmp_path, monkeypatch
+):
+    source = tmp_path / "source"
+    source.mkdir()
+    cache = tmp_path / "cache"
+    axis = np.linspace(-0.75, 0.75, 4)
+    for i in range(30):
+        vectors = np.full((4, 4, 4, 3), i, dtype=np.float32)
+        np.savez(
+            source / f"frame-{i:06d}.npz",
+            time=i / 100,
+            axis=axis,
+            velocity=vectors,
+            force=-vectors,
+        )
+    frames, count = read_frames(source, cache=cache)
+    assert isinstance(frames, CachedFrames)
+    assert len(frames) == count == 30
+    assert float(frames[0]["time"]) == 0
+    assert float(frames[-1]["time"]) == 0.29
+    assert len(frames[-24:]) == 24
+    real_load = np.load
+
+    def cached_only(path, **kwargs):
+        assert path.parent == cache
+        return real_load(path, **kwargs)
+
+    monkeypatch.setattr(np, "load", cached_only)
+    again, count = read_frames(source, cache=cache)
+    assert len(again) == count == 30
+    np.testing.assert_array_equal(again[0]["velocity"], 0)
+    (source / "frame-000001.npz").unlink()
+    with pytest.raises(ValueError, match="contiguous"):
+        read_frames(source, cache=cache)
 
 
 def test_stream_reads_only_finalized_real_frames_and_bounds_window(tmp_path):
@@ -163,7 +180,12 @@ def test_native_planes_are_taken_before_browser_reduction(tmp_path):
 )
 @pytest.mark.parametrize(
     ("times", "activation"),
-    [((0.0, 0.55), None), ((0.0, 0.55, 0.56), 0.55), ((0.55,), 0.55)],
+    [
+        ((0.0, 0.55), None),
+        ((0.0, 0.55, 0.56), 0.55),
+        ((0.55,), 0.55),
+        ((0, *np.linspace(0.55, 0.85, 29)), 0.55),
+    ],
 )
 def test_stream_media_can_encode_real_rest_frames(tmp_path, times, activation):
     axis = np.linspace(-0.75, 0.75, 4)
@@ -171,7 +193,7 @@ def test_stream_media_can_encode_real_rest_frames(tmp_path, times, activation):
         {"time": np.asarray(t), "axis": axis, "velocity": np.zeros((4, 4, 4, 3))}
         for t in times
     ]
-    render_pair(
+    rendering = render_pair(
         frames, "velocity", tmp_path / "rest", 192, slow_motion_after=activation
     )
     info = json.loads(
@@ -197,6 +219,7 @@ def test_stream_media_can_encode_real_rest_frames(tmp_path, times, activation):
     assert float(info["duration"]) == pytest.approx(timing["duration_seconds"])
     assert (tmp_path / "rest.gif").stat().st_size > 0
     with Image.open(tmp_path / "rest.gif") as gif:
+        assert gif.n_frames == len(times)
         duration = []
         labels = []
         for frame in ImageSequence.Iterator(gif):
@@ -206,6 +229,11 @@ def test_stream_media_can_encode_real_rest_frames(tmp_path, times, activation):
         # Title pixels stay fixed while the separately anchored timestamp changes.
         for label in labels[1:]:
             np.testing.assert_array_equal(labels[0], label)
+    assert rendering["gif_verification"] == verify_gif(
+        tmp_path / "rest.gif", timing["source_frame_duration_ms"]
+    )
+    with pytest.raises(ValueError, match="every saved frame"):
+        verify_gif(tmp_path / "rest.gif", [200] * (len(times) + 1))
 
 
 def test_stream_3d_is_self_contained_with_real_time_controls(tmp_path):

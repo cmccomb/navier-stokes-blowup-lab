@@ -41,28 +41,28 @@ finite-surrogate experiment, not a singularity demonstration.
 
 With noninteractive GitHub authentication configured, the publisher detects
 finalized phase-clock snapshots every 30 seconds and commits the latest
-manifest plus compact rolling GIF/MP4 clips to `main`.
-GitHub Pages adds build and cache latency. Each clip uses up to 24 actual
-saved frames, with perpendicular velocity/forcing views; full-volume archives
-stay outside Git. The manifest labels the display resolution, actual plane
-coordinates, color scale, clip times, and the separate diagnostic timestamp.
-No fluid states are interpolated. An initial rest-only clip is real data, not
-a placeholder for an older run.
+manifest plus full-history GIF/MP4 movies to `main`.
+GitHub Pages adds build and cache latency. Both velocity and forcing movies
+include **every finalized saved snapshot, from the actual zero-velocity start
+through the latest saved time**, in order. There is no rolling window or frame
+thinning in the movies. This means every saved output, not every internal solver
+timestep; unsaved states cannot be recovered from the movies. Raw volumes stay
+outside Git. The interactive 3D explorers have a separately labeled latest-24
+window to bound browser memory, recorded in `clip_times_3d`.
 
-GIF/MP4 playback holds each saved state until the next sampled time. The last
-six active intervals play in labeled slow motion; earlier clips slow all
-available active intervals. Time remains proportional within each segment.
-The preceding segment lasts at most 4 seconds, so initial rest does not dominate
-the emerging flow. Clips last at most 12 seconds, including a 0.5-second final
-pause (4 seconds total for a single state). Replay speed and slowdown factor
-are printed in a fixed position and recorded in `stream.json`. Transitions are
-rounded to 20 ms boundaries: GIF uses two-centisecond delays; MP4 repeats frames
-at 50 fps.
-Every saved state remains visible for at least one tick. The manifest records
-durations, repeat counts, and the maximum transition-rounding error. Exports
-are 1440×792 pixels for sharp 720-pixel display, with fixed label positions.
-These timing rules apply to the movies; the interactive 3D explorer steps
-through checkpoints independently.
+Movies play at **5 saved snapshots per second** (200 ms per state), with a
+1-second initial-rest hold and a 0.5-second final hold. A single-state movie
+holds for 4 seconds. Duration grows with the saved history; there is no fixed
+12-second cap or late-window speed change. Capture uses nonuniform simulation
+times, so this is explicitly labeled saved-frame playback, not uniform physical
+time. No fluid states are interpolated. GIF and MP4 use the same holds; MP4
+repeats states at 50 fps. Exports remain 1440×792 pixels.
+
+The exporter checks contiguous frame indices and the actual initial rest state.
+Before publication, it decodes each GIF to verify that its frame count equals
+`captured_frames` and that every frame delay matches the manifest. GIF hashes
+are recorded in `render`, and publication rejects incomplete histories. Existing
+movie playback position is retained when a new full-history revision arrives.
 
 ### Saving the full field
 
@@ -86,8 +86,11 @@ and reduce browser 3D samples only after the full snapshot is finalized.
 To refresh compact media once on the archive's machine, run
 `python -m scripts.stream_run --host local --once --no-push --run <run-directory>
 --repo <checkout> --cache <receipt-directory> --deadline <ISO-time-with-timezone>`.
-The exporter reads one native field at a time, retaining only native 2D planes
-and a 32³ browser copy for up to 24 frames. It never rewrites the archive.
+The exporter reads one native field at a time and caches derived native 2D
+planes and 32³ browser copies outside Git. The complete 2D history is read
+lazily from this cache, and GIF frames are encoded individually instead of
+buffering a growing image history in RAM. Subsequent updates reuse the compact
+cache; the native archive is never rewritten. Browser 3D retains only 24 frames.
 Publish the compact outputs from the authorized publishing checkout. Remote
 publication rejects dense-archive transfers; raw histories are not rsynced to
 another machine or committed to Git.
