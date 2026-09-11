@@ -187,4 +187,7 @@ def test_stream_3d_is_self_contained_with_real_time_controls(tmp_path):
     assert "0.550000" in html
     assert json.dumps("8³ display samples")[1:-1] in html
     assert "Arial, Helvetica, sans-serif" in html
+    assert "resizeVolume" in html and "autoexpand: false" in html
+    assert "{plot_id}" not in html
+    assert "document.getElementById('stream-volume')" in html
     assert '<script src="https://cdn.plot.ly' not in html

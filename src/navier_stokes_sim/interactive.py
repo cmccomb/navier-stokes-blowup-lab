@@ -12,6 +12,72 @@ from .config import SimulationConfig
 from .solver import SimulationResult
 from .volume_series import COMPONENTS, VolumeSeries, scalar_values
 
+# Patch individual layout attributes so resize never replaces slider steps,
+# component selection, active frame, or scene.camera. Plotly substitutes plot_id.
+RESPONSIVE_VOLUME_SCRIPT = r"""
+(() => {
+    const plot = document.getElementById('{plot_id}');
+    const fullNote = plot.layout.annotations[0].text;
+    const samples = (fullNote.match(/\d+³ display samples/) || ['Saved samples'])[0];
+    let lastWidth = 0;
+    let pending;
+    function resizeVolume() {
+        const width = Math.floor(plot.parentElement.getBoundingClientRect().width);
+        if (width < 1 || width === lastWidth) return;
+        lastWidth = width;
+        const narrow = width < 540;
+        const height = narrow ? 740 : 760;
+        const top = narrow ? 210 : 155;
+        const bottom = narrow ? 215 : 210;
+        const sceneHeight = height - top - bottom;
+        plot.style.height = height + 'px';
+        plot.parentElement.style.height = height + 'px';
+        const updates = {
+            width, height, autosize: true,
+            margin: {l: 20, r: 65, t: top, b: bottom, autoexpand: false},
+            'scene.domain.x': narrow ? [0.04, 0.98] : [0, 1],
+            'updatemenus[0].x': 0,
+            'updatemenus[0].xanchor': 'left',
+            'updatemenus[0].y': 1 + (top - 100) / sceneHeight,
+            'updatemenus[0].yanchor': 'top',
+            'updatemenus[0].buttons[0].execute': false,
+            'updatemenus[0].buttons[1].execute': false,
+            'updatemenus[1].x': narrow ? 0 : 0.62,
+            'updatemenus[1].xanchor': 'left',
+            'updatemenus[1].y': 1 + (top - (narrow ? 150 : 100)) / sceneHeight,
+            'updatemenus[1].yanchor': 'top',
+            'sliders[0].x': narrow ? 0.08 : 0.03,
+            'sliders[0].len': narrow ? 0.90 : 0.94,
+            'sliders[0].y': -0.12,
+            'sliders[0].pad.t': 12,
+            'annotations[0].text': narrow
+                ? samples + ' · actual checkpoints<br>All vector components · fixed scales<br>Drag to orbit · scroll to zoom'
+                : fullNote,
+            'annotations[0].x': 0.5,
+            'annotations[0].y': narrow ? -0.44 : -0.40,
+            'annotations[0].xanchor': 'center',
+            'annotations[0].yanchor': 'top',
+        };
+        Plotly.relayout(plot, updates);
+    }
+    plot.on('plotly_buttonclicked', event => {
+        if (!['Play time', 'Pause'].includes(event.button.label)) return;
+        // Plotly rejects an interrupted animation with undefined. Handle that
+        // one promise locally instead of hiding arbitrary window errors.
+        Plotly.animate(plot, ...event.button.args).catch(error => {
+            if (error !== undefined) console.error('Volume playback failed', error);
+        });
+    });
+    function queueResize() {
+        cancelAnimationFrame(pending);
+        pending = requestAnimationFrame(resizeVolume);
+    }
+    new ResizeObserver(queueResize).observe(plot.parentElement);
+    window.addEventListener('resize', queueResize);
+    resizeVolume();
+})();
+"""
+
 
 def build_volume_figure(series: VolumeSeries) -> go.Figure:
     """One trace per scalar keeps component selection across time changes."""
@@ -48,7 +114,14 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
                     colorscale="Magma" if magnitude else "RdBu_r",
                     opacity=0.25,
                     caps={a: {"show": False} for a in "xyz"},
-                    colorbar={"title": label, "thickness": 14, "len": 0.65},
+                    colorbar={
+                        "title": {"text": label, "side": "top"},
+                        "thickness": 12,
+                        "len": 0.65,
+                        "x": 1.01,
+                        "xanchor": "left",
+                        "xpad": 0,
+                    },
                     name=f"{series.field} {component} isosurfaces",
                     showlegend=False,
                     hovertemplate=f"{label}=%{{value:.4g}}<extra></extra>",
@@ -116,7 +189,8 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
                 for a in "xyz"
             },
             "aspectmode": "cube",
-            "camera": {"eye": {"x": 1.5, "y": 1.4, "z": 1.0}},
+            # Leave room for physical-axis tick labels on narrow WebGL canvases.
+            "camera": {"eye": {"x": 2.25, "y": 2.1, "z": 1.5}},
             "uirevision": "preserve-camera",
         },
         sliders=[
@@ -146,6 +220,7 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
                 "font": {"color": "#07111f"},
                 "direction": "left",
                 "x": 0,
+                "xanchor": "left",
                 "y": 1.12,
                 "buttons": [
                     {
@@ -179,6 +254,7 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
                 "bgcolor": "#dbe9f0",
                 "font": {"color": "#07111f"},
                 "x": 0.55,
+                "xanchor": "left",
                 "y": 1.1,
                 "buttons": [
                     {
@@ -219,6 +295,7 @@ def write_series_explorer(series: VolumeSeries, destination: Path) -> bool:
         full_html=True,
         auto_play=False,
         config={"responsive": True, "displaylogo": False},
+        post_script=RESPONSIVE_VOLUME_SCRIPT,
     )
     return True
 

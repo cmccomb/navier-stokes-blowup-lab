@@ -26,7 +26,10 @@ from matplotlib.colors import LinearSegmentedColormap, SymLogNorm
 from PIL import Image
 
 from navier_stokes_sim.config import SimulationConfig
-from navier_stokes_sim.interactive import build_volume_figure
+from navier_stokes_sim.interactive import (
+    RESPONSIVE_VOLUME_SCRIPT,
+    build_volume_figure,
+)
 from navier_stokes_sim.volume_series import VolumeSeries
 
 plt.rcParams["font.family"] = "sans-serif"
@@ -409,7 +412,7 @@ def render_pair(
 def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -> dict:
     times = [float(f["time"]) for f in frames]
     revision = hashlib.sha256(
-        json.dumps([remote["source_commit"], times, count, "renderer-v5"]).encode()
+        json.dumps([remote["source_commit"], times, count, "renderer-v6"]).encode()
     ).hexdigest()[:12]
     return {
         "schema_version": 1,
@@ -421,7 +424,7 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
         "source_commit": remote["source_commit"],
         "config": remote["config"],
         "revision": revision,
-        "render_revision": 5,
+        "render_revision": 6,
         "latest_t": times[-1],
         "captured_frames": count,
         "clip_times": times,
@@ -474,6 +477,7 @@ def render_3d(frames: list[dict], field: str, destination: Path, config: dict) -
         auto_play=False,
         div_id="stream-volume",
         config={"responsive": True, "displaylogo": False},
+        post_script=RESPONSIVE_VOLUME_SCRIPT,
     )
     html = html.replace(
         "<head>",
@@ -481,7 +485,9 @@ def render_3d(frames: list[dict], field: str, destination: Path, config: dict) -
         "<style>html,body{margin:0;background:#07111f;color:#e9f1f5;font-family:Arial,Helvetica,sans-serif}</style>",
         1,
     )
-    temporary.write_text(html, encoding="utf-8")
+    temporary.write_text(
+        "\n".join(line.rstrip() for line in html.splitlines()) + "\n", encoding="utf-8"
+    )
     temporary.replace(destination)
 
 
