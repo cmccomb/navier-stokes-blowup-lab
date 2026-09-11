@@ -3,7 +3,7 @@
   "id": "best-guess-n192-native-f32-rest-t0985",
   "label": "Current best \u00b7 streaming from rest",
   "status": "running",
-  "observed_at": "2026-09-11T02:15:29.233362+00:00",
+  "observed_at": "2026-09-11T02:20:18.474945+00:00",
   "started_at": "2026-09-11T01:09:27.084010+00:00",
   "source_commit": "9d2afb89096c869c1be3a7fb654cb8b797f03b35",
   "config": {
@@ -70,10 +70,10 @@
     "preview_phase_step": 0.3,
     "preview_resolution": 192
   },
-  "revision": "0a53f04a093a",
+  "revision": "b02e0b0b7954",
   "render_revision": 10,
-  "latest_t": 0.5863193722822527,
-  "captured_frames": 14,
+  "latest_t": 0.5892102742567229,
+  "captured_frames": 15,
   "clip_times": [
     0.0,
     0.55,
@@ -88,7 +88,8 @@
     0.5775240256207878,
     0.5804763916410123,
     0.5834081258013302,
-    0.5863193722822527
+    0.5863193722822527,
+    0.5892102742567229
   ],
   "playback": {
     "mode": "piecewise simulation-time-proportional zero-order hold",
@@ -98,28 +99,28 @@
       "force_gif",
       "force_mp4"
     ],
-    "simulation_time_span": 0.5863193722822527,
+    "simulation_time_span": 0.5892102742567229,
     "segments": [
       {
         "label": "Replay",
         "start_index": 0,
-        "end_index": 7,
+        "end_index": 8,
         "start_t": 0.0,
-        "end_t": 0.56854167933277,
-        "simulation_units_per_playback_second": 0.1421354198331925,
+        "end_t": 0.5715568161981335,
+        "simulation_units_per_playback_second": 0.14288920404953337,
         "duration_seconds": 4.0,
         "slowdown_factor": 1.0
       },
       {
         "label": "Slow motion",
-        "start_index": 7,
-        "end_index": 13,
-        "start_t": 0.56854167933277,
-        "end_t": 0.5863193722822527,
-        "simulation_units_per_playback_second": 0.004444423237370682,
-        "reference_simulation_units_per_playback_second": 0.1421354198331925,
+        "start_index": 8,
+        "end_index": 14,
+        "start_t": 0.5715568161981335,
+        "end_t": 0.5892102742567229,
+        "simulation_units_per_playback_second": 0.0044133645146473555,
+        "reference_simulation_units_per_playback_second": 0.14288920404953337,
         "duration_seconds": 4.0,
-        "slowdown_factor": 31.980622060935794
+        "slowdown_factor": 32.376479118210966
       }
     ],
     "slow_motion_policy": "last up to six saved intervals starting at or after activation; linear time within each segment; preceding segment capped at 4 s",
@@ -128,8 +129,9 @@
     "duration_seconds": 8.5,
     "mp4_fps": 50,
     "mp4_frame_repeats": [
-      193,
+      192,
       2,
+      1,
       1,
       1,
       1,
@@ -145,8 +147,9 @@
     ],
     "gif_timing_quantum_ms": 20,
     "source_frame_duration_ms": [
-      3860,
+      3840,
       40,
+      20,
       20,
       20,
       20,
@@ -160,7 +163,7 @@
       660,
       500
     ],
-    "max_transition_rounding_error_ms": 9.549199245831232,
+    "max_transition_rounding_error_ms": 9.136144738684493,
     "terminal_hold_policy": "editorial pause at the final saved time, not additional simulated time",
     "quantization_policy": "nearest cumulative 20 ms boundary; at least one tick per source state"
   },
@@ -262,12 +265,12 @@
   },
   "render": {
     "velocity": {
-      "color_max": 0.005250015633183464,
+      "color_max": 0.008440805018064875,
       "plane_coordinate": 0.005208333333333259,
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication"
     },
     "force": {
-      "color_max": 0.9305507600096501,
+      "color_max": 1.2894853526658667,
       "plane_coordinate": 0.005208333333333259,
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication"
     }
