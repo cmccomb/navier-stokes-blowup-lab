@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07111f" />
+    <meta name="description" content="How Navier–Stokes flow can develop unbounded speed while its total energy stays finite." />
+    <title>FAQ · Navier–Stokes Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="index.html"><span class="mark" aria-hidden="true">∇</span><span>Navier–Stokes Simulation</span></a>
+      <nav aria-label="Project navigation"><a href="index.html">Simulation</a><a href="faq.html" aria-current="page">FAQ</a><a href="documentation.html">Documentation</a><a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">GitHub ↗</a></nav>
+    </header>
+    <main class="faq-page" id="content">
+      <article class="doc-page">
+        <h1>Frequently asked questions</h1>
+        <h2 id="finite-energy">How can speed diverge while energy stays finite?</h2>
+
+            <p>
+              Energy depends on speed squared integrated over volume. In the
+              paper, the region of intense motion shrinks quickly enough for
+              its energy to decrease even as its speed grows. Near the center,
+              fluid spirals inward and exits along the axis; the core becomes
+              progressively thinner relative to its height.
+            </p>
+            <p>
+              The hard part is keeping the applied force smooth all the way
+              through the singular time. The paper uses oscillatory pulses
+              and successive corrections to cancel otherwise singular terms
+              in the momentum balance. Our finite pulse families and numerical
+              forcing do not reproduce or certify that entire construction.
+              Tracking the target is a solver check; proving those cancellations
+              is a separate mathematical task.
+            </p>
+            <p class="source-links">
+              <a href="https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf">Paper: Theorem 1.1 &amp; §2 ↗</a>
+              <a href="https://github.com/openai/NavierStokesAndEuler">Lean formalization ↗</a>
+              <a href="reproduction.html">What reproduction would require ↗</a>
+            </p>
+
+        <p class="archive-link"><a href="index.html#result">Back to the simulation →</a></p>
+      </article>
+    </main>
+    <footer><p>Independent open numerical work · not affiliated with OpenAI.</p></footer>
+  </body>
+</html>

@@ -2,10 +2,6 @@ const refreshInterval = 60_000;
 let shownRevision = null;
 let lastObservedAt = null;
 
-function setText(selector, value) {
-  document.querySelector(selector).textContent = value;
-}
-
 function number(value, digits = 3) {
   return Number.isFinite(value) ? value.toFixed(digits) : "—";
 }
@@ -52,32 +48,11 @@ function showMedia(kind, media, revision) {
 }
 
 function showRun(run) {
-  const { config, diagnostics } = run;
-  setText("#run-state", {
-    running: "in progress at last update",
-    complete: "complete",
-    stopped: "stopped · partial run",
-  }[run.status]);
-  setText("#run-resolution", `${config.resolution}³`);
-  setText("#grid-resolution", Array(3).fill(config.resolution).join(" × "));
-  setText("#grid-cells", `${(config.resolution ** 3 / 1e6).toFixed(2)} million cells`);
-  setText("#display-resolution", `${run.display_resolution}³`);
-  setText("#run-end", number(config.t_end));
-  setText("#rest-until", number(config.paper_time_cutoff_start, 2));
-  setText("#latest-time", number(run.latest_t, 5));
-  setText("#frame-status", `${run.captured_frames} movie frames captured · ${run.clip_times.length} in the current clip`);
-  setText("#diagnostics-time", diagnostics
-    ? `Diagnostics recorded at t = ${number(diagnostics.t, 5)}. These may precede the latest movie frame.`
-    : "No diagnostic checkpoint published yet. Movie frames can arrive first.");
-  setText("#metric-peak", number(diagnostics?.peak_speed));
-  setText("#metric-vorticity", number(diagnostics?.peak_vorticity, 2));
-  const radial = diagnostics?.cells_per_radial_scale;
-  const axial = diagnostics?.cells_per_axial_scale;
-  setText("#metric-scale", Number.isFinite(radial) && Number.isFinite(axial)
-    ? `${number(Math.min(radial, axial), 2)} cells` : "—");
-  setText("#scope-warning", run.scope_warning);
-  setText("#data-status", `Run observed ${dateTime(run.observed_at)}.`);
-
+  for (const kind of ["flow", "force"]) {
+    if (!document.querySelector(`#${kind}-video`).error) {
+      document.querySelector(`#${kind}-pending`).hidden = true;
+    }
+  }
   const times = run.clip_times;
   const range = times.length === 1
     ? `one saved frame at t = ${number(times[0], 5)} (held)`
@@ -89,6 +64,18 @@ function showRun(run) {
     showMedia("flow", run.media, run.revision);
     showMedia("force", run.media, run.revision);
     shownRevision = run.revision;
+  }
+  for (const kind of ["flow", "force"]) {
+    const path = run.media[`${kind}_3d`];
+    const tab = document.querySelector(`#${kind}-tab-3d`);
+    tab.disabled = !path;
+    if (path) {
+      const url = mediaUrl(path, run.revision);
+      const iframe = document.querySelector(`#${kind}-3d`);
+      iframe.dataset.latestSrc = url;
+      document.querySelector(`#${kind}-3d-link`).href = url;
+      document.querySelector(`#${kind}-refresh-3d`).hidden = !iframe.hasAttribute("src") || iframe.src === url;
+    }
   }
   lastObservedAt = run.observed_at;
 }
@@ -103,14 +90,63 @@ async function loadResult() {
     }
     showRun(run);
   } catch (error) {
-    setText("#data-status", lastObservedAt
-      ? `Update unavailable. Showing the saved record observed ${dateTime(lastObservedAt)}.`
-      : "Current run record unavailable. Movies and measured values will appear when it is published.");
-    if (!lastObservedAt) setText("#run-state", "awaiting published record");
+    for (const kind of ["flow", "force"]) {
+      const pending = document.querySelector(`#${kind}-pending`);
+      pending.textContent = lastObservedAt
+        ? `Update unavailable. Showing the clip observed ${dateTime(lastObservedAt)}.`
+        : "Current movie unavailable. It will appear when published.";
+      pending.hidden = false;
+    }
     console.error(error);
   } finally {
     window.setTimeout(loadResult, refreshInterval);
   }
+}
+
+const resume2d = new Map();
+
+function load3d(kind) {
+  const iframe = document.querySelector(`#${kind}-3d`);
+  if (iframe.dataset.latestSrc && iframe.src !== iframe.dataset.latestSrc) {
+    iframe.src = iframe.dataset.latestSrc;
+  }
+  document.querySelector(`#${kind}-refresh-3d`).hidden = true;
+}
+
+function selectView(kind, view) {
+  if (document.querySelector(`#${kind}-tab-${view}`).getAttribute("aria-selected") === "true") return;
+  for (const option of ["2d", "3d"]) {
+    const active = option === view;
+    const tab = document.querySelector(`#${kind}-tab-${option}`);
+    tab.setAttribute("aria-selected", String(active));
+    tab.tabIndex = active ? 0 : -1;
+    document.querySelector(`#${kind}-panel-${option}`).hidden = !active;
+  }
+  const video = document.querySelector(`#${kind}-video`);
+  if (view === "3d") {
+    resume2d.set(kind, !video.paused);
+    video.pause();
+    load3d(kind);
+  } else if (resume2d.get(kind) && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    video.play().catch(() => {});
+  }
+}
+
+for (const tab of document.querySelectorAll("[role=tab]")) {
+  tab.addEventListener("click", () => selectView(tab.dataset.field, tab.dataset.view));
+  tab.addEventListener("keydown", (event) => {
+    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const view = event.key === "Home" ? "2d" : event.key === "End" ? "3d" : tab.dataset.view === "2d" ? "3d" : "2d";
+    const next = document.querySelector(`#${tab.dataset.field}-tab-${view}`);
+    if (!next.disabled) {
+      selectView(tab.dataset.field, view);
+      next.focus();
+    }
+  });
+}
+for (const button of document.querySelectorAll("[data-refresh-volume]")) {
+  button.addEventListener("click", () => load3d(button.dataset.refreshVolume));
 }
 
 loadResult();
