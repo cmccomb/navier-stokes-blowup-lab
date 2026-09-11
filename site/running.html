@@ -88,8 +88,10 @@ uv run ns-blowup --help</code></pre>
   --run outputs/n192-paper-rest-fine \
   --repo . --cache .publish-cache \
   --deadline &lt;future-ISO-time-with-timezone&gt;</code></pre>
-        <p>Run this bounded export on the archive machine. Native planes and browser samples are cached outside Git; encoding reads one derived frame at a time. The live controller transfers only the seven website outputs and checks both GIFs against the complete saved-frame count before pushing to <code>main</code>.</p>
-        <p>Playback uses five saved snapshots per second, a one-second initial-rest hold, and a half-second final hold. Movie duration grows with the archive. Simulation-time spacing varies, and every frame displays its actual time and frame number. The interactive 3D explorers retain a separately labeled latest-24 window to limit browser memory; the complete native archive remains available.</p>
+        <p>Run this bounded export on the archive machine. Native planes and browser samples are cached outside Git; encoding reads one derived frame at a time. The live controller transfers the seven fixed website outputs plus explicitly indexed 32³ frame chunks. It checks complete GIF and 3D time coverage, chunk checksums, shapes, and finite vectors before pushing to <code>main</code>.</p>
+        <p>Movie playback uses five saved snapshots per second, a one-second initial-rest hold, and a half-second final hold. Duration grows with the archive. Simulation-time spacing varies, and every frame displays its actual time and frame number.</p>
+        <p>Both interactive 3D explorers also include every saved frame from rest. The selected three-component float32 volume loads on demand into a three-frame cache; no time window or temporal thinning is applied. Magnitude and signed x/y/z views use fixed scales and preserve the camera. Playback waits for each saved frame without interpolation. The 32³ browser sampling does not replace the complete 192³ native archive.</p>
+        <p>Serve each 3D HTML file together with its <code>stream-volumes/</code> directory over HTTPS or localhost. Plotly is bundled, but the history is not embedded in one large file. Content-addressed chunks remain available after updates, so already-open explorers keep working. A failed download pauses playback, retains the last frame's label, and offers a retry.</p>
 
         <h2>Animate three-dimensional histories</h2>
         <pre><code>uv run python -m scripts.render_volume_media \

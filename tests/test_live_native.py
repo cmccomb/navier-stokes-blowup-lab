@@ -3,11 +3,13 @@ import json
 import subprocess
 import sys
 
+import numpy as np
 import pytest
 from PIL import Image
 
 from scripts import stream_run
 from scripts.live_native import observation_key, validate_package
+from scripts.volume_history import render_3d
 
 
 def package(tmp_path):
@@ -24,6 +26,8 @@ def package(tmp_path):
         },
         "captured_frames": 3,
         "clip_times": [0, 0.55, 0.56],
+        "clip_times_3d": [0, 0.55, 0.56],
+        "display_resolution_3d": 4,
         "latest_t": 0.56,
         "status": "running",
         "diagnostics": {"t": 0.55, "peak_speed": 0.0},
@@ -48,6 +52,19 @@ def package(tmp_path):
                 path, run["playback"]["source_frame_duration_ms"]
             )
         }
+        run["render"][field]["volume_history"] = render_3d(
+            [
+                {
+                    "time": t,
+                    "axis": np.linspace(-0.75, 0.75, 4),
+                    field: np.full((4, 4, 4, 3), i, dtype=np.float32),
+                }
+                for i, t in enumerate(run["clip_times"])
+            ],
+            field,
+            tmp_path / f"site/media/stream-{name}-3d.html",
+            {"resolution": 192, "half_domain": 1},
+        )
     (tmp_path / "site/data/stream.json").write_text(json.dumps(run))
     return run
 
@@ -65,6 +82,13 @@ def package(tmp_path):
         "missing_history",
         "missing_rest",
         "wrong_gif",
+        "short_3d",
+        "wrong_3d_time",
+        "wrong_3d_hash",
+        "missing_3d",
+        "unsafe_3d_path",
+        "wrong_3d_html",
+        "wrong_3d_scale",
     ],
 )
 def test_publication_rejects_mixed_invalid_or_regressing_packages(tmp_path, bad):
@@ -92,6 +116,26 @@ def test_publication_rejects_mixed_invalid_or_regressing_packages(tmp_path, bad)
         run["clip_times"][0] = 0.54
     elif bad == "wrong_gif":
         run["render"]["velocity"]["gif_verification"]["sha256"] = "wrong"
+    elif bad == "short_3d":
+        run["clip_times_3d"] = run["clip_times"][-2:]
+    elif bad == "wrong_3d_time":
+        run["render"]["force"]["volume_history"]["frames"][1]["time"] = 0.551
+    elif bad == "wrong_3d_hash":
+        frame = run["render"]["force"]["volume_history"]["frames"][1]
+        path = tmp_path / frame["path"]
+        path.write_bytes(bytes([1]) + path.read_bytes()[1:])
+    elif bad == "missing_3d":
+        (
+            tmp_path / run["render"]["force"]["volume_history"]["frames"][1]["path"]
+        ).unlink()
+    elif bad == "unsafe_3d_path":
+        run["render"]["force"]["volume_history"]["frames"][1]["path"] = (
+            "site/media/../../native.npz"
+        )
+    elif bad == "wrong_3d_html":
+        (tmp_path / "site/media/stream-force-3d.html").write_text("older viewer")
+    elif bad == "wrong_3d_scale":
+        run["render"]["force"]["volume_history"]["limits"]["x"] = 1
     (tmp_path / "site/data/stream.json").write_text(json.dumps(run))
     with pytest.raises(ValueError):
         validate_package(tmp_path, observed, previous)

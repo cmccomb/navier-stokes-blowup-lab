@@ -26,12 +26,7 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, SymLogNorm
 from PIL import GifImagePlugin, Image
 
-from navier_stokes_sim.config import SimulationConfig
-from navier_stokes_sim.interactive import (
-    RESPONSIVE_VOLUME_SCRIPT,
-    build_volume_figure,
-)
-from navier_stokes_sim.volume_series import VolumeSeries
+from scripts.volume_history import render_3d, validate_descriptor
 
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = ["Arial", "Helvetica", "DejaVu Sans"]
@@ -45,7 +40,21 @@ OUTPUTS = [
     "site/media/stream-flow-3d.html",
     "site/media/stream-force-3d.html",
 ]
-RENDER_REVISION = 11
+RENDER_REVISION = 12
+
+
+def package_outputs(run: dict) -> list[str]:
+    """Explicit compact files only; never transfer native archives or broad dirs."""
+    if run["clip_times_3d"] != run["clip_times"]:
+        raise ValueError("3D must cover every saved movie time from rest")
+    paths = list(OUTPUTS)
+    for field in ("velocity", "force"):
+        paths.extend(
+            validate_descriptor(
+                run["render"][field]["volume_history"], field, run["clip_times"]
+            )
+        )
+    return list(dict.fromkeys(paths))
 
 
 class CachedFrames(Sequence):
@@ -456,8 +465,8 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
         "captured_frames": count,
         "clip_times": times,
         "history_policy": "every finalized saved snapshot from rest; no frame thinning",
-        "clip_times_3d": times[-24:],
-        "history_policy_3d": "latest up to 24 saved snapshots; browser-memory bound",
+        "clip_times_3d": times,
+        "history_policy_3d": "every saved snapshot from rest; on-demand volumes with a three-frame browser cache",
         "playback": build_playback(
             times, remote["config"].get("paper_time_cutoff_start")
         ),
@@ -481,54 +490,8 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
             "force_3d": "media/stream-force-3d.html",
         },
         "render": render,
-        "scope_warning": "Finite manufactured-solution surrogate; exploratory and spatially unvalidated. Movies include every saved snapshot from rest, not every solver step. Saved-frame playback is not uniform simulation time. Browser 3D uses a separate recent-frame window.",
+        "scope_warning": "Finite manufactured-solution surrogate; exploratory and spatially unvalidated. Movies and browser 3D include every saved snapshot from rest, not every solver step. Saved-frame playback is not uniform simulation time. Browser 3D loads reduced spatial samples on demand; native archives remain intact.",
     }
-
-
-def render_3d(frames: list[dict], field: str, destination: Path, config: dict) -> None:
-    """Render the browser copy; native three-component archives remain intact."""
-    series = VolumeSeries(
-        np.stack([f[field] for f in frames]),
-        np.asarray([float(f["time"]) for f in frames]),
-        frames[-1].get("volume_axis", frames[-1]["axis"]),
-        SimulationConfig(**config),
-        field,
-    )
-    figure = build_volume_figure(series)
-    figure.update_layout(
-        font={"family": "Arial, Helvetica, sans-serif", "size": 16}, title_font_size=20
-    )
-    for name in ("xaxis", "yaxis", "zaxis"):
-        figure.layout.scene[name].update(
-            tickfont={"size": 14}, title={"font": {"size": 14}}
-        )
-    for annotation in figure.layout.annotations:
-        annotation.font.size = 14
-        if len(series.axis) < len(frames[-1]["axis"]):
-            annotation.text += f"<br>Derived from {len(frames[-1]['axis'])}³ saved fields; archive retained"
-    for slider in figure.layout.sliders:
-        slider.font.size = 14
-        slider.currentvalue.font.size = 16
-    temporary = destination.with_suffix(".tmp.html")
-    html = figure.to_html(
-        include_plotlyjs=True,
-        full_html=True,
-        auto_play=False,
-        div_id="stream-volume",
-        config={"responsive": True, "displaylogo": False},
-        post_script=RESPONSIVE_VOLUME_SCRIPT,
-    )
-    html = html.replace(
-        "<head>",
-        '<head><meta name="viewport" content="width=device-width, initial-scale=1" />'
-        "<style>html,body{margin:0;background:#07111f;color:#e9f1f5;font-family:Arial,Helvetica,sans-serif}"
-        ".modebar{top:55px!important}</style>",
-        1,
-    )
-    temporary.write_text(
-        "\n".join(line.rstrip() for line in html.splitlines()) + "\n", encoding="utf-8"
-    )
-    temporary.replace(destination)
 
 
 def command(argv: list[str], **kwargs) -> str:
@@ -573,10 +536,11 @@ print(json.dumps(dict(id=p.name,status='complete' if complete else ('running' if
 
 
 def publish(repo: Path, message: str) -> str:
-    dirty = command(["git", "status", "--porcelain"], cwd=repo)
-    if any(line[3:] not in OUTPUTS for line in dirty.splitlines()):
+    outputs = package_outputs(json.loads((repo / "site/data/stream.json").read_text()))
+    dirty = command(["git", "status", "--porcelain", "--untracked-files=all"], cwd=repo)
+    if any(line[3:] not in outputs for line in dirty.splitlines()):
         raise RuntimeError("publisher clone has changes outside its allowlist")
-    command(["git", "add", "--", *OUTPUTS], cwd=repo)
+    command(["git", "add", "--", *outputs], cwd=repo)
     if command(["git", "diff", "--cached", "--name-only"], cwd=repo):
         command(["git", "commit", "-m", message], cwd=repo)
     for attempt in range(3):
@@ -688,8 +652,8 @@ def main() -> None:
                         for field, name in (("velocity", "flow"), ("force", "force"))
                     }
                     for field, name in (("velocity", "flow"), ("force", "force")):
-                        render_3d(
-                            frames[-24:],
+                        rendering[field]["volume_history"] = render_3d(
+                            frames,
                             field,
                             args.repo / f"site/media/stream-{name}-3d.html",
                             remote["config"],

@@ -63,7 +63,7 @@ function showRun(run) {
   showNumbers(run);
   document.querySelectorAll("[data-volume-resolution]").forEach((node) => {
     const times3d = run.clip_times_3d || run.clip_times;
-    node.textContent = `${run.display_resolution_3d}³ browser samples derived from ${run.archive.resolution}³ saved fields; recent ${times3d.length} frames, t = ${number(times3d[0], 5)}–${number(times3d.at(-1), 5)}`;
+    node.textContent = `${run.display_resolution_3d}³ browser samples derived from ${run.archive.resolution}³ saved fields; all ${times3d.length} saved frames from rest, t = ${number(times3d[0], 5)}–${number(times3d.at(-1), 5)}; loaded on demand`;
   });
   for (const kind of ["flow", "force"]) {
     if (!document.querySelector(`#${kind}-video`).error) {
