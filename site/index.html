@@ -101,7 +101,14 @@
 
       </section>
 
-      <section class="measure featured-measure" id="result" aria-labelledby="flow-title">
+      <section class="big-numbers" id="result" aria-label="Simulation in numbers">
+        <div><p class="number-label">Solver cells</p><p class="number-value" id="cell-count">—</p><p class="number-note" id="cell-grid">Loading the published grid</p></div>
+        <div><p class="number-label">Estimated total compute</p><p class="number-value" id="total-flops">—</p><p class="number-note"><a href="faq.html#compute">Full-run FLOP budget ↗</a></p></div>
+        <div><p class="number-label">Peak speed</p><p class="number-value" id="peak-speed">—</p><p class="number-note" id="speed-time">Awaiting a saved diagnostic</p></div>
+        <div><p class="number-label">For a sense of speed</p><p class="number-value speed-comparison" id="speed-comparison">—</p><p class="number-note"><a href="faq.html#velocity-scale">Illustrative: 1 model unit = 1 m/s</a></p></div>
+      </section>
+
+      <section class="measure featured-measure" aria-labelledby="flow-title">
         <h2 id="flow-title">How the fluid moves</h2>
         <p class="measure-note">Speed in two perpendicular slices: vertical x–z and equatorial x–y.</p>
         <div class="view-tabs" role="tablist" aria-label="Velocity view">
@@ -111,7 +118,8 @@
         <div id="flow-panel-2d" role="tabpanel" aria-labelledby="flow-tab-2d">
         <p class="media-pending" id="flow-pending">Waiting for published velocity frames.</p>
         <figure class="stream-movie" id="flow-figure" hidden>
-          <video id="flow-video" controls loop muted playsinline preload="metadata" aria-label="Velocity magnitude evolving through saved times in x-z and x-y slices"></video>
+          <div class="plot-viewport" tabindex="0" role="region" aria-label="Velocity plot; scroll horizontally on narrow screens"><video id="flow-video" controls loop muted playsinline preload="metadata" aria-label="Velocity magnitude evolving through saved times in x-z and x-y slices"></video></div>
+          <p class="plot-scroll-hint">Scroll sideways to see both planes →</p>
           <figcaption>
             <span>Velocity magnitude · <span data-clip-range>saved times</span></span>
             <span class="media-links"><a id="flow-gif" download>GIF ↓</a><a id="flow-mp4" download>MP4 ↓</a></span>
@@ -119,7 +127,7 @@
         </figure>
         </div>
         <div id="flow-panel-3d" class="volume-panel" role="tabpanel" aria-labelledby="flow-tab-3d" hidden>
-          <p class="measure-note">Drag to rotate, scroll to zoom, and use the time slider to explore saved frames.</p>
+          <p class="measure-note"><span data-volume-resolution>Saved volume samples</span>. Drag to rotate, scroll to zoom, and use the time slider.</p>
           <button type="button" class="refresh-3d" id="flow-refresh-3d" data-refresh-volume="flow" hidden>Load latest 3D frames</button>
           <iframe id="flow-3d" title="Interactive three-dimensional Velocity explorer" loading="lazy" sandbox="allow-scripts allow-downloads" allow="fullscreen"></iframe>
           <p class="volume-link"><a id="flow-3d-link" target="_blank" rel="noopener">Open 3D explorer in a full tab ↗</a></p>
@@ -135,7 +143,8 @@
         <div id="force-panel-2d" role="tabpanel" aria-labelledby="force-tab-2d">
         <p class="media-pending" id="force-pending">Waiting for published force frames.</p>
         <figure class="stream-movie" id="force-figure" hidden>
-          <video id="force-video" controls loop muted playsinline preload="metadata" aria-label="Applied force magnitude evolving through saved times in x-z and x-y slices"></video>
+          <div class="plot-viewport" tabindex="0" role="region" aria-label="Force plot; scroll horizontally on narrow screens"><video id="force-video" controls loop muted playsinline preload="metadata" aria-label="Applied force magnitude evolving through saved times in x-z and x-y slices"></video></div>
+          <p class="plot-scroll-hint">Scroll sideways to see both planes →</p>
           <figcaption>
             <span>Force magnitude · <span data-clip-range>saved times</span></span>
             <span class="media-links"><a id="force-gif" download>GIF ↓</a><a id="force-mp4" download>MP4 ↓</a></span>
@@ -143,10 +152,30 @@
         </figure>
         </div>
         <div id="force-panel-3d" class="volume-panel" role="tabpanel" aria-labelledby="force-tab-3d" hidden>
-          <p class="measure-note">Drag to rotate, scroll to zoom, and use the time slider to explore saved frames.</p>
+          <p class="measure-note"><span data-volume-resolution>Saved volume samples</span>. Drag to rotate, scroll to zoom, and use the time slider.</p>
           <button type="button" class="refresh-3d" id="force-refresh-3d" data-refresh-volume="force" hidden>Load latest 3D frames</button>
           <iframe id="force-3d" title="Interactive three-dimensional Force explorer" loading="lazy" sandbox="allow-scripts allow-downloads" allow="fullscreen"></iframe>
           <p class="volume-link"><a id="force-3d-link" target="_blank" rel="noopener">Open 3D explorer in a full tab ↗</a></p>
+        </div>
+      </section>
+      <section class="measure" aria-labelledby="mesh-title">
+        <h2 id="mesh-title">The mesh beneath the motion</h2>
+        <p class="measure-note">The 192³ solver divides the domain into equal cubic cells. Zoom into the mesh to see where velocity is stored.</p>
+        <div class="view-tabs" role="tablist" aria-label="Mesh view">
+          <button type="button" id="mesh-tab-2d" role="tab" aria-selected="true" aria-controls="mesh-panel-2d" data-field="mesh" data-view="2d">2D planes</button>
+          <button type="button" id="mesh-tab-3d" role="tab" aria-selected="false" aria-controls="mesh-panel-3d" tabindex="-1" data-field="mesh" data-view="3d">Interactive 3D</button>
+        </div>
+        <div id="mesh-panel-2d" role="tabpanel" aria-labelledby="mesh-tab-2d">
+          <figure class="stream-movie mesh-diagram">
+            <div class="plot-viewport" tabindex="0" role="region" aria-label="Mesh diagram; scroll horizontally on narrow screens"><img src="media/mesh-planes.svg" width="720" height="432" loading="lazy" alt="Uniform 192 by 192 grid in an x-z plane and a four by four cell close-up in an x-y plane. Orange dots mark cell centers. Cell spacing is 0.0104167 model length units." /></div>
+            <p class="plot-scroll-hint">Scroll sideways to see the cell detail →</p>
+            <figcaption><span>Full domain and cell detail · vector diagram</span><a href="media/mesh-planes.svg" download>SVG ↓</a></figcaption>
+          </figure>
+        </div>
+        <div id="mesh-panel-3d" class="volume-panel" role="tabpanel" aria-labelledby="mesh-tab-3d" hidden>
+          <p class="measure-note">Rotate three central mesh planes, then choose Cell detail to explore a 4 × 4 × 4 block.</p>
+          <iframe id="mesh-3d" data-latest-src="media/mesh-3d.html" title="Interactive uniform solver mesh and cell detail" loading="lazy" sandbox="allow-scripts allow-downloads" allow="fullscreen"></iframe>
+          <p class="volume-link"><a href="media/mesh-3d.html" target="_blank" rel="noopener">Open mesh explorer in a full tab ↗</a></p>
         </div>
         <p class="archive-link"><a href="results.html">Earlier runs and numerical record →</a></p>
       </section>

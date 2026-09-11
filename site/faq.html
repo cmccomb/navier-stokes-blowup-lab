@@ -42,6 +42,23 @@
               <a href="reproduction.html">What reproduction would require ↗</a>
             </p>
 
+        <h2 id="preview-resolution">Why display 32³ samples from a 192³ solver?</h2>
+        <p>The solver advances all 7,077,888 cells. The frequently saved previews retain every sixth cell in each direction, giving 32³ samples and 216 times fewer vectors. That keeps storage, downloads, and interactive rendering manageable, but it discards small structures. The 3D viewer uses all those saved preview samples. The mesh diagram shows the actual 192³ grid.</p>
+        <p>Full-resolution 2D diagnostic slices are saved on a different clock. A 192² slice at an old preview timestamp cannot be recovered from its 32³ volume. Capturing native-resolution slices alongside future previews would avoid that loss without requiring full 192³ browser volumes. Higher image resolution makes labels sharper; it does not restore missing simulation samples.</p>
+
+        <h2 id="playback">Why do the movies hold frames and slow down?</h2>
+        <p>Saved states are held for different durations to follow the gaps in simulation time. GIFs use explicit frame durations; MP4s repeat frames. The last few active intervals enter labeled slow motion so you can inspect the flow, followed by a short final hold. The timestamp always identifies the actual saved state. No new fluid states are interpolated.</p>
+        <p>The current exporter gives the main segment and the slow-motion segment up to four seconds each, with a half-second final hold. Timing is quantized to 20 milliseconds for matching GIF and video playback. The interactive 3D controls step through saved checkpoints independently; their play button is a browsing aid, not a simulation-time clock. <a href="data/stream.json">Published frame times and playback durations</a></p>
+
+        <h2 id="compute">How much computation does the run require?</h2>
+        <p>The homepage shows a rough <strong>100–400 TFLOP planning budget</strong> for the current 192³ run from rest through t = 0.985. A TFLOP is a trillion floating-point operations; FLOP/s would be a processing rate. This estimate describes the solver run, not work performed by your browser.</p>
+        <p>The configured output clocks, maximum timestep, diffusion limit, and forcing-phase limit give about 4,113 active steps. Each RK2 step makes two pressure projections, each requiring three forward and three inverse complex 3D Fourier transforms. Using the conventional approximation 5 N log₂(N) per transform, with N = 192³, gives about 40 TFLOP for those transforms. This is an operation-count convention, not a hardware measurement. <a href="https://www.fftw.org/speed/method.html">FFT benchmark methodology ↗</a></p>
+        <p>We allow <strong>3–10 times that FFT work</strong> for the full calculation, including repeated target and force evaluations and finite-difference kernels. That multiplier is an explicit planning assumption, not a profile or a rigorous bound. Velocity-dependent CFL limits may require more steps. Restarts, validation runs, and rendering are excluded. <a href="https://github.com/cmccomb/navier-stokes-singularity-simulation/blob/main/scripts/estimate_run_compute.py">Estimate script ↗</a> · <a href="data/compute-estimate.json">Inputs and calculation</a></p>
+
+        <h2 id="velocity-scale">What does the speed comparison mean?</h2>
+        <p>Peak speed is the largest velocity magnitude across the full solver grid at the latest saved diagnostic time. That clock can lag the movie frames. It is reported in model units, with its own timestamp.</p>
+        <p>The emoji comparison is a playful illustration: imagine one model velocity unit as one meter per second, and compare it with a stroll at 1 m/s. At zero speed, the flow is a statue. This chosen scale does not give the mathematical fluid a physical size or predict a real-world water speed.</p>
+
         <p class="archive-link"><a href="index.html#result">Back to the simulation →</a></p>
       </article>
     </main>

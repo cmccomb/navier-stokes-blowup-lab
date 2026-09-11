@@ -1,6 +1,7 @@
 const refreshInterval = 60_000;
 let shownRevision = null;
 let lastObservedAt = null;
+let computeEstimate = null;
 
 function number(value, digits = 3) {
   return Number.isFinite(value) ? value.toFixed(digits) : "—";
@@ -48,6 +49,10 @@ function showMedia(kind, media, revision) {
 }
 
 function showRun(run) {
+  showNumbers(run);
+  document.querySelectorAll("[data-volume-resolution]").forEach((node) => {
+    node.textContent = `${run.display_resolution_3d}³ saved samples from the ${run.config.resolution}³ solver`;
+  });
   for (const kind of ["flow", "force"]) {
     if (!document.querySelector(`#${kind}-video`).error) {
       document.querySelector(`#${kind}-pending`).hidden = true;
@@ -107,10 +112,11 @@ const resume2d = new Map();
 
 function load3d(kind) {
   const iframe = document.querySelector(`#${kind}-3d`);
-  if (iframe.dataset.latestSrc && iframe.src !== iframe.dataset.latestSrc) {
-    iframe.src = iframe.dataset.latestSrc;
+  const latest = iframe.dataset.latestSrc && new URL(iframe.dataset.latestSrc, window.location.href).href;
+  if (latest && iframe.src !== latest) {
+    iframe.src = latest;
   }
-  document.querySelector(`#${kind}-refresh-3d`).hidden = true;
+  if (kind !== "mesh") document.querySelector(`#${kind}-refresh-3d`).hidden = true;
 }
 
 function selectView(kind, view) {
@@ -121,6 +127,10 @@ function selectView(kind, view) {
     tab.setAttribute("aria-selected", String(active));
     tab.tabIndex = active ? 0 : -1;
     document.querySelector(`#${kind}-panel-${option}`).hidden = !active;
+  }
+  if (kind === "mesh") {
+    if (view === "3d") load3d(kind);
+    return;
   }
   const video = document.querySelector(`#${kind}-video`);
   if (view === "3d") {
@@ -149,4 +159,29 @@ for (const button of document.querySelectorAll("[data-refresh-volume]")) {
   button.addEventListener("click", () => load3d(button.dataset.refreshVolume));
 }
 
-loadResult();
+function compact(value) {
+  if (value === 0) return "0";
+  return value < 0.001 || value >= 100_000 ? value.toExponential(2) : value.toLocaleString(undefined, { maximumSignificantDigits: 3 });
+}
+
+function showNumbers(run) {
+  document.querySelector("#cell-count").textContent = (run.config.resolution ** 3).toLocaleString();
+  document.querySelector("#cell-grid").textContent = `${run.config.resolution} × ${run.config.resolution} × ${run.config.resolution}`;
+  const matches = computeEstimate && computeEstimate.source_commit === run.source_commit
+    && Object.entries(computeEstimate.config).every(([key, value]) => run.config[key] === value);
+  document.querySelector("#total-flops").textContent = matches
+    ? `≈${computeEstimate.display_range_tflop} TFLOP` : "Not estimated";
+  const speed = run.diagnostics?.peak_speed;
+  const valid = Number.isFinite(speed) && speed >= 0;
+  document.querySelector("#peak-speed").textContent = valid ? compact(speed) : "—";
+  document.querySelector("#speed-time").textContent = valid
+    ? `Model units · saved t = ${number(run.diagnostics.t, 5)}` : "Awaiting a saved diagnostic";
+  document.querySelector("#speed-comparison").textContent = !valid ? "—" : speed === 0
+    ? "🗿 Statue speed" : `🚶 ${compact(speed)}× a stroll`;
+}
+
+fetch("data/compute-estimate.json", { cache: "no-store" })
+  .then((response) => { if (!response.ok) throw new Error("Compute estimate unavailable"); return response.json(); })
+  .then((estimate) => { computeEstimate = estimate; })
+  .catch((error) => console.error(error))
+  .finally(loadResult);

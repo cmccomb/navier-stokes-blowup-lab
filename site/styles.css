@@ -103,7 +103,7 @@ footer {
 #result { scroll-margin-top: 1.5rem; }
 .media-pending { color: var(--muted); font-size: 0.875rem; }
 .stream-movie { max-width: 720px; margin: 1rem 0 2rem; }
-.stream-movie video { display: block; width: 100%; max-height: 78vh; background: #050c16; }
+.stream-movie video { display: block; width: 720px; background: #050c16; }
 .stream-movie figcaption { display: flex; flex-wrap: wrap; gap: 0.7rem 1.5rem; justify-content: space-between; padding: 0.8rem 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.875rem; }
 .media-links { display: flex; gap: 1.25rem; }
 .media-links a, .archive-link a { color: var(--cyan); }
@@ -413,3 +413,25 @@ footer p { margin-bottom: 0; }
 [hidden] { display: none !important; }
 
 .faq-page { max-width: 52rem; padding-block: 3rem; }
+.big-numbers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0 0 2rem; border-block: 1px solid var(--line); }
+.big-numbers > div { padding: 1.4rem 1.2rem; min-width: 0; }
+.big-numbers > div + div { border-left: 1px solid var(--line); }
+.number-label { color: var(--muted); font-size: 0.875rem; margin-bottom: 0.55rem; }
+.number-value { font-size: clamp(1.6rem, 2.1vw, 2rem); line-height: 1.25; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.035em; margin-bottom: 0.65rem; }
+.number-note { font-size: 0.875rem; color: var(--muted); margin: 0; }
+.number-note a, .mesh-diagram a { color: var(--cyan); }
+.speed-comparison { font-size: 1.6rem; }
+.mesh-diagram img { display: block; width: 720px; height: auto; }
+.plot-viewport { overflow-x: auto; overscroll-behavior-x: contain; }
+.plot-scroll-hint { display: none; margin: 0.5rem 0; color: var(--muted); font-size: 0.875rem; }
+#mesh-3d { height: clamp(540px, calc(100vw + 170px), 760px); }
+@media (max-width: 751px) { .plot-scroll-hint { display: block; } }
+@media (max-width: 900px) {
+  .big-numbers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .big-numbers > div:nth-child(3) { border-left: 0; }
+  .big-numbers > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+@media (max-width: 480px) {
+  .big-numbers { grid-template-columns: 1fr; }
+  .big-numbers > div + div { border-left: 0; border-top: 1px solid var(--line); }
+}
