@@ -3,7 +3,7 @@
   "id": "best-guess-n192-native-f32-rest-t0985",
   "label": "Current best \u00b7 streaming from rest",
   "status": "running",
-  "observed_at": "2026-09-11T19:45:03.737921+00:00",
+  "observed_at": "2026-09-11T19:48:47.074453+00:00",
   "started_at": "2026-09-11T01:09:27.084010+00:00",
   "source_commit": "9d2afb89096c869c1be3a7fb654cb8b797f03b35",
   "config": {
@@ -70,10 +70,10 @@
     "preview_phase_step": 0.3,
     "preview_resolution": 192
   },
-  "revision": "5056d1cbc7a5",
+  "revision": "dcbe937fa4ef",
   "render_revision": 12,
-  "latest_t": 0.9495359695828387,
-  "captured_frames": 314,
+  "latest_t": 0.9498886246394159,
+  "captured_frames": 315,
   "clip_times": [
     0.0,
     0.55,
@@ -388,7 +388,8 @@
     0.9484630437272038,
     0.9488231966535547,
     0.9491808327426737,
-    0.9495359695828387
+    0.9495359695828387,
+    0.9498886246394159
   ],
   "history_policy": "every finalized saved snapshot from rest; no frame thinning",
   "clip_times_3d": [
@@ -705,7 +706,8 @@
     0.9484630437272038,
     0.9488231966535547,
     0.9491808327426737,
-    0.9495359695828387
+    0.9495359695828387,
+    0.9498886246394159
   ],
   "history_policy_3d": "every saved snapshot from rest; on-demand volumes with a three-frame browser cache",
   "playback": {
@@ -716,16 +718,17 @@
       "force_gif",
       "force_mp4"
     ],
-    "simulation_time_span": 0.9495359695828387,
+    "simulation_time_span": 0.9498886246394159,
     "saved_frames_per_second": 5,
     "simulation_time_proportional": false,
     "initial_rest_hold_seconds": 1,
-    "traversal_seconds": 63.4,
+    "traversal_seconds": 63.6,
     "terminal_hold_seconds": 0.5,
-    "duration_seconds": 63.9,
+    "duration_seconds": 64.1,
     "mp4_fps": 50,
     "mp4_frame_repeats": [
       50,
+      10,
       10,
       10,
       10,
@@ -1355,6 +1358,7 @@
       200,
       200,
       200,
+      200,
       500
     ],
     "terminal_hold_policy": "editorial pause at the final saved time, not additional simulated time",
@@ -1373,78 +1377,78 @@
     "policy": "Immutable saved fields; native planes and reduced browser volumes derived after capture"
   },
   "diagnostics": {
-    "t": 0.9471233562440512,
-    "tau": 0.052876643755948805,
-    "radial_length": 0.11957359437437916,
-    "axial_length": 0.1224190974411518,
-    "similarity_velocity": 1.1130686656265816,
-    "similarity_radial_velocity": 1.0871965560638437,
-    "similarity_vorticity": 9.30864938409075,
-    "similarity_energy_law": 0.24675934428332905,
+    "t": 0.9498275831276363,
+    "tau": 0.050172416872363734,
+    "radial_length": 0.11647584093831286,
+    "axial_length": 0.11929771750513586,
+    "similarity_velocity": 1.143151465542845,
+    "similarity_radial_velocity": 1.1161112806976834,
+    "similarity_vorticity": 9.814494201834293,
+    "similarity_energy_law": 0.24066966336905293,
     "temporal_activation": 1.0,
-    "similarity_enstrophy_law": 17.25849968317411,
-    "peak_speed": 2.2282584408909183,
-    "target_peak_speed": 2.2282584790641087,
-    "kinetic_energy": 0.09503028940645325,
-    "target_kinetic_energy": 0.09503027602195134,
-    "kinetic_energy_core": 0.02432277314269978,
-    "target_kinetic_energy_core": 0.02432277504120818,
-    "peak_radial_speed": 1.1392847739739753,
-    "peak_azimuthal_speed": 1.0614085005589402,
-    "peak_axial_speed": 2.228240684443596,
-    "measured_radial_width": 0.0985689530777873,
-    "measured_axial_width": 0.13974884411749877,
-    "force_l2": 19.853862193395482,
-    "force_linf": 215.0874693223096,
-    "force_gradient_l2": 1445.161713161108,
-    "force_laplacian_l2": 292668.8375711924,
-    "force_work": 0.9793509354236332,
-    "advective_l2": 4.8980134166895075,
-    "viscous_l2": 9.896777539639384,
-    "momentum_cancellation_ratio": 2.197781917600559,
-    "peak_vorticity": 74.17839351674004,
-    "enstrophy": 83.51027236394371,
-    "viscous_dissipation": 1.6702054472788743,
-    "helicity": 0.00890997255939249,
-    "angular_reynolds": 13.309362113446433,
-    "radial_reynolds": 13.0,
-    "spectral_mean_mode": 7.93737469470403,
-    "spectral_k95": 20.51828452868319,
-    "spectral_tail_fraction": 0.00010053249276425779,
-    "divergence_linf": 5.773159728050814e-14,
-    "divergence_l2": 2.276266829923534e-15,
-    "tracking_relative_l2": 9.611145477587786e-07,
-    "cells_per_radial_scale": 11.4790650599404,
-    "cells_per_axial_scale": 11.752233354350574,
+    "similarity_enstrophy_law": 17.739837657716212,
+    "peak_speed": 2.2876301494114855,
+    "target_peak_speed": 2.2876301923563664,
+    "kinetic_energy": 0.09276793463423649,
+    "target_kinetic_energy": 0.09276792062193803,
+    "kinetic_energy_core": 0.02276005537326336,
+    "target_kinetic_energy_core": 0.022760057344834116,
+    "peak_radial_speed": 1.1658513506832544,
+    "peak_azimuthal_speed": 1.1287176045905554,
+    "peak_axial_speed": 2.2876119532899613,
+    "measured_radial_width": 0.09501904251712176,
+    "measured_axial_width": 0.13274531474870802,
+    "force_l2": 20.57661914539717,
+    "force_linf": 217.5459116617441,
+    "force_gradient_l2": 1503.8224669183955,
+    "force_laplacian_l2": 304484.15411702055,
+    "force_work": 1.0012064192930794,
+    "advective_l2": 5.084617619165694,
+    "viscous_l2": 10.160505274590827,
+    "momentum_cancellation_ratio": 2.1825138241170907,
+    "peak_vorticity": 76.5094617389557,
+    "enstrophy": 85.32638945405797,
+    "viscous_dissipation": 1.7065277890811594,
+    "helicity": 0.009482926300319806,
+    "angular_reynolds": 13.314952826896764,
+    "radial_reynolds": 13.000000000000004,
+    "spectral_mean_mode": 8.142291707354516,
+    "spectral_k95": 21.02379604162864,
+    "spectral_tail_fraction": 0.00011354110509382858,
+    "divergence_linf": 6.106226635438361e-14,
+    "divergence_l2": 2.2608204161505704e-15,
+    "tracking_relative_l2": 9.692992157299478e-07,
+    "cells_per_radial_scale": 11.181680730078035,
+    "cells_per_axial_scale": 11.452580880493043,
     "resolved": true,
     "forcing_active": true,
-    "similarity_core_aspect_ratio": 1.0237970856497256,
-    "measured_core_aspect_ratio": 1.4177775024881687,
-    "axial_outflow_alignment": 0.9999988851663937,
-    "upper_axial_flux": 0.04243053488554797,
-    "lower_axial_flux": 0.04113767083446836,
-    "axial_flux_imbalance": 0.015470764747674157,
+    "similarity_core_aspect_ratio": 1.02422714053052,
+    "measured_core_aspect_ratio": 1.3970390695611172,
+    "axial_outflow_alignment": 0.999998338532036,
+    "upper_axial_flux": 0.042407289822990815,
+    "lower_axial_flux": 0.04113997903120066,
+    "axial_flux_imbalance": 0.015168787791278893,
     "mesh_spacing_gain": 1.0,
     "cutoff_boundary_clearance_cells": 5.760000000000005,
     "activation_annulus_clearance_cells": 33.21309098329105,
     "paper_coordinate_residual_linf": 1.1102230246251565e-16,
-    "paper_eta_linf": 0.9930025775194341,
-    "background_exterior_meridional_fraction": 2.145537426977004e-10,
-    "background_exterior_swirl_fraction": 0.005873141409283371,
-    "pulse_energy_fraction": 0.0004589504002242478,
-    "pulse_annulus_energy_fraction": 0.995803530438185,
-    "pulse_axisymmetric_mean_fraction": 0.018546573660231686,
-    "pulse_covariance_rms": 0.000705996189801463,
+    "paper_eta_linf": 0.9933568067939239,
+    "background_exterior_meridional_fraction": 2.3626729548122307e-10,
+    "background_exterior_swirl_fraction": 0.00593870346495452,
+    "pulse_energy_fraction": 0.0004449727622448353,
+    "pulse_annulus_energy_fraction": 0.9945203063029056,
+    "pulse_axisymmetric_mean_fraction": 0.013362847829600162,
+    "pulse_covariance_rms": 0.000721298940434731,
     "pulse_hierarchy_levels": 3.0,
-    "pulse_correction_energy_fraction": 0.00355255436289678
+    "pulse_correction_energy_fraction": 0.0038726106868181877
   },
   "progress": {
-    "updated_at": "2026-09-11T19:20:15.020748+00:00",
-    "t": 0.9471233562440512,
-    "completed_frames": 57,
+    "updated_at": "2026-09-11T19:46:23.164044+00:00",
+    "t": 0.9498275831276363,
+    "completed_frames": 58,
     "total_frames": 81,
-    "elapsed_seconds_this_process": 65446.6672516251,
-    "steps_this_process": 2652,
+    "elapsed_seconds_this_process": 67014.80150654214,
+    "steps_this_process": 2713,
     "min_dt_this_process": 1.9543230653784605e-06,
     "max_dt_this_process": 0.00025
   },
@@ -1458,11 +1462,11 @@
   },
   "render": {
     "velocity": {
-      "color_max": 2.2810747172749326,
+      "color_max": 2.289007052638825,
       "plane_coordinate": 0.005208333333333259,
       "gif_verification": {
-        "frames": 314,
-        "sha256": "ed9caec7e462b11e729e56e8f9f2c03568833c81e72746c773794d5990d7949a"
+        "frames": 315,
+        "sha256": "39a36c2b42c85b3a1cf9e3a194a75622aea173623aee691561576bc7357cfdbc"
       },
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication",
       "volume_history": {
@@ -3711,13 +3715,20 @@
             "path": "site/media/stream-volumes/velocity-8081d24f130f0ebb5da37b3418a2d9b47f0253e26dc3d1c4290e8751dd7ab9d4.f32.gz",
             "sha256": "8081d24f130f0ebb5da37b3418a2d9b47f0253e26dc3d1c4290e8751dd7ab9d4",
             "bytes": 355722
+          },
+          {
+            "index": 314,
+            "time": 0.9498886246394159,
+            "path": "site/media/stream-volumes/velocity-0d0d810faea0cc658b9a9ed1fe57864e6318e5e805730acfc8c72fdd8886f4fa.f32.gz",
+            "sha256": "0d0d810faea0cc658b9a9ed1fe57864e6318e5e805730acfc8c72fdd8886f4fa",
+            "bytes": 355675
           }
         ],
         "limits": {
-          "magnitude": 2.2700116391148963,
-          "x": 1.1385929584503174,
-          "y": 1.1372971534729004,
-          "z": 2.2699882984161377
+          "magnitude": 2.2772466645775826,
+          "x": 1.1404178142547607,
+          "y": 1.140323281288147,
+          "z": 2.2772226333618164
         }
       }
     },
@@ -3725,8 +3736,8 @@
       "color_max": 220.40620491628275,
       "plane_coordinate": 0.005208333333333259,
       "gif_verification": {
-        "frames": 314,
-        "sha256": "b91489fcf7fc74af35b5813a1241c823d708e8a37ae3eef98e6f29d6e27d078b"
+        "frames": 315,
+        "sha256": "f7fd3543cf89bd869c30abd40425aae0700d224ff31cfd45370d1156c2b5b1ac"
       },
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication",
       "volume_history": {
@@ -5975,12 +5986,19 @@
             "path": "site/media/stream-volumes/force-c213933715fb3bf232cf025d8511d510be247bed122b7e10ab112c9cd08e65ae.f32.gz",
             "sha256": "c213933715fb3bf232cf025d8511d510be247bed122b7e10ab112c9cd08e65ae",
             "bytes": 124914
+          },
+          {
+            "index": 314,
+            "time": 0.9498886246394159,
+            "path": "site/media/stream-volumes/force-1d9874311fc066f7f43b3158f9807f31cca3cd5db43bdfa998fd18debeda2299.f32.gz",
+            "sha256": "1d9874311fc066f7f43b3158f9807f31cca3cd5db43bdfa998fd18debeda2299",
+            "bytes": 124847
           }
         ],
         "limits": {
           "magnitude": 164.33156876437093,
           "x": 145.68655395507812,
-          "y": 126.98588562011719,
+          "y": 128.15382385253906,
           "z": 81.66629791259766
         }
       }
