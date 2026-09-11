@@ -70,8 +70,8 @@
     "preview_phase_step": 0.3,
     "preview_resolution": 32
   },
-  "revision": "29c26656d52b",
-  "render_revision": 6,
+  "revision": "b5c2cfe7c5e4",
+  "render_revision": 7,
   "latest_t": 0.5715568161981335,
   "captured_frames": 9,
   "clip_times": [

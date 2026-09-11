@@ -412,7 +412,7 @@ def render_pair(
 def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -> dict:
     times = [float(f["time"]) for f in frames]
     revision = hashlib.sha256(
-        json.dumps([remote["source_commit"], times, count, "renderer-v6"]).encode()
+        json.dumps([remote["source_commit"], times, count, "renderer-v7"]).encode()
     ).hexdigest()[:12]
     return {
         "schema_version": 1,
@@ -424,7 +424,7 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
         "source_commit": remote["source_commit"],
         "config": remote["config"],
         "revision": revision,
-        "render_revision": 6,
+        "render_revision": 7,
         "latest_t": times[-1],
         "captured_frames": count,
         "clip_times": times,
@@ -482,7 +482,8 @@ def render_3d(frames: list[dict], field: str, destination: Path, config: dict) -
     html = html.replace(
         "<head>",
         '<head><meta name="viewport" content="width=device-width, initial-scale=1" />'
-        "<style>html,body{margin:0;background:#07111f;color:#e9f1f5;font-family:Arial,Helvetica,sans-serif}</style>",
+        "<style>html,body{margin:0;background:#07111f;color:#e9f1f5;font-family:Arial,Helvetica,sans-serif}"
+        ".modebar{top:55px!important}</style>",
         1,
     )
     temporary.write_text(
