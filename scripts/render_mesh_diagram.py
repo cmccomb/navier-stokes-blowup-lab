@@ -159,7 +159,7 @@ def main() -> None:
         margin={"l": 16, "r": 16, "t": 140, "b": 110},
         scene={
             "aspectmode": "cube",
-            "camera": {"eye": {"x": 1.45, "y": 1.6, "z": 1.15}},
+            "camera": {"eye": {"x": 1.8, "y": 2.0, "z": 1.45}},
             **{
                 f"{a}axis": {
                     "title": {"text": a, "font": {"size": 14}},
@@ -245,10 +245,11 @@ def main() -> None:
         post_script="""
 const meshPlot = document.getElementById('{plot_id}');
 function fitMesh() {
-  const height = Math.min(700, Math.max(520, window.innerWidth + 180));
+  const width = window.innerWidth;
+  const height = Math.min(700, Math.max(520, width + 180));
   meshPlot.style.height = height + 'px';
   meshPlot.parentElement.style.height = height + 'px';
-  if (meshPlot.layout.height !== height) Plotly.relayout(meshPlot, {height});
+  if (meshPlot.layout.height !== height || meshPlot.layout.width !== width) Plotly.relayout(meshPlot, {height, width});
 }
 fitMesh();
 window.addEventListener('resize', fitMesh);
@@ -256,7 +257,7 @@ window.addEventListener('resize', fitMesh);
     )
     html = html.replace(
         "<head>",
-        '<head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Interactive solver mesh</title><style>html,body{margin:0;background:#07111f;color:#e9f1f5;font:16px Arial,Helvetica,sans-serif}.modebar{top:50px!important}</style>',
+        '<head><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="icon" href="../favicon.svg" type="image/svg+xml"><title>Interactive solver mesh</title><style>html,body{margin:0;background:#07111f;color:#e9f1f5;font:16px Arial,Helvetica,sans-serif}.modebar{top:50px!important}</style>',
     )
     (output / "mesh-3d.html").write_text(html)
     metadata = {
