@@ -94,3 +94,41 @@ def test_streamed_resume_matches_uninterrupted_run(tmp_path, monkeypatch) -> Non
         expected = read_preview(tmp_path / "reference", field)
         assert np.array_equal(actual["times"], expected["times"])
         assert np.array_equal(actual["vectors"], expected["vectors"])
+
+
+def test_native_float32_capture_preserves_every_cell_and_solver(tmp_path) -> None:
+    """Archive precision/resolution must not feed back into CFD or its clock."""
+    cfg = SimulationConfig(
+        resolution=16,
+        t_end=0.03,
+        frames=3,
+        pressure_projection="fft",
+        paper_time_cutoff_start=0.005,
+        paper_time_cutoff_end=0.015,
+        stream_volumes=True,
+        capture_volumes=True,
+        capture_force_volumes=True,
+        preview_phase_step=0.3,
+        preview_resolution=16,
+        volume_frames=3,
+    )
+    reduced_cfg = replace(cfg, preview_resolution=8)
+    assert np.array_equal(preview_times(cfg), preview_times(reduced_cfg))
+    native = solver.run_simulation(cfg, tmp_path / "native", save_final_state=True)
+    reduced = solver.run_simulation(
+        reduced_cfg, tmp_path / "reduced", save_final_state=True
+    )
+    assert native.diagnostics == reduced.diagnostics
+    np.testing.assert_array_equal(native.velocity_slices, reduced.velocity_slices)
+    files = sorted((tmp_path / "native/preview-volumes").glob("frame-*.npz"))
+    assert len(files) == len(preview_times(cfg))
+    with np.load(files[-1]) as archive, np.load(
+        tmp_path / "native/full-volumes/frame-000002.npz"
+    ) as full:
+        assert len(archive["axis"]) == 16
+        for field in ("velocity", "force"):
+            assert archive[field].shape == (16, 16, 16, 3)
+            assert archive[field].dtype == np.float32
+            assert full[field].dtype == np.float64
+            np.testing.assert_array_equal(archive[field], full[field].astype("f4"))
+            assert np.any(archive[field] != 0)

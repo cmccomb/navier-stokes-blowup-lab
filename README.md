@@ -64,6 +64,25 @@ are 1440×792 pixels for sharp 720-pixel display, with fixed label positions.
 These timing rules apply to the movies; the interactive 3D explorer steps
 through checkpoints independently.
 
+### Saving the full field
+
+Use `--preview-resolution 192` with `--resolution 192` and
+`--preview-phase-step 0.3` to save every cell of both three-component fields
+at the existing phase-clock events. The historical directory name is
+`preview-volumes/`, but these files contain native 192³ data in float32.
+This setting changes only the stored copies: solver arithmetic, restart
+checkpoints, and the sparse `full-volumes/` snapshots remain float64.
+Use a fresh output directory when changing capture settings; configuration
+checks deliberately prevent mixing different capture histories.
+
+For the current interval, 487 dense snapshots require about **82.7 GB
+(77.0 GiB)** before compression: `487 × 192³ × 6 × 4` bytes. Budget another
+4.1 GB for 12 sparse float64 snapshots, checkpoint/temporary-file space,
+and a disk reserve. Compression can reduce usage, but capacity planning
+should not depend on it. Keep one full-resolution production run active
+at a time and retain its archive outside Git. Extract native 192² planes
+and reduce browser 3D samples only after the full snapshot is finalized.
+
 The separate `288^3` late-window calculation remains the resolution maximum and
 is documented in the [full numerical record](https://cmccomb.com/navier-stokes-singularity-simulation/results.html).
 
