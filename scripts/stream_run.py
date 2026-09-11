@@ -82,7 +82,7 @@ def render_pair(
         "stream", ["#07111f", "#177eab", "#69d2e7", "#fff2c0"]
     )
     fig, axes = plt.subplots(1, 2, figsize=(8, 4.4), facecolor="#07111f")
-    fig.subplots_adjust(left=0.08, right=0.86, bottom=0.18, top=0.80, wspace=0.32)
+    fig.subplots_adjust(left=0.11, right=0.86, bottom=0.18, top=0.80, wspace=0.38)
     coord = frames[0]["axis"]
     spacing = float(coord[1] - coord[0])
     extent = (coord[0] - spacing / 2, coord[-1] + spacing / 2) * 2

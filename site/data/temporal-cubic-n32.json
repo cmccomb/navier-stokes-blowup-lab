@@ -1,0 +1,44 @@
+{
+  "scope": "from-rest temporal check on a spatially underresolved grid; not spatial convergence or a singularity proof",
+  "resolution": 32,
+  "t_start": 0,
+  "t_end": 0.985,
+  "profile_interpolation": "cubic",
+  "pulses_enabled": true,
+  "runs": [
+    {
+      "level": 0,
+      "elapsed_seconds": 184.46244604198728,
+      "max_dt": 0.001,
+      "forcing_phase_step": 0.15,
+      "derivative_epsilon": 1e-06,
+      "tracking_relative_l2": 1.0894071676077792e-05
+    },
+    {
+      "level": 1,
+      "elapsed_seconds": 358.62937750003766,
+      "max_dt": 0.0005,
+      "forcing_phase_step": 0.075,
+      "derivative_epsilon": 1e-06,
+      "tracking_relative_l2": 2.7322804265254827e-06
+    },
+    {
+      "level": 2,
+      "elapsed_seconds": 706.1011717499932,
+      "max_dt": 0.00025,
+      "forcing_phase_step": 0.0375,
+      "derivative_epsilon": 1e-06,
+      "tracking_relative_l2": 6.864512011705304e-07
+    }
+  ],
+  "relative_velocity_differences": [
+    8.161807610208567e-06,
+    2.045841933078035e-06
+  ],
+  "relative_vorticity_differences": [
+    4.930009028214002e-06,
+    1.2343544128707782e-06
+  ],
+  "successive_difference_ratio": 3.9894614917433358,
+  "pilot_gate": true
+}
