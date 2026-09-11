@@ -4,6 +4,7 @@ import subprocess
 import sys
 
 import pytest
+from PIL import Image
 
 from scripts import stream_run
 from scripts.live_native import observation_key, validate_package
@@ -31,12 +32,40 @@ def package(tmp_path):
         path = tmp_path / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(b"complete output")
+    run["playback"] = stream_run.build_playback(run["clip_times"])
+    run["render"] = {}
+    for field, name in (("velocity", "flow"), ("force", "force")):
+        path = tmp_path / f"site/media/stream-{name}.gif"
+        frames = [Image.new("RGB", (4, 4), (i * 50, 0, 0)) for i in range(3)]
+        frames[0].save(
+            path,
+            save_all=True,
+            append_images=frames[1:],
+            duration=run["playback"]["source_frame_duration_ms"],
+        )
+        run["render"][field] = {
+            "gif_verification": stream_run.verify_gif(
+                path, run["playback"]["source_frame_duration_ms"]
+            )
+        }
     (tmp_path / "site/data/stream.json").write_text(json.dumps(run))
     return run
 
 
 @pytest.mark.parametrize(
-    "bad", ["run", "config", "precision", "nan", "time_order", "partial", "regression"]
+    "bad",
+    [
+        "run",
+        "config",
+        "precision",
+        "nan",
+        "time_order",
+        "partial",
+        "regression",
+        "missing_history",
+        "missing_rest",
+        "wrong_gif",
+    ],
 )
 def test_publication_rejects_mixed_invalid_or_regressing_packages(tmp_path, bad):
     observed = package(tmp_path)
@@ -57,6 +86,12 @@ def test_publication_rejects_mixed_invalid_or_regressing_packages(tmp_path, bad)
         (tmp_path / stream_run.OUTPUTS[-1]).unlink()
     elif bad == "regression":
         previous = dict(observed, latest_t=0.57, captured_frames=4)
+    elif bad == "missing_history":
+        run["captured_frames"] = 30
+    elif bad == "missing_rest":
+        run["clip_times"][0] = 0.54
+    elif bad == "wrong_gif":
+        run["render"]["velocity"]["gif_verification"]["sha256"] = "wrong"
     (tmp_path / "site/data/stream.json").write_text(json.dumps(run))
     with pytest.raises(ValueError):
         validate_package(tmp_path, observed, previous)

@@ -20,7 +20,14 @@ from itertools import pairwise
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-from scripts.stream_run import OUTPUTS, command, publish, read_remote
+from scripts.stream_run import (
+    OUTPUTS,
+    RENDER_REVISION,
+    command,
+    publish,
+    read_remote,
+    verify_gif,
+)
 
 
 def write_json(path: Path, value: dict) -> None:
@@ -55,13 +62,13 @@ def validate_package(folder: Path, observed: dict, previous: dict | None) -> dic
         raise ValueError("expected both native float32 vector fields")
     times = run["clip_times"]
     if (
-        not 1 <= len(times) <= 24
+        not times
         or not all(math.isfinite(t) for t in times)
         or any(b <= a for a, b in pairwise(times))
         or run["latest_t"] != times[-1]
-        or run["captured_frames"] < len(times)
+        or run["captured_frames"] != len(times)
         or times[-1] < observed["latest_t"]
-        or times[0] < run["config"]["t_start"]
+        or times[0] != run["config"]["t_start"]
         or times[-1] > run["config"]["t_end"]
     ):
         raise ValueError("invalid or stale saved frame times")
@@ -83,6 +90,17 @@ def validate_package(folder: Path, observed: dict, previous: dict | None) -> dic
         path = folder / filename
         if not path.is_file() or path.stat().st_size == 0:
             raise ValueError(f"missing or empty compact output: {filename}")
+        if path.stat().st_size >= 100 * 1024**2:
+            raise ValueError(f"site output exceeds GitHub's per-file limit: {filename}")
+    for field, name in (("velocity", "flow"), ("force", "force")):
+        verified = verify_gif(
+            folder / f"site/media/stream-{name}.gif",
+            run["playback"]["source_frame_duration_ms"],
+        )
+        if verified != run["render"][field]["gif_verification"] or verified[
+            "frames"
+        ] != len(times):
+            raise ValueError("encoded GIF does not match the complete saved history")
     return run
 
 
@@ -194,6 +212,7 @@ def main() -> None:
                 raise RuntimeError("no finalized source frame yet")
             if (
                 receipt is None
+                or receipt.get("render_revision") != RENDER_REVISION
                 or observation_key(observed) != receipt["observation_key"]
             ):
                 run = render_and_collect(args, ssh, observed, receipt)
@@ -205,6 +224,7 @@ def main() -> None:
                     "id": run["id"],
                     "commit": commit,
                     "revision": run["revision"],
+                    "render_revision": run["render_revision"],
                     "captured_frames": run["captured_frames"],
                     "latest_t": run["latest_t"],
                     "status": run["status"],
