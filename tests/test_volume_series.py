@@ -54,6 +54,16 @@ def test_slider_frame_ids_do_not_collide_at_close_times() -> None:
     assert len(set(names)) == len(names)
 
 
+def test_tiny_float32_motion_keeps_nonzero_magnitudes_and_arrows() -> None:
+    series = sample_series()
+    series.vectors = (series.vectors * 1e-30).astype(np.float32)
+    assert series.peak("magnitude") == pytest.approx(1e-29, rel=1e-6, abs=0)
+    figure = build_volume_figure(series)
+    assert figure.data[0].cmax == series.peak("magnitude")
+    assert np.max(figure.frames[1].data[0].value) > 0
+    assert len(figure.frames[1].data[4].u) > 0
+
+
 def test_preview_stream_preserves_sample_coordinates_and_values(tmp_path) -> None:
     cfg = SimulationConfig(resolution=16)
     rng = np.random.default_rng(14)

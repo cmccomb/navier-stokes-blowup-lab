@@ -15,7 +15,9 @@ COMPONENTS = ("magnitude", "x", "y", "z")
 
 def scalar_values(vectors: np.ndarray, component: Component) -> np.ndarray:
     if component == "magnitude":
-        return np.linalg.norm(vectors, axis=-1)
+        # Float32 archives can retain tiny nonzero components whose squares
+        # underflow in float32 during a naive norm calculation.
+        return np.linalg.norm(vectors.astype(np.float64), axis=-1)
     if component not in COMPONENTS:
         raise ValueError(f"unknown component: {component}")
     return vectors[..., ("x", "y", "z").index(component)]
@@ -58,9 +60,7 @@ class VolumeSeries:
         return "Velocity" if self.field == "velocity" else "Applied force"
 
     def peak(self, component: Component) -> float:
-        return max(
-            max(
-                float(np.max(np.abs(scalar_values(v, component)))) for v in self.vectors
-            ),
-            np.finfo(float).eps,
+        peak = max(
+            float(np.max(np.abs(scalar_values(v, component)))) for v in self.vectors
         )
+        return peak if peak > 0 else 1.0

@@ -235,10 +235,11 @@ def render_pair(
     )
     planes = [plane_vectors(frame, field) for frame in frames]
     magnitudes = [
-        tuple(np.linalg.norm(p, axis=-1) for p in pair[:2]) for pair in planes
+        tuple(np.linalg.norm(p.astype(np.float64), axis=-1) for p in pair[:2])
+        for pair in planes
     ]
     peak = max(float(np.max(p)) for pair in magnitudes for p in pair)
-    vmax = max(peak, 1e-12)
+    vmax = peak if peak > 0 else 1.0
     norm = SymLogNorm(linthresh=0.02 * vmax, vmin=0, vmax=vmax)
     cmap = LinearSegmentedColormap.from_list(
         "stream", ["#07111f", "#177eab", "#69d2e7", "#fff2c0"]
@@ -443,7 +444,7 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
                 remote["config"],
                 times,
                 count,
-                "renderer-v8",
+                "renderer-v9",
             ]
         ).encode()
     ).hexdigest()[:12]
@@ -457,7 +458,7 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
         "source_commit": remote["source_commit"],
         "config": remote["config"],
         "revision": revision,
-        "render_revision": 8,
+        "render_revision": 9,
         "latest_t": times[-1],
         "captured_frames": count,
         "clip_times": times,
