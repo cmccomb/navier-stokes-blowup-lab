@@ -131,78 +131,62 @@
 
       <section class="result-stage" id="result" aria-labelledby="result-title">
         <div class="result-summary">
-          <p class="eyebrow">
-            Best complete start-from-rest run
-          </p>
-          <h2 id="result-title"><span id="run-resolution">224³</span> from rest.</h2>
+          <p class="eyebrow">Current best configuration · <span id="run-state">loading record</span></p>
+          <h2 id="result-title"><span id="run-resolution">192³</span> from rest.</h2>
           <p class="dek">
-            Zero velocity and zero force through
-            <span class="math">t = <span id="rest-until">0.55</span></span>;
-            smooth forcing then drives the concentrating flow through
-            <span class="math">t = <span id="run-end">0.992</span></span>.
+            A full-domain run starts with zero velocity and smoothly activates
+            forcing after <span class="math">t = <span id="rest-until">0.55</span></span>.
+            Its target endpoint is <span class="math">t = <span id="run-end">0.985</span></span>.
+            The movies show only the frames already saved.
           </p>
-
-          <p class="grid-note">Grid: <strong id="grid-resolution">224 × 224 × 224</strong> · <span id="grid-cells">11.24 million cells</span><br />Saved solver frames only · initial rest interval shortened</p>
-          <dl class="headline-metrics" aria-label="Final-frame summary">
-            <div>
-              <dt>Peak speed</dt>
-              <dd id="metric-peak">—</dd>
-            </div>
-            <div>
-              <dt>Peak vorticity</dt>
-              <dd id="metric-vorticity">—</dd>
-            </div>
-            <div>
-              <dt>Smallest scale</dt>
-              <dd id="metric-scale">—</dd>
-            </div>
+          <p class="grid-note">
+            Solver grid: <strong id="grid-resolution">192 × 192 × 192</strong> ·
+            <span id="grid-cells">7.08 million cells</span><br />
+            Movie samples: <span id="display-resolution">32³</span> ·
+            <a href="accuracy.html">Spatial convergence has not been established.</a>
+          </p>
+          <div class="stream-progress">
+            <p>Latest saved movie frame <strong class="math">t = <span id="latest-time">—</span></strong></p>
+            <p id="frame-status">Waiting for the published capture record.</p>
+          </div>
+          <p class="metrics-time" id="diagnostics-time">Diagnostics: waiting for a recorded checkpoint.</p>
+          <dl class="headline-metrics" aria-label="Latest recorded diagnostic checkpoint">
+            <div><dt>Peak speed</dt><dd id="metric-peak">—</dd></div>
+            <div><dt>Peak vorticity</dt><dd id="metric-vorticity">—</dd></div>
+            <div><dt>Target core scale</dt><dd id="metric-scale">—</dd></div>
           </dl>
-
           <p class="verification" id="data-status" role="status">Loading run record…</p>
-          <p class="boundary">
-            Finite manufactured-solution experiment—not an independent proof.
-          </p>
-        </div>
-
-      </section>
-
-      <section class="measure featured-measure" aria-label="Core-frame axial outflow">
-        <h2>Core-frame axial outflow</h2>
-        <p class="measure-note">
-          Signed vertical velocity in similarity coordinates, so concentration
-          remains visible as the physical core contracts.
-        </p>
-        <div class="gif-grid gif-grid-single">
-          <figure class="gif-card">
-            <img src="media/best-similarity-outflow.gif" width="756" height="672" alt="Signed axial outflow in the contracting similarity core frame" />
-            <figcaption>
-              <strong>x/ℓᵣ · z/ℓ_z</strong>
-              <a href="media/best-similarity-outflow.gif" download>GIF ↓</a>
-            </figcaption>
-          </figure>
+          <p class="verification">Checks for published updates every minute. Movie frames and diagnostics are saved on separate clocks.</p>
+          <p class="boundary" id="scope-warning">A finite manufactured-solution experiment. The current run is partial; its endpoint is a target, not a completed result.</p>
+          <noscript><p>JavaScript is needed to load the current run record and movies. The <a href="results.html">numerical record</a> contains earlier results.</p></noscript>
         </div>
       </section>
 
-      <section class="measure" aria-label="Speed">
-        <h2>Speed</h2><p class="measure-note">Velocity magnitude</p>
-        <div class="gif-grid">
-          <figure class="gif-card"><img src="media/best-speed-vertical.gif" width="756" height="672" alt="Speed, Vertical · x–z" /><figcaption><strong>Vertical · x–z</strong><a href="media/best-speed-vertical.gif" download>GIF ↓</a></figcaption></figure>
-          <figure class="gif-card"><img src="media/best-speed-equatorial.gif" width="756" height="672" alt="Speed, Equatorial · x–y" /><figcaption><strong>Equatorial · x–y</strong><a href="media/best-speed-equatorial.gif" download>GIF ↓</a></figcaption></figure>
-        </div>
+      <section class="measure featured-measure" aria-labelledby="flow-title">
+        <h2 id="flow-title">How the fluid moves</h2>
+        <p class="measure-note">Speed in two perpendicular slices: vertical x–z and equatorial x–y.</p>
+        <p class="media-pending" id="flow-pending">Waiting for published velocity frames.</p>
+        <figure class="stream-movie" id="flow-figure" hidden>
+          <video id="flow-video" controls loop muted playsinline preload="metadata" aria-label="Velocity magnitude evolving through saved times in x-z and x-y slices"></video>
+          <figcaption>
+            <span>Velocity magnitude · <span data-clip-range>saved times</span></span>
+            <span class="media-links"><a id="flow-gif" download>GIF ↓</a><a id="flow-mp4" download>MP4 ↓</a></span>
+          </figcaption>
+        </figure>
       </section>
-      <section class="measure" aria-label="Vertical velocity">
-        <h2>Vertical velocity</h2><p class="measure-note">Signed u_z</p>
-        <div class="gif-grid">
-          <figure class="gif-card"><img src="media/best-axial-velocity-vertical.gif" width="756" height="672" alt="Vertical velocity, Vertical · x–z" /><figcaption><strong>Vertical · x–z</strong><a href="media/best-axial-velocity-vertical.gif" download>GIF ↓</a></figcaption></figure>
-          <figure class="gif-card"><img src="media/best-axial-velocity-equatorial.gif" width="756" height="672" alt="Vertical velocity, Equatorial · x–y" /><figcaption><strong>Equatorial · x–y</strong><a href="media/best-axial-velocity-equatorial.gif" download>GIF ↓</a></figcaption></figure>
-        </div>
-      </section>
-      <section class="measure" aria-label="Plane-normal vorticity">
-        <h2>Plane-normal vorticity</h2><p class="measure-note">ωᵧ in the vertical slice · ω_z in the equatorial slice</p>
-        <div class="gif-grid">
-          <figure class="gif-card"><img src="media/best-normal-vorticity-vertical.gif" width="756" height="672" alt="Plane-normal vorticity, Vertical · x–z" /><figcaption><strong>Vertical · x–z</strong><a href="media/best-normal-vorticity-vertical.gif" download>GIF ↓</a></figcaption></figure>
-          <figure class="gif-card"><img src="media/best-normal-vorticity-equatorial.gif" width="756" height="672" alt="Plane-normal vorticity, Equatorial · x–y" /><figcaption><strong>Equatorial · x–y</strong><a href="media/best-normal-vorticity-equatorial.gif" download>GIF ↓</a></figcaption></figure>
-        </div>
+      <section class="measure" aria-labelledby="force-title">
+        <h2 id="force-title">The force driving it</h2>
+        <p class="measure-note">Applied force magnitude in the same x–z and x–y slices. Force and velocity are different quantities.</p>
+        <p class="media-pending" id="force-pending">Waiting for published force frames.</p>
+        <figure class="stream-movie" id="force-figure" hidden>
+          <video id="force-video" controls loop muted playsinline preload="metadata" aria-label="Applied force magnitude evolving through saved times in x-z and x-y slices"></video>
+          <figcaption>
+            <span>Force magnitude · <span data-clip-range>saved times</span></span>
+            <span class="media-links"><a id="force-gif" download>GIF ↓</a><a id="force-mp4" download>MP4 ↓</a></span>
+          </figcaption>
+        </figure>
+        <p class="measure-note movie-note">Each clip uses actual saved times, without interpolated states, and holds its color scale fixed within the clip. Scales can change with later publications; compare the displayed values. These 32³ previews do not resolve every fine-scale oscillation.</p>
+        <p class="archive-link"><a href="results.html">Earlier runs and numerical record →</a></p>
       </section>
     </main>
 
