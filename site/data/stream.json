@@ -3,7 +3,7 @@
   "id": "best-guess-n192-native-f32-rest-t0985",
   "label": "Current best \u00b7 streaming from rest",
   "status": "running",
-  "observed_at": "2026-09-11T10:46:48.246326+00:00",
+  "observed_at": "2026-09-11T10:49:41.032185+00:00",
   "started_at": "2026-09-11T01:09:27.084010+00:00",
   "source_commit": "9d2afb89096c869c1be3a7fb654cb8b797f03b35",
   "config": {
@@ -70,12 +70,11 @@
     "preview_phase_step": 0.3,
     "preview_resolution": 192
   },
-  "revision": "ab77d0a203c0",
+  "revision": "364f36ee5134",
   "render_revision": 10,
-  "latest_t": 0.8471770969821779,
-  "captured_frames": 156,
+  "latest_t": 0.848245061016452,
+  "captured_frames": 157,
   "clip_times": [
-    0.8204284652523856,
     0.8216833553042221,
     0.8229294758757264,
     0.824166888250184,
@@ -98,7 +97,8 @@
     0.8439278986398029,
     0.845018568871259,
     0.8461016172308791,
-    0.8471770969821779
+    0.8471770969821779,
+    0.848245061016452
   ],
   "playback": {
     "mode": "piecewise simulation-time-proportional zero-order hold",
@@ -108,15 +108,15 @@
       "force_gif",
       "force_mp4"
     ],
-    "simulation_time_span": 0.02674863172979236,
+    "simulation_time_span": 0.026561705712229933,
     "segments": [
       {
         "label": "Replay",
         "start_index": 0,
         "end_index": 17,
-        "start_t": 0.8204284652523856,
-        "end_t": 0.8406096184408498,
-        "simulation_units_per_playback_second": 0.010090576594232126,
+        "start_t": 0.8216833553042221,
+        "end_t": 0.8417234776304933,
+        "simulation_units_per_playback_second": 0.010020061163135585,
         "duration_seconds": 2.0,
         "slowdown_factor": 1.0
       },
@@ -124,12 +124,12 @@
         "label": "Slow motion",
         "start_index": 17,
         "end_index": 23,
-        "start_t": 0.8406096184408498,
-        "end_t": 0.8471770969821779,
-        "simulation_units_per_playback_second": 0.0016418696353320272,
-        "reference_simulation_units_per_playback_second": 0.010090576594232126,
+        "start_t": 0.8417234776304933,
+        "end_t": 0.848245061016452,
+        "simulation_units_per_playback_second": 0.0016303958464896906,
+        "reference_simulation_units_per_playback_second": 0.010020061163135585,
         "duration_seconds": 4.0,
-        "slowdown_factor": 6.1457842797559
+        "slowdown_factor": 6.1457842797558575
       }
     ],
     "slow_motion_policy": "last up to six saved intervals starting at or after activation; linear time within each segment; preceding segment capped at 4 s",
@@ -190,7 +190,7 @@
       660,
       500
     ],
-    "max_transition_rounding_error_ms": 9.513441289827398,
+    "max_transition_rounding_error_ms": 9.513441289826403,
     "terminal_hold_policy": "editorial pause at the final saved time, not additional simulated time",
     "quantization_policy": "nearest cumulative 20 ms boundary; at least one tick per source state"
   },
@@ -292,12 +292,12 @@
   },
   "render": {
     "velocity": {
-      "color_max": 1.3031547942839785,
+      "color_max": 1.3077777390338898,
       "plane_coordinate": 0.005208333333333259,
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication"
     },
     "force": {
-      "color_max": 35.07327102317876,
+      "color_max": 35.602052980607716,
       "plane_coordinate": 0.005208333333333259,
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication"
     }
