@@ -34,7 +34,13 @@ def main() -> None:
     cells = centers[middle - 2 : middle + 2]
     output = ROOT / "site/media"
     output.mkdir(exist_ok=True)
-    plt.rcParams.update({"font.family": "DejaVu Sans", "svg.fonttype": "none"})
+    plt.rcParams.update(
+        {
+            "font.family": "DejaVu Sans",
+            "svg.fonttype": "none",
+            "svg.hashsalt": "solver-mesh",
+        }
+    )
     fig, axes = plt.subplots(1, 2, figsize=(8, 4.8), facecolor=INK)
     fig.subplots_adjust(left=0.10, right=0.98, top=0.79, bottom=0.23, wspace=0.43)
     for axis, values, limits in zip(axes, (edges, local), ((-half, half), (lo, hi))):
@@ -75,13 +81,12 @@ def main() -> None:
     )
     fig.text(0.10, 0.085, f"Δx = Δy = Δz = {dx:.7f}", color=PAPER, fontsize=11.2)
     fig.text(0.55, 0.085, "● cell centers", color=AMBER, fontsize=11.2)
-    fig.savefig(output / "mesh-planes.svg", facecolor=INK)
+    fig.savefig(output / "mesh-planes.svg", facecolor=INK, metadata={"Date": None})
     svg_path = output / "mesh-planes.svg"
-    svg_path.write_text(
-        svg_path.read_text().replace(
-            "font-family: 'DejaVu Sans'", "font-family: Arial, Helvetica, sans-serif"
-        )
+    svg = svg_path.read_text().replace(
+        "font-family: 'DejaVu Sans'", "font-family: Arial, Helvetica, sans-serif"
     )
+    svg_path.write_text("\n".join(line.rstrip() for line in svg.splitlines()) + "\n")
     plt.close(fig)
 
     def wire(segments: list, color: str, width: float) -> go.Scatter3d:
@@ -242,6 +247,7 @@ def main() -> None:
         full_html=True,
         config={"responsive": True, "displaylogo": False},
         auto_play=False,
+        div_id="solver-mesh",
         post_script="""
 const meshPlot = document.getElementById('{plot_id}');
 function fitMesh() {
