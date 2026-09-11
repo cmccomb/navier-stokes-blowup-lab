@@ -12,6 +12,7 @@ import hashlib
 import json
 import shlex
 import subprocess
+import tempfile
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -21,8 +22,8 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.animation import FFMpegWriter, FuncAnimation, PillowWriter
 from matplotlib.colors import LinearSegmentedColormap, SymLogNorm
+from PIL import Image
 
 from navier_stokes_sim.config import SimulationConfig
 from navier_stokes_sim.interactive import build_volume_figure
@@ -40,6 +41,127 @@ OUTPUTS = [
     "site/media/stream-flow-3d.html",
     "site/media/stream-force-3d.html",
 ]
+
+
+def build_playback(times: list[float], slow_motion_after: float | None = None) -> dict:
+    """Hold state i over [t_i, t_i+1); quantize transitions, never fluid data.
+
+    The optional final six active intervals use a labeled slower linear clock.
+    Total traversal lasts at most 11.5 seconds, followed by a 0.5 s editorial
+    end pause. A 50 Hz clock gives both MP4 and
+    GIF the same 20 ms timing (two GIF centiseconds, avoiding sub-20 ms delays).
+    Cumulative rounding avoids accumulating one rounding error per interval.
+    Extremely close samples retain at least one tick; report that distortion.
+    """
+    values = np.asarray(times, dtype=float)
+    if (
+        values.ndim != 1
+        or not len(values)
+        or not np.isfinite(values).all()
+        or not np.all(np.diff(values) > 0)
+    ):
+        raise ValueError("playback needs finite, strictly increasing saved times")
+    if len(values) > 24:
+        raise ValueError("playback is bounded to 24 source frames")
+    fps = 50
+    span = float(values[-1] - values[0])
+    traversal_ticks = round(np.clip(span / 0.05, 4, 11.5) * fps) if span else 0
+    ideal = (values - values[0]) / span * traversal_ticks if span else np.zeros(1)
+    segments = []
+    if span:
+        segments = [
+            {
+                "label": "Replay",
+                "start_index": 0,
+                "end_index": len(values) - 1,
+                "start_t": float(values[0]),
+                "end_t": float(values[-1]),
+                "simulation_units_per_playback_second": span / (traversal_ticks / fps),
+                "duration_seconds": traversal_ticks / fps,
+                "slowdown_factor": 1.0,
+            }
+        ]
+    if span and slow_motion_after is not None:
+        split = max(len(values) - 7, int(np.searchsorted(values, slow_motion_after)))
+        if split < len(values) - 1:
+            prefix_span = float(values[split] - values[0])
+            slow_span = float(values[-1] - values[split])
+            prefix_ticks = (
+                round(np.clip(prefix_span / 0.05, 2, 4) * fps) if split else 0
+            )
+            base_rate = (
+                prefix_span / (prefix_ticks / fps)
+                if split
+                else max(0.05, 4 * slow_span / 11.5)
+            )
+            slow_ticks = round(
+                np.clip(4 * slow_span / base_rate, 4, 11.5 - prefix_ticks / fps) * fps
+            )
+            slow_rate = slow_span / (slow_ticks / fps)
+            # Never call an accelerated end segment slow motion on irregular input.
+            if slow_rate < base_rate:
+                segments = []
+                if split:
+                    ideal[: split + 1] = (
+                        (values[: split + 1] - values[0]) / prefix_span * prefix_ticks
+                    )
+                    segments.append(
+                        {
+                            "label": "Replay",
+                            "start_index": 0,
+                            "end_index": split,
+                            "start_t": float(values[0]),
+                            "end_t": float(values[split]),
+                            "simulation_units_per_playback_second": base_rate,
+                            "duration_seconds": prefix_ticks / fps,
+                            "slowdown_factor": 1.0,
+                        }
+                    )
+                ideal[split:] = (
+                    prefix_ticks
+                    + (values[split:] - values[split]) / slow_span * slow_ticks
+                )
+                traversal_ticks = prefix_ticks + slow_ticks
+                segments.append(
+                    {
+                        "label": "Slow motion",
+                        "start_index": split,
+                        "end_index": len(values) - 1,
+                        "start_t": float(values[split]),
+                        "end_t": float(values[-1]),
+                        "simulation_units_per_playback_second": slow_rate,
+                        "reference_simulation_units_per_playback_second": base_rate,
+                        "duration_seconds": slow_ticks / fps,
+                        "slowdown_factor": base_rate / slow_rate,
+                    }
+                )
+    boundaries = np.rint(ideal).astype(int)
+    for i in range(1, len(boundaries) - 1):
+        boundaries[i] = np.clip(
+            boundaries[i],
+            boundaries[i - 1] + 1,
+            traversal_ticks - (len(values) - 1 - i),
+        )
+    end_ticks = 25 if span else 200
+    repeats = [*np.diff(boundaries).tolist(), end_ticks]
+    return {
+        "mode": "piecewise simulation-time-proportional zero-order hold",
+        "applies_to": ["flow_gif", "flow_mp4", "force_gif", "force_mp4"],
+        "simulation_time_span": span,
+        "segments": segments,
+        "slow_motion_policy": "last up to six saved intervals starting at or after activation; linear time within each segment; preceding segment capped at 4 s",
+        "traversal_seconds": traversal_ticks / fps,
+        "terminal_hold_seconds": end_ticks / fps,
+        "duration_seconds": (traversal_ticks + end_ticks) / fps,
+        "mp4_fps": fps,
+        "mp4_frame_repeats": repeats,
+        "gif_timing_quantum_ms": 20,
+        "source_frame_duration_ms": [int(n * 20) for n in repeats],
+        "max_transition_rounding_error_ms": float(np.max(np.abs(boundaries - ideal)))
+        * 20,
+        "terminal_hold_policy": "editorial pause at the final saved time, not additional simulated time",
+        "quantization_policy": "nearest cumulative 20 ms boundary; at least one tick per source state",
+    }
 
 
 def read_frames(folder: Path, window: int = 24) -> tuple[list[dict], int]:
@@ -79,7 +201,11 @@ def render_pair(
     stem: Path,
     resolution: int,
     half_domain: float = 1.0,
+    slow_motion_after: float | None = None,
 ) -> dict:
+    playback = build_playback(
+        [float(frame["time"]) for frame in frames], slow_motion_after
+    )
     planes = [plane_vectors(frame, field) for frame in frames]
     magnitudes = [
         tuple(np.linalg.norm(p, axis=-1) for p in pair[:2]) for pair in planes
@@ -90,8 +216,8 @@ def render_pair(
     cmap = LinearSegmentedColormap.from_list(
         "stream", ["#07111f", "#177eab", "#69d2e7", "#fff2c0"]
     )
-    fig, axes = plt.subplots(1, 2, figsize=(8, 4.4), facecolor="#07111f")
-    fig.subplots_adjust(left=0.11, right=0.86, bottom=0.18, top=0.80, wspace=0.38)
+    fig, axes = plt.subplots(1, 2, figsize=(8, 4.4), dpi=180, facecolor="#07111f")
+    fig.subplots_adjust(left=0.11, right=0.86, bottom=0.23, top=0.80, wspace=0.38)
     coord = frames[0]["axis"]
     spacing = float(coord[1] - coord[0])
     extent = (coord[0] - spacing / 2, coord[-1] + spacing / 2) * 2
@@ -123,7 +249,24 @@ def render_pair(
     bar.set_label(
         "|u|" if field == "velocity" else "|f|", color="#e9f1f5", fontsize=11.2
     )
-    title = fig.suptitle("", color="#e9f1f5", fontsize=16)
+    fig.text(
+        0.11,
+        0.92,
+        "Velocity" if field == "velocity" else "Applied force",
+        color="#e9f1f5",
+        fontsize=16,
+        ha="left",
+    )
+    time_label = fig.text(
+        0.50,
+        0.92,
+        "",
+        color="#e9f1f5",
+        fontsize=12.8,
+        family="DejaVu Sans Mono",
+        ha="left",
+    )
+    status_label = fig.text(0.88, 0.92, "", color="#9fb3c2", fontsize=11.2, ha="right")
     fig.text(
         0.5,
         0.035,
@@ -133,35 +276,129 @@ def render_pair(
         fontsize=11.2,
     )
 
+    replay_label = fig.text(
+        0.11,
+        0.09,
+        "",
+        ha="left",
+        color="#9fb3c2",
+        fontsize=11.2,
+    )
+
     def update(index: int):
         for j, image in enumerate(images):
             image.set_data(magnitudes[index][j].T)
-        zero = " · zero field" if all(not np.any(p) for p in magnitudes[index]) else ""
-        title.set_text(
-            f"{'Velocity' if field == 'velocity' else 'Applied force'} · t = {float(frames[index]['time']):.6f}{zero}"
+        time_label.set_text(f"t = {float(frames[index]['time']):.6f}")
+        status_label.set_text(
+            "zero field" if all(not np.any(p) for p in magnitudes[index]) else ""
         )
-        return [*images, title]
+        segments = [s for s in playback["segments"] if s["start_index"] <= index]
+        if not segments:
+            replay_label.set_text("Single saved state · no simulated-time advance")
+        else:
+            segment = segments[-1]
+            rate = segment["simulation_units_per_playback_second"]
+            prefix = (
+                f"Slow motion · {segment['slowdown_factor']:.1f}× slower"
+                if segment["label"] == "Slow motion"
+                else "Replay"
+            )
+            replay_label.set_text(f"{prefix} · {rate:.4g} simulation units/s")
 
-    # Hold a single real rest state; repetition does not invent a new fluid time.
-    indices = list(range(len(frames))) if len(frames) > 1 else [0, 0]
-    movie = FuncAnimation(fig, update, frames=indices, interval=125, blit=False)
     stem.parent.mkdir(parents=True, exist_ok=True)
+    video = stem.with_suffix(".tmp.mp4")
+    gif = stem.with_suffix(".tmp.gif")
+    stills = []
     try:
-        for extension, writer in (
-            ("gif", PillowWriter(fps=8)),
-            (
-                "mp4",
-                FFMpegWriter(
-                    fps=8, codec="libx264", extra_args=["-pix_fmt", "yuv420p"]
-                ),
-            ),
-        ):
-            destination = stem.with_suffix(f".{extension}")
-            temporary = stem.with_suffix(f".tmp.{extension}")
-            movie.save(temporary, writer=writer, dpi=90)
-            temporary.replace(destination)
+        width, height = fig.canvas.get_width_height()
+        # Render each source state once; repetition affects only encoded timing.
+        with tempfile.TemporaryFile() as errors:
+            process = subprocess.Popen(
+                [
+                    str(matplotlib.rcParams["animation.ffmpeg_path"]),
+                    "-y",
+                    "-loglevel",
+                    "error",
+                    "-f",
+                    "rawvideo",
+                    "-pix_fmt",
+                    "rgba",
+                    "-s",
+                    f"{width}x{height}",
+                    "-r",
+                    str(playback["mp4_fps"]),
+                    "-i",
+                    "pipe:0",
+                    "-an",
+                    "-c:v",
+                    "libx264",
+                    "-pix_fmt",
+                    "yuv420p",
+                    "-crf",
+                    "18",
+                    "-movflags",
+                    "+faststart",
+                    str(video),
+                ],
+                stdin=subprocess.PIPE,
+                stderr=errors,
+            )
+            try:
+                for i, repeats in enumerate(playback["mp4_frame_repeats"]):
+                    update(i)
+                    fig.canvas.draw()
+                    pixels = bytes(fig.canvas.buffer_rgba())
+                    stills.append(
+                        Image.frombytes("RGBA", (width, height), pixels).convert("RGB")
+                    )
+                    for _ in range(repeats):
+                        process.stdin.write(pixels)
+                process.stdin.close()
+                if process.wait(timeout=120):
+                    errors.seek(0)
+                    raise RuntimeError(errors.read().decode(errors="replace"))
+            finally:
+                if process.poll() is None:
+                    process.terminate()
+                    process.wait(timeout=10)
+        # Fixed palette keeps text colors stable as the data and timestamp change.
+        background = np.asarray([7, 17, 31])
+        palette_colors = (
+            np.concatenate(
+                [
+                    cmap(np.linspace(0, 1, 128))[:, :3] * 255,
+                    np.linspace(background, [233, 241, 245], 64),
+                    np.linspace(background, [159, 179, 194], 64),
+                ]
+            )
+            .round()
+            .astype(np.uint8)
+        )
+        palette = Image.new("P", (1, 1))
+        palette.putpalette(palette_colors.ravel().tolist())
+        indexed = [
+            still.quantize(palette=palette, dither=Image.Dither.NONE)
+            for still in stills
+        ]
+        indexed[0].save(
+            gif,
+            save_all=True,
+            append_images=indexed[1:],
+            duration=playback["source_frame_duration_ms"]
+            if len(indexed) > 1
+            else playback["source_frame_duration_ms"][0],
+            loop=0,
+            disposal=2,
+        )
+        for still in indexed:
+            still.close()
+        palette.close()
+        video.replace(stem.with_suffix(".mp4"))
+        gif.replace(stem.with_suffix(".gif"))
     finally:
         plt.close(fig)
+        for still in stills:
+            still.close()
     return {
         "color_max": vmax,
         "plane_coordinate": planes[-1][2],
@@ -172,7 +409,7 @@ def render_pair(
 def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -> dict:
     times = [float(f["time"]) for f in frames]
     revision = hashlib.sha256(
-        json.dumps([remote["source_commit"], times, count, "renderer-v3"]).encode()
+        json.dumps([remote["source_commit"], times, count, "renderer-v5"]).encode()
     ).hexdigest()[:12]
     return {
         "schema_version": 1,
@@ -184,10 +421,13 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
         "source_commit": remote["source_commit"],
         "config": remote["config"],
         "revision": revision,
-        "render_revision": 3,
+        "render_revision": 5,
         "latest_t": times[-1],
         "captured_frames": count,
         "clip_times": times,
+        "playback": build_playback(
+            times, remote["config"].get("paper_time_cutoff_start")
+        ),
         "display_resolution": len(frames[-1]["axis"]),
         "display_resolution_3d": len(frames[-1]["axis"]),
         "diagnostics": remote.get("diagnostics"),
@@ -363,6 +603,7 @@ def main() -> None:
                             args.repo / f"site/media/stream-{name}",
                             remote["config"]["resolution"],
                             remote["config"]["half_domain"],
+                            remote["config"]["paper_time_cutoff_start"],
                         )
                         for field, name in (("velocity", "flow"), ("force", "force"))
                     }

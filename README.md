@@ -39,14 +39,30 @@ ratio of 3.989, consistent with second-order time convergence at that coarse
 resolution. Spatial convergence is not established. This remains a best-guess
 finite-surrogate experiment, not a singularity demonstration.
 
-The publisher detects finalized phase-clock snapshots every 30 seconds and
-commits the latest manifest plus compact rolling GIF/MP4 clips to `main`.
+With noninteractive GitHub authentication configured, the publisher detects
+finalized phase-clock snapshots every 30 seconds and commits the latest
+manifest plus compact rolling GIF/MP4 clips to `main`.
 GitHub Pages adds build and cache latency. Each clip uses up to 24 actual
 saved frames, with perpendicular velocity/forcing views; full-volume archives
 stay outside Git. The manifest labels the display resolution, actual plane
 coordinates, color scale, clip times, and the separate diagnostic timestamp.
 No fluid states are interpolated. An initial rest-only clip is real data, not
 a placeholder for an older run.
+
+GIF/MP4 playback holds each saved state until the next sampled time. The last
+six active intervals play in labeled slow motion; earlier clips slow all
+available active intervals. Time remains proportional within each segment.
+The preceding segment lasts at most 4 seconds, so initial rest does not dominate
+the emerging flow. Clips last at most 12 seconds, including a 0.5-second final
+pause (4 seconds total for a single state). Replay speed and slowdown factor
+are printed in a fixed position and recorded in `stream.json`. Transitions are
+rounded to 20 ms boundaries: GIF uses two-centisecond delays; MP4 repeats frames
+at 50 fps.
+Every saved state remains visible for at least one tick. The manifest records
+durations, repeat counts, and the maximum transition-rounding error. Exports
+are 1440×792 pixels for sharp 720-pixel display, with fixed label positions.
+These timing rules apply to the movies; the interactive 3D explorer steps
+through checkpoints independently.
 
 The separate `288^3` late-window calculation remains the resolution maximum and
 is documented in the [full numerical record](https://cmccomb.com/navier-stokes-singularity-simulation/results.html).
