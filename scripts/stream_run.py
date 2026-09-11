@@ -24,6 +24,9 @@ import numpy as np
 from matplotlib.animation import FFMpegWriter, FuncAnimation, PillowWriter
 from matplotlib.colors import LinearSegmentedColormap, SymLogNorm
 
+plt.rcParams["font.family"] = "sans-serif"
+plt.rcParams["font.sans-serif"] = ["Arial", "Helvetica", "DejaVu Sans"]
+
 OUTPUTS = [
     "site/data/stream.json",
     "site/media/stream-flow.gif",
@@ -101,25 +104,25 @@ def render_pair(
         )
         held = "y" if j == 0 else "z"
         axis.set_title(
-            f"{label} · {held}={planes[0][2]:.3f}", color="#e9f1f5", fontsize=12
+            f"{label} · {held}={planes[0][2]:.3f}", color="#e9f1f5", fontsize=12.8
         )
-        axis.set_xlabel("x", color="#9fb3c2")
-        axis.set_ylabel("z" if j == 0 else "y", color="#9fb3c2")
-        axis.tick_params(colors="#9fb3c2", labelsize=9)
+        axis.set_xlabel("x", color="#9fb3c2", fontsize=11.2)
+        axis.set_ylabel("z" if j == 0 else "y", color="#9fb3c2", fontsize=11.2)
+        axis.tick_params(colors="#9fb3c2", labelsize=11.2)
         axis.set_xlim(-half_domain, half_domain)
         axis.set_ylim(-half_domain, half_domain)
     color_axis = fig.add_axes((0.89, 0.24, 0.02, 0.47))
     bar = fig.colorbar(images[0], cax=color_axis)
-    bar.ax.tick_params(colors="#9fb3c2", labelsize=9)
-    bar.set_label("|u|" if field == "velocity" else "|f|", color="#e9f1f5")
-    title = fig.suptitle("", color="#e9f1f5", fontsize=14)
+    bar.ax.tick_params(colors="#9fb3c2", labelsize=11.2)
+    bar.set_label("|u|" if field == "velocity" else "|f|", color="#e9f1f5", fontsize=11.2)
+    title = fig.suptitle("", color="#e9f1f5", fontsize=16)
     fig.text(
         0.5,
         0.035,
         f"{resolution}³ solver → {len(coord)}³ display · actual saved frames · shared scale per clip",
         ha="center",
         color="#9fb3c2",
-        fontsize=9,
+        fontsize=11.2,
     )
 
     def update(index: int):
