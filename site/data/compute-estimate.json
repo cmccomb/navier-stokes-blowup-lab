@@ -62,7 +62,7 @@
     "volume_frames": 12,
     "stream_volumes": true,
     "preview_phase_step": 0.3,
-    "preview_resolution": 32
+    "preview_resolution": 192
   },
   "clock_limited_steps": 4113,
   "complex_ffts_per_step": 12,

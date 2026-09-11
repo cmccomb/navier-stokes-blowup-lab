@@ -35,7 +35,7 @@ RESPONSIVE_VOLUME_SCRIPT = r"""
         plot.parentElement.style.height = height + 'px';
         const updates = {
             width, height, autosize: true,
-            margin: {l: 20, r: 65, t: top, b: bottom, autoexpand: false},
+            margin: {l: 20, r: narrow ? 100 : 65, t: top, b: bottom, autoexpand: false},
             'scene.domain.x': narrow ? [0.04, 0.98] : [0, 1],
             'updatemenus[0].x': 0,
             'updatemenus[0].xanchor': 'left',

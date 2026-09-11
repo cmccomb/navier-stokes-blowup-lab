@@ -56,7 +56,7 @@ function showMedia(kind, media, revision) {
 function showRun(run) {
   showNumbers(run);
   document.querySelectorAll("[data-volume-resolution]").forEach((node) => {
-    node.textContent = `${run.display_resolution_3d}³ saved samples from the ${run.config.resolution}³ solver`;
+    node.textContent = `${run.display_resolution_3d}³ browser samples derived from ${run.archive.resolution}³ saved fields`;
   });
   for (const kind of ["flow", "force"]) {
     if (!document.querySelector(`#${kind}-video`).error) {
