@@ -36,7 +36,7 @@ RESPONSIVE_VOLUME_SCRIPT = r"""
         const updates = {
             width, height, autosize: true,
             margin: {l: 20, r: narrow ? 100 : 65, t: top, b: bottom, autoexpand: false},
-            'scene.domain.x': narrow ? [0.18, 0.98] : [0, 1],
+            'scene.domain.x': narrow ? [0.04, 0.98] : [0, 1],
             'updatemenus[0].x': 0,
             'updatemenus[0].xanchor': 'left',
             'updatemenus[0].y': 1 + (top - 100) / sceneHeight,
@@ -192,7 +192,7 @@ def build_volume_figure(series: VolumeSeries) -> go.Figure:
             },
             "aspectmode": "cube",
             # Leave room for physical-axis tick labels on narrow WebGL canvases.
-            "camera": {"eye": {"x": 2.25, "y": 2.1, "z": 1.5}},
+            "camera": {"eye": {"x": 2.8, "y": 2.65, "z": 1.9}},
             "uirevision": "preserve-camera",
         },
         sliders=[

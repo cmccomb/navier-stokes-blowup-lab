@@ -444,7 +444,7 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
                 remote["config"],
                 times,
                 count,
-                "renderer-v9",
+                "renderer-v10",
             ]
         ).encode()
     ).hexdigest()[:12]
@@ -458,7 +458,7 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
         "source_commit": remote["source_commit"],
         "config": remote["config"],
         "revision": revision,
-        "render_revision": 9,
+        "render_revision": 10,
         "latest_t": times[-1],
         "captured_frames": count,
         "clip_times": times,
