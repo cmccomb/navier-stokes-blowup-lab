@@ -92,6 +92,32 @@ Publish the compact outputs from the authorized publishing checkout. Remote
 publication rejects dense-archive transfers; raw histories are not rsynced to
 another machine or committed to Git.
 
+### Live native-field publication
+
+`python -m scripts.live_native` owns one bounded publication loop on the
+designated controller. Supply `--host`, `--run`, `--source-repo` (a dedicated
+render checkout on the archive machine), `--repo` (a clean publishing checkout
+on the controller), `--cache`, `--identity`, `--site-url`, and a timezone-aware
+`--deadline`. Both checkouts need the project environment installed. Use the
+controller's authenticated login session; an SSH session may not have access
+to the same macOS Keychain credentials. Never copy credentials between hosts.
+
+The controller polls finalized frame headers every 30 seconds, also watching
+the diagnostic clock and completion status. On change, it invokes a serial
+`--host local --once --no-push` render on the source, collects only the seven
+allowlisted website files, verifies run identity and finite ordered times,
+and commits/pushes them to `main`. It checks the public Pages manifest before
+recording deployment as live. Raw fields stay on the source machine.
+
+The cache contains an exclusive controller lock, atomic `status.json`,
+`receipt.json`, and a failure record. Transient failures retry with bounded
+backoff up to five minutes; they do not silently stop after five attempts.
+The loop exits after the final complete/stopped record reaches Pages, or at
+its explicit deadline. Render/build/transfer time adds to the polling cadence;
+the website itself checks for published updates every minute. A run-specific
+launcher and its deadline belong with the controller's runtime records, not
+in the numerical archive or in a permanent service on the solver machine.
+
 The separate `288^3` late-window calculation remains the resolution maximum and
 is documented in the [full numerical record](https://cmccomb.com/navier-stokes-singularity-simulation/results.html).
 

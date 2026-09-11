@@ -542,7 +542,7 @@ def command(argv: list[str], **kwargs) -> str:
 
 
 def read_remote(ssh: list[str], host: str, run: str) -> dict:
-    script = f"""import json, subprocess
+    script = f"""import csv, json, subprocess
 from pathlib import Path
 from datetime import datetime, timezone
 import numpy as np
@@ -558,7 +558,16 @@ if (p/'partial-checkpoint.npz').exists():
   history=json.loads(str(f['metadata'].item()))['diagnostics']
   diagnostics=history[-1] if history else None
 complete=(p/'run.json').exists() and (p/'final-state.npz').exists()
-print(json.dumps(dict(id=p.name,status='complete' if complete else ('running' if alive else 'stopped'),observed_at=datetime.now(timezone.utc).isoformat(),started_at=launch['started_at'],source_commit=launch['source_commit'],config=cfg,progress=progress,diagnostics=diagnostics)))
+if complete:
+ with (p/'diagnostics.csv').open() as handle:
+  rows=list(csv.DictReader(handle))
+ if rows:
+  diagnostics={{k: (v.lower()=='true' if v.lower() in ('true','false') else float(v)) for k,v in rows[-1].items()}}
+paths=sorted(f for f in (p/'preview-volumes').glob('frame-*.npz') if not f.name.endswith('.tmp.npz'))
+latest=None
+if paths:
+ with np.load(paths[-1],allow_pickle=False) as f: latest=float(f['time'])
+print(json.dumps(dict(id=p.name,status='complete' if complete else ('running' if alive else 'stopped'),observed_at=datetime.now(timezone.utc).isoformat(),started_at=launch['started_at'],source_commit=launch['source_commit'],config=cfg,progress=progress,diagnostics=diagnostics,captured_frames=len(paths),latest_t=latest)))
 """
     # The simulation interpreter, not an ambient system Python lacking NumPy.
     python = str(Path(run).parents[1] / ".venv/bin/python")
