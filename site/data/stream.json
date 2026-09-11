@@ -3,7 +3,7 @@
   "id": "best-guess-n192-native-f32-rest-t0985",
   "label": "Current best \u00b7 streaming from rest",
   "status": "running",
-  "observed_at": "2026-09-11T11:41:28.222186+00:00",
+  "observed_at": "2026-09-11T11:43:23.597510+00:00",
   "started_at": "2026-09-11T01:09:27.084010+00:00",
   "source_commit": "9d2afb89096c869c1be3a7fb654cb8b797f03b35",
   "config": {
@@ -70,10 +70,10 @@
     "preview_phase_step": 0.3,
     "preview_resolution": 192
   },
-  "revision": "95f4a8e55467",
+  "revision": "216411b4c6f0",
   "render_revision": 11,
-  "latest_t": 0.8633974923398476,
-  "captured_frames": 172,
+  "latest_t": 0.8643521042618295,
+  "captured_frames": 173,
   "clip_times": [
     0.0,
     0.55,
@@ -246,11 +246,11 @@
     0.8604931590711498,
     0.8614680671883568,
     0.8624361624078544,
-    0.8633974923398476
+    0.8633974923398476,
+    0.8643521042618295
   ],
   "history_policy": "every finalized saved snapshot from rest; no frame thinning",
   "clip_times_3d": [
-    0.839487920550458,
     0.8406096184408498,
     0.8417234776304933,
     0.8428295528981572,
@@ -273,7 +273,8 @@
     0.8604931590711498,
     0.8614680671883568,
     0.8624361624078544,
-    0.8633974923398476
+    0.8633974923398476,
+    0.8643521042618295
   ],
   "history_policy_3d": "latest up to 24 saved snapshots; browser-memory bound",
   "playback": {
@@ -284,16 +285,17 @@
       "force_gif",
       "force_mp4"
     ],
-    "simulation_time_span": 0.8633974923398476,
+    "simulation_time_span": 0.8643521042618295,
     "saved_frames_per_second": 5,
     "simulation_time_proportional": false,
     "initial_rest_hold_seconds": 1,
-    "traversal_seconds": 35.0,
+    "traversal_seconds": 35.2,
     "terminal_hold_seconds": 0.5,
-    "duration_seconds": 35.5,
+    "duration_seconds": 35.7,
     "mp4_fps": 50,
     "mp4_frame_repeats": [
       50,
+      10,
       10,
       10,
       10,
@@ -639,6 +641,7 @@
       200,
       200,
       200,
+      200,
       500
     ],
     "terminal_hold_policy": "editorial pause at the final saved time, not additional simulated time",
@@ -742,20 +745,20 @@
   },
   "render": {
     "velocity": {
-      "color_max": 1.379350182388617,
+      "color_max": 1.3842302673119766,
       "plane_coordinate": 0.005208333333333259,
       "gif_verification": {
-        "frames": 172,
-        "sha256": "6033d2abebf172110d8b967134a8bc5b77b91103137fbf81003d3e331db4e07b"
+        "frames": 173,
+        "sha256": "991db0fb27955c88bcd130cb4687efb72bf63079aff2c9d4c0a9edc5ef9c2b69"
       },
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication"
     },
     "force": {
-      "color_max": 38.5196467389535,
+      "color_max": 39.57922748432618,
       "plane_coordinate": 0.005208333333333259,
       "gif_verification": {
-        "frames": 172,
-        "sha256": "4ba88bbeb6495115c8a9d81ca70ba21486a8dae9b72c99a9e79b19a28cc3d72f"
+        "frames": 173,
+        "sha256": "a692336b136f3de64f28b2dfb95099241312df2e4801ec2519461f97cc60a71e"
       },
       "scale_policy": "shared across both planes and all frames in this clip; recomputed on publication"
     }
