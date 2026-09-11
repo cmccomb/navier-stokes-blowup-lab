@@ -5,7 +5,14 @@ import subprocess
 import numpy as np
 import pytest
 
-from scripts.stream_run import build_manifest, plane_vectors, read_frames, render_pair
+from navier_stokes_sim.config import SimulationConfig
+from scripts.stream_run import (
+    build_manifest,
+    plane_vectors,
+    read_frames,
+    render_3d,
+    render_pair,
+)
 
 
 def test_stream_reads_only_finalized_real_frames_and_bounds_window(tmp_path):
@@ -91,3 +98,19 @@ def test_stream_media_can_encode_real_rest_frames(tmp_path):
     assert info["width"] % 2 == info["height"] % 2 == 0
     assert int(info["nb_frames"]) == 2
     assert (tmp_path / "rest.gif").stat().st_size > 0
+
+
+def test_stream_3d_is_self_contained_with_real_time_controls(tmp_path):
+    axis = np.linspace(-0.875, 0.875, 8)
+    frames = [
+        {"time": np.asarray(t), "axis": axis, "velocity": np.zeros((8, 8, 8, 3))}
+        for t in (0.0, 0.55)
+    ]
+    destination = tmp_path / "rest.html"
+    render_3d(frames, "velocity", destination, SimulationConfig(resolution=8).to_dict())
+    html = destination.read_text()
+    assert "Play time" in html and "Saved time:" in html
+    assert "0.550000" in html
+    assert json.dumps("4³ display samples")[1:-1] in html
+    assert "Arial, Helvetica, sans-serif" in html
+    assert '<script src="https://cdn.plot.ly' not in html

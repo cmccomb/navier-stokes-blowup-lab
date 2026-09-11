@@ -24,6 +24,10 @@ import numpy as np
 from matplotlib.animation import FFMpegWriter, FuncAnimation, PillowWriter
 from matplotlib.colors import LinearSegmentedColormap, SymLogNorm
 
+from navier_stokes_sim.config import SimulationConfig
+from navier_stokes_sim.interactive import build_volume_figure
+from navier_stokes_sim.volume_series import VolumeSeries
+
 plt.rcParams["font.family"] = "sans-serif"
 plt.rcParams["font.sans-serif"] = ["Arial", "Helvetica", "DejaVu Sans"]
 
@@ -33,6 +37,8 @@ OUTPUTS = [
     "site/media/stream-flow.mp4",
     "site/media/stream-force.gif",
     "site/media/stream-force.mp4",
+    "site/media/stream-flow-3d.html",
+    "site/media/stream-force-3d.html",
 ]
 
 
@@ -114,7 +120,9 @@ def render_pair(
     color_axis = fig.add_axes((0.89, 0.24, 0.02, 0.47))
     bar = fig.colorbar(images[0], cax=color_axis)
     bar.ax.tick_params(colors="#9fb3c2", labelsize=11.2)
-    bar.set_label("|u|" if field == "velocity" else "|f|", color="#e9f1f5", fontsize=11.2)
+    bar.set_label(
+        "|u|" if field == "velocity" else "|f|", color="#e9f1f5", fontsize=11.2
+    )
     title = fig.suptitle("", color="#e9f1f5", fontsize=16)
     fig.text(
         0.5,
@@ -164,7 +172,7 @@ def render_pair(
 def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -> dict:
     times = [float(f["time"]) for f in frames]
     revision = hashlib.sha256(
-        json.dumps([remote["source_commit"], times, count]).encode()
+        json.dumps([remote["source_commit"], times, count, "renderer-v2"]).encode()
     ).hexdigest()[:12]
     return {
         "schema_version": 1,
@@ -176,10 +184,12 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
         "source_commit": remote["source_commit"],
         "config": remote["config"],
         "revision": revision,
+        "render_revision": 2,
         "latest_t": times[-1],
         "captured_frames": count,
         "clip_times": times,
         "display_resolution": len(frames[-1]["axis"]),
+        "display_resolution_3d": len(frames[-1]["axis"][::2]),
         "diagnostics": remote.get("diagnostics"),
         "progress": remote.get("progress"),
         "media": {
@@ -187,10 +197,52 @@ def build_manifest(remote: dict, frames: list[dict], count: int, render: dict) -
             "flow_mp4": "media/stream-flow.mp4",
             "force_gif": "media/stream-force.gif",
             "force_mp4": "media/stream-force.mp4",
+            "flow_3d": "media/stream-flow-3d.html",
+            "force_3d": "media/stream-force-3d.html",
         },
         "render": render,
         "scope_warning": "Finite manufactured-solution surrogate; exploratory and spatially unvalidated. Display subsampling is not solver resolution. Rolling real-frame clips, not wall-clock playback.",
     }
+
+
+def render_3d(frames: list[dict], field: str, destination: Path, config: dict) -> None:
+    """Reuse the saved-time explorer with bounded 16³ samples from 32³ previews."""
+    series = VolumeSeries(
+        np.stack([f[field][::2, ::2, ::2] for f in frames]),
+        np.asarray([float(f["time"]) for f in frames]),
+        frames[-1]["axis"][::2],
+        SimulationConfig(**config),
+        field,
+    )
+    figure = build_volume_figure(series)
+    figure.update_layout(
+        font={"family": "Arial, Helvetica, sans-serif", "size": 16}, title_font_size=20
+    )
+    for name in ("xaxis", "yaxis", "zaxis"):
+        figure.layout.scene[name].update(
+            tickfont={"size": 14}, title={"font": {"size": 14}}
+        )
+    for annotation in figure.layout.annotations:
+        annotation.font.size = 14
+    for slider in figure.layout.sliders:
+        slider.font.size = 14
+        slider.currentvalue.font.size = 16
+    temporary = destination.with_suffix(".tmp.html")
+    html = figure.to_html(
+        include_plotlyjs=True,
+        full_html=True,
+        auto_play=False,
+        div_id="stream-volume",
+        config={"responsive": True, "displaylogo": False},
+    )
+    html = html.replace(
+        "<head>",
+        '<head><meta name="viewport" content="width=device-width, initial-scale=1" />'
+        "<style>html,body{margin:0;background:#07111f;color:#e9f1f5;font-family:Arial,Helvetica,sans-serif}</style>",
+        1,
+    )
+    temporary.write_text(html, encoding="utf-8")
+    temporary.replace(destination)
 
 
 def command(argv: list[str], **kwargs) -> str:
@@ -314,6 +366,13 @@ def main() -> None:
                         )
                         for field, name in (("velocity", "flow"), ("force", "force"))
                     }
+                    for field, name in (("velocity", "flow"), ("force", "force")):
+                        render_3d(
+                            frames,
+                            field,
+                            args.repo / f"site/media/stream-{name}-3d.html",
+                            remote["config"],
+                        )
                     last_render = frame_key
                 manifest = build_manifest(remote, frames, count, rendering)
                 destination = args.repo / "site/data/stream.json"
