@@ -1,0 +1,1106 @@
+{
+  "schema_version": 1,
+  "scope": "Validate the coupled incflo adapter; no paper-surrogate trajectory is claimed.",
+  "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+  "amrex_commit": "e60cdc18711ccf7fc0616d7a2fdf062021376976",
+  "incflo_commit": "7491eea4d69bbfde0581a5fe7f95d803841a8a09",
+  "binary_sha256": "089a2b907a87ec224eaa578659755ca921ffb86e62f369665632f6f89b9db971",
+  "inputs_sha256": "65e0c03fd43478564f685891ac460f04dcab08c94b988f4473b1cb2b22b7cdbf",
+  "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+  "adapter_source_hashes": {
+    "ns_case.H": "2f38c15bce1e8569e7894ca7d009a3538f218a5cae6e6cb6efba88ab174723b9",
+    "incflo_overlay.py": "a4161b31969b5f65355213b112c26b2b6260700752c5a7bdf8c0f55c4744d6c2"
+  },
+  "archive_checker_sha256": "242d9e883f92bf33ec4f23d66346b7af6f2c54c913141fa440fe24191de474f9",
+  "cases": [
+    {
+      "mode": "rest",
+      "base_n": 16,
+      "levels": 3,
+      "steps_requested": 16,
+      "steps": 16,
+      "max_grid_size": 32,
+      "scheme": "MOL",
+      "max_dt": 0.0125,
+      "elapsed_seconds": 0.4563375830039149,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "rest",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 37.3125
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "rest",
+        "problem": 0,
+        "step": 16,
+        "time": 0.2,
+        "dt": 0.012499999999999983,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 37.90625
+      },
+      "l2_error": 0
+    },
+    {
+      "mode": "oscillation",
+      "base_n": 16,
+      "levels": 3,
+      "steps_requested": 16,
+      "steps": 16,
+      "max_grid_size": 32,
+      "scheme": "MOL",
+      "max_dt": 0.0125,
+      "elapsed_seconds": 0.16573041699302848,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 35.65625
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 16,
+        "time": 0.2,
+        "dt": 0.012499999999999983,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0.0003450596786790329,
+        "linf_error": 0.00027666323477298915,
+        "peak_speed": 0.26459175390747924,
+        "energy": 0.28003518494339924,
+        "velocity_integral": [
+          0.5657209659927266,
+          1.1314419319854532,
+          1.6971628979783406
+        ],
+        "peak_rss_mib": 36.3125
+      },
+      "l2_error": 0.0003450596786790329
+    },
+    {
+      "mode": "oscillation",
+      "base_n": 16,
+      "levels": 3,
+      "steps_requested": 32,
+      "steps": 32,
+      "max_grid_size": 32,
+      "scheme": "MOL",
+      "max_dt": 0.00625,
+      "elapsed_seconds": 0.31000199999834877,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 35.546875
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 32,
+        "time": 0.2,
+        "dt": 0.006249999999999922,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0.00008624806760467056,
+        "linf_error": 0.000069152296981706,
+        "peak_speed": 0.2648505655185536,
+        "energy": 0.2805832882219271,
+        "velocity_integral": [
+          0.5662743284936317,
+          1.1325486569872634,
+          1.6988229854806096
+        ],
+        "peak_rss_mib": 36.3125
+      },
+      "l2_error": 0.00008624806760467056
+    },
+    {
+      "mode": "oscillation",
+      "base_n": 16,
+      "levels": 3,
+      "steps_requested": 64,
+      "steps": 64,
+      "max_grid_size": 32,
+      "scheme": "MOL",
+      "max_dt": 0.003125,
+      "elapsed_seconds": 0.5985305840004003,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 35.609375
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 64,
+        "time": 0.1999999999999998,
+        "dt": 0.003125,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0.000021560964013978917,
+        "linf_error": 0.00001728723005758881,
+        "peak_speed": 0.26491525262214394,
+        "energy": 0.28072036428745323,
+        "velocity_integral": [
+          0.566412635339101,
+          1.132825270678202,
+          1.699237906016301
+        ],
+        "peak_rss_mib": 36.3125
+      },
+      "l2_error": 0.000021560964013978917
+    },
+    {
+      "mode": "oscillation",
+      "base_n": 16,
+      "levels": 3,
+      "steps_requested": 16,
+      "steps": 16,
+      "max_grid_size": 32,
+      "scheme": "Godunov",
+      "max_dt": 0.0125,
+      "elapsed_seconds": 0.2326566669944441,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 37.46875
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 16,
+        "time": 0.2,
+        "dt": 0.012499999999999983,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0.0001725635434699652,
+        "linf_error": 0.00013835864080977145,
+        "peak_speed": 0.26510937712962823,
+        "energy": 0.2811319273683148,
+        "velocity_integral": [
+          0.5668276909940773,
+          1.1336553819881545,
+          1.7004830729828702
+        ],
+        "peak_rss_mib": 37.796875
+      },
+      "l2_error": 0.0001725635434699652
+    },
+    {
+      "mode": "oscillation",
+      "base_n": 16,
+      "levels": 3,
+      "steps_requested": 32,
+      "steps": 32,
+      "max_grid_size": 32,
+      "scheme": "Godunov",
+      "max_dt": 0.00625,
+      "elapsed_seconds": 0.43291920800402295,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 37.484375
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 32,
+        "time": 0.2,
+        "dt": 0.006249999999999922,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0.00004312613957556358,
+        "linf_error": 0.00003457783686555693,
+        "peak_speed": 0.2649799397257338,
+        "energy": 0.2808574738282405,
+        "velocity_integral": [
+          0.5665509421841325,
+          1.133101884368265,
+          1.6996528265512105
+        ],
+        "peak_rss_mib": 37.96875
+      },
+      "l2_error": 0.00004312613957556358
+    },
+    {
+      "mode": "oscillation",
+      "base_n": 16,
+      "levels": 3,
+      "steps_requested": 64,
+      "steps": 64,
+      "max_grid_size": 32,
+      "scheme": "Godunov",
+      "max_dt": 0.003125,
+      "elapsed_seconds": 0.831523708999157,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 37.5
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "oscillation",
+        "problem": 0,
+        "step": 64,
+        "time": 0.1999999999999998,
+        "dt": 0.003125,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0.000010780613607036728,
+        "linf_error": 0.00000864372054354412,
+        "peak_speed": 0.26494759419976494,
+        "energy": 0.2807889106891053,
+        "velocity_integral": [
+          0.5664817845401225,
+          1.132963569080245,
+          1.6994453536216427
+        ],
+        "peak_rss_mib": 37.890625
+      },
+      "l2_error": 0.000010780613607036728
+    },
+    {
+      "mode": "shear",
+      "base_n": 16,
+      "levels": 3,
+      "steps_requested": 64,
+      "steps": 64,
+      "max_grid_size": 32,
+      "scheme": "MOL",
+      "max_dt": 0.003125,
+      "elapsed_seconds": 4.692703582986724,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "shear",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 35.65625
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "shear",
+        "problem": 0,
+        "step": 64,
+        "time": 0.1999999999999998,
+        "dt": 0.003125,
+        "levels": 3,
+        "stored_cells": 12288,
+        "active_cells": 11264,
+        "volume": 8,
+        "l2_error": 0.0006595958170394277,
+        "linf_error": 0.00204845737587786,
+        "peak_speed": 0.3448747148321903,
+        "energy": 0.2399435816783345,
+        "velocity_integral": [
+          -1.1511516566364843e-16,
+          2.454100087750412e-16,
+          -1.3620120385259699e-16
+        ],
+        "peak_rss_mib": 36.390625
+      },
+      "l2_error": 0.0006595958170394277
+    },
+    {
+      "mode": "shear",
+      "base_n": 32,
+      "levels": 3,
+      "steps_requested": 64,
+      "steps": 64,
+      "max_grid_size": 32,
+      "scheme": "MOL",
+      "max_dt": 0.003125,
+      "elapsed_seconds": 36.16431720899709,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "shear",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 98304,
+        "active_cells": 90112,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 106.890625
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "shear",
+        "problem": 0,
+        "step": 64,
+        "time": 0.1999999999999998,
+        "dt": 0.003125,
+        "levels": 3,
+        "stored_cells": 98304,
+        "active_cells": 90112,
+        "volume": 8,
+        "l2_error": 0.00016981741640295186,
+        "linf_error": 0.0006109755682347506,
+        "peak_speed": 0.3459242498251559,
+        "energy": 0.2400029800978084,
+        "velocity_integral": [
+          -5.533941530120202e-17,
+          1.2120342673027553e-16,
+          -5.266003833079985e-18
+        ],
+        "peak_rss_mib": 114.71875
+      },
+      "l2_error": 0.00016981741640295186
+    },
+    {
+      "mode": "shear",
+      "base_n": 64,
+      "levels": 3,
+      "steps_requested": 64,
+      "steps": 64,
+      "max_grid_size": 32,
+      "scheme": "MOL",
+      "max_dt": 0.003125,
+      "elapsed_seconds": 312.1691677500057,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "shear",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 786432,
+        "active_cells": 720896,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 697.546875
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "shear",
+        "problem": 0,
+        "step": 64,
+        "time": 0.1999999999999998,
+        "dt": 0.003125,
+        "levels": 3,
+        "stored_cells": 786432,
+        "active_cells": 720896,
+        "volume": 8,
+        "l2_error": 0.00003384501523078743,
+        "linf_error": 0.00020637073487630997,
+        "peak_speed": 0.34623483107509295,
+        "energy": 0.24000248235617394,
+        "velocity_integral": [
+          1.0053541253568678e-16,
+          -5.221296375332719e-18,
+          -1.891897983227029e-16
+        ],
+        "peak_rss_mib": 729.609375
+      },
+      "l2_error": 0.00003384501523078743
+    },
+    {
+      "mode": "none",
+      "base_n": 16,
+      "levels": 1,
+      "steps_requested": 64,
+      "steps": 64,
+      "max_grid_size": 32,
+      "scheme": "MOL",
+      "max_dt": 0.003125,
+      "elapsed_seconds": 1.0873368330067024,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "none",
+        "problem": 2,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 1,
+        "stored_cells": 4096,
+        "active_cells": 4096,
+        "volume": 8,
+        "l2_error": 1.0637122930226486e-16,
+        "linf_error": 2.220446049250313e-16,
+        "peak_speed": 2.2196343607217464,
+        "energy": 10.000000000000002,
+        "velocity_integral": [
+          8,
+          8,
+          0
+        ],
+        "peak_rss_mib": 25.671875
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "none",
+        "problem": 2,
+        "step": 64,
+        "time": 0.1999999999999998,
+        "dt": 0.003125,
+        "levels": 1,
+        "stored_cells": 4096,
+        "active_cells": 4096,
+        "volume": 8,
+        "l2_error": 0.01648669786040417,
+        "linf_error": 0.03539447598028761,
+        "peak_speed": 2.1705260345129025,
+        "energy": 9.806874347836086,
+        "velocity_integral": [
+          7.999999999999976,
+          7.999999999999975,
+          -2.1123597036357916e-19
+        ],
+        "peak_rss_mib": 26.171875
+      },
+      "l2_error": 0.01648669786040417
+    },
+    {
+      "mode": "none",
+      "base_n": 32,
+      "levels": 1,
+      "steps_requested": 64,
+      "steps": 64,
+      "max_grid_size": 32,
+      "scheme": "MOL",
+      "max_dt": 0.003125,
+      "elapsed_seconds": 7.9598814159980975,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "none",
+        "problem": 2,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 1,
+        "stored_cells": 32768,
+        "active_cells": 32768,
+        "volume": 8,
+        "l2_error": 8.711677463192968e-17,
+        "linf_error": 2.220446049250313e-16,
+        "peak_speed": 2.231808657373616,
+        "energy": 9.999999999999934,
+        "velocity_integral": [
+          8,
+          8,
+          0
+        ],
+        "peak_rss_mib": 47.8125
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "none",
+        "problem": 2,
+        "step": 64,
+        "time": 0.1999999999999998,
+        "dt": 0.003125,
+        "levels": 1,
+        "stored_cells": 32768,
+        "active_cells": 32768,
+        "volume": 8,
+        "l2_error": 0.0034968187641752067,
+        "linf_error": 0.010380779612300411,
+        "peak_speed": 2.1938090762328115,
+        "energy": 9.843408166001336,
+        "velocity_integral": [
+          8.00000000000008,
+          8.000000000000087,
+          -2.5859236970226186e-19
+        ],
+        "peak_rss_mib": 48.875
+      },
+      "l2_error": 0.0034968187641752067
+    },
+    {
+      "mode": "none",
+      "base_n": 64,
+      "levels": 1,
+      "steps_requested": 64,
+      "steps": 64,
+      "max_grid_size": 32,
+      "scheme": "MOL",
+      "max_dt": 0.003125,
+      "elapsed_seconds": 74.97172158400645,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "none",
+        "problem": 2,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 1,
+        "stored_cells": 262144,
+        "active_cells": 262144,
+        "volume": 8,
+        "l2_error": 1.1931757651865546e-16,
+        "linf_error": 4.440892098500626e-16,
+        "peak_speed": 2.2349935839059603,
+        "energy": 9.999999999998861,
+        "velocity_integral": [
+          8,
+          8,
+          1.6786059329742266e-34
+        ],
+        "peak_rss_mib": 238
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "none",
+        "problem": 2,
+        "step": 64,
+        "time": 0.1999999999999998,
+        "dt": 0.003125,
+        "levels": 1,
+        "stored_cells": 262144,
+        "active_cells": 262144,
+        "volume": 8,
+        "l2_error": 0.0007202944363181202,
+        "linf_error": 0.002365385048374191,
+        "peak_speed": 2.199555344415449,
+        "energy": 9.847632910092717,
+        "velocity_integral": [
+          8.000000000000261,
+          8.000000000000124,
+          4.051692664527229e-20
+        ],
+        "peak_rss_mib": 244.453125
+      },
+      "l2_error": 0.0007202944363181202
+    },
+    {
+      "mode": "shear",
+      "base_n": 32,
+      "levels": 3,
+      "steps_requested": 64,
+      "steps": 64,
+      "max_grid_size": 16,
+      "scheme": "MOL",
+      "max_dt": 0.003125,
+      "elapsed_seconds": 42.13347379199695,
+      "initial": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "shear",
+        "problem": 0,
+        "step": 0,
+        "time": 0,
+        "dt": -1,
+        "levels": 3,
+        "stored_cells": 98304,
+        "active_cells": 90112,
+        "volume": 8,
+        "l2_error": 0,
+        "linf_error": 0,
+        "peak_speed": 0,
+        "energy": 0,
+        "velocity_integral": [
+          0,
+          0,
+          0
+        ],
+        "peak_rss_mib": 132.15625
+      },
+      "final": {
+        "schema_version": 1,
+        "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+        "case": "shear",
+        "problem": 0,
+        "step": 64,
+        "time": 0.1999999999999998,
+        "dt": 0.003125,
+        "levels": 3,
+        "stored_cells": 98304,
+        "active_cells": 90112,
+        "volume": 8,
+        "l2_error": 0.0001698174164029512,
+        "linf_error": 0.0006109755682347229,
+        "peak_speed": 0.34592424982515596,
+        "energy": 0.2400029800978074,
+        "velocity_integral": [
+          4.090332690202857e-17,
+          -9.882756912089549e-17,
+          4.5763601953373746e-17
+        ],
+        "peak_rss_mib": 134.953125
+      },
+      "l2_error": 0.0001698174164029512
+    }
+  ],
+  "convergence": {
+    "oscillation-MOL": [
+      {
+        "coarse": 16,
+        "fine": 32,
+        "ratio": 4.000781562558127,
+        "observed_order": 2.000281861571029,
+        "passed": true
+      },
+      {
+        "coarse": 32,
+        "fine": 64,
+        "ratio": 4.00019533211744,
+        "observed_order": 2.000070449449173,
+        "passed": true
+      }
+    ],
+    "oscillation-Godunov": [
+      {
+        "coarse": 16,
+        "fine": 32,
+        "ratio": 4.0013677358625515,
+        "observed_order": 2.0004932221166447,
+        "passed": true
+      },
+      {
+        "coarse": 32,
+        "fine": 64,
+        "ratio": 4.000341830952392,
+        "observed_order": 2.0001232841872407,
+        "passed": true
+      }
+    ],
+    "shear-MOL": [
+      {
+        "coarse": 16,
+        "fine": 32,
+        "ratio": 3.884147050466858,
+        "observed_order": 1.95759782098454,
+        "passed": true
+      },
+      {
+        "coarse": 32,
+        "fine": 64,
+        "ratio": 5.017501550670773,
+        "observed_order": 2.3269691574562907,
+        "passed": true
+      }
+    ],
+    "none-MOL": [
+      {
+        "coarse": 16,
+        "fine": 32,
+        "ratio": 4.714770473468584,
+        "observed_order": 2.2371875386949065,
+        "passed": true
+      },
+      {
+        "coarse": 32,
+        "fine": 64,
+        "ratio": 4.854707447206806,
+        "observed_order": 2.2793843590469725,
+        "passed": true
+      }
+    ]
+  },
+  "failures": [],
+  "passed": true,
+  "decomposition_error_delta": 6.505213034913027e-19,
+  "native_archive": {
+    "passed": true,
+    "frames": [
+      {
+        "time": 0,
+        "step": 0,
+        "levels": 3,
+        "stored_cells": 12288,
+        "force_linf_error": 0,
+        "peak_speed": 0,
+        "compared": false,
+        "velocity_linf_difference": 0
+      },
+      {
+        "time": 0.00625,
+        "step": 1,
+        "levels": 3,
+        "stored_cells": 12288,
+        "force_linf_error": 0,
+        "peak_speed": 0.010779003522801792,
+        "compared": false,
+        "velocity_linf_difference": 0
+      },
+      {
+        "time": 0.0125,
+        "step": 2,
+        "levels": 3,
+        "stored_cells": 12288,
+        "force_linf_error": 0,
+        "peak_speed": 0.021557051431598737,
+        "compared": false,
+        "velocity_linf_difference": 0
+      },
+      {
+        "time": 0.018750000000000003,
+        "step": 3,
+        "levels": 3,
+        "stored_cells": 12288,
+        "force_linf_error": 0,
+        "peak_speed": 0.03233387945122918,
+        "compared": false,
+        "velocity_linf_difference": 0
+      },
+      {
+        "time": 0.025,
+        "step": 4,
+        "levels": 3,
+        "stored_cells": 12288,
+        "force_linf_error": 0,
+        "peak_speed": 0.04310958268785175,
+        "compared": false,
+        "velocity_linf_difference": 0
+      }
+    ],
+    "restart": {
+      "time": 0.025,
+      "step": 4,
+      "levels": 3,
+      "stored_cells": 12288,
+      "force_linf_error": 0,
+      "peak_speed": 0.04310958268785175,
+      "compared": true,
+      "velocity_linf_difference": 0
+    }
+  },
+  "fleet_checks": {
+    "eight_level": {
+      "eight_level": {
+        "mode": "shear",
+        "base_n": 16,
+        "levels": 8,
+        "steps_requested": 32,
+        "steps": 32,
+        "max_grid_size": 32,
+        "scheme": "MOL",
+        "max_dt": 0.00625,
+        "elapsed_seconds": 6.571560416981811,
+        "initial": {
+          "schema_version": 1,
+          "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+          "case": "shear",
+          "problem": 0,
+          "step": 0,
+          "time": 0,
+          "dt": -1,
+          "levels": 8,
+          "stored_cells": 32768,
+          "active_cells": 29184,
+          "volume": 8,
+          "l2_error": 0,
+          "linf_error": 0,
+          "peak_speed": 0,
+          "energy": 0,
+          "velocity_integral": [
+            0,
+            0,
+            0
+          ],
+          "peak_rss_mib": 60.640625
+        },
+        "final": {
+          "schema_version": 1,
+          "adapter_sha256": "202fcd710ee126e4e854f067b6a4be9ec40015cf79d33aaad21230abc0cc8d2c",
+          "case": "shear",
+          "problem": 0,
+          "step": 32,
+          "time": 0.2,
+          "dt": 0.006249999999999922,
+          "levels": 8,
+          "stored_cells": 32768,
+          "active_cells": 29184,
+          "volume": 8,
+          "l2_error": 0.0006599381524637651,
+          "linf_error": 0.002031737470273798,
+          "peak_speed": 0.3448745398206727,
+          "energy": 0.2399440748014914,
+          "velocity_integral": [
+            -3.7596856005132086e-19,
+            -6.726385728267427e-17,
+            1.611475351545776e-18
+          ],
+          "peak_rss_mib": 61.640625
+        },
+        "l2_error": 0.0006599381524637651
+      },
+      "archive": {
+        "passed": true,
+        "frames": [
+          {
+            "time": 0,
+            "step": 0,
+            "levels": 3,
+            "stored_cells": 12288,
+            "force_linf_error": 0,
+            "peak_speed": 0,
+            "compared": false,
+            "velocity_linf_difference": 0
+          },
+          {
+            "time": 0.00625,
+            "step": 1,
+            "levels": 3,
+            "stored_cells": 12288,
+            "force_linf_error": 0,
+            "peak_speed": 0.010779003522801792,
+            "compared": false,
+            "velocity_linf_difference": 0
+          },
+          {
+            "time": 0.0125,
+            "step": 2,
+            "levels": 3,
+            "stored_cells": 12288,
+            "force_linf_error": 0,
+            "peak_speed": 0.021557051431598737,
+            "compared": false,
+            "velocity_linf_difference": 0
+          },
+          {
+            "time": 0.018750000000000003,
+            "step": 3,
+            "levels": 3,
+            "stored_cells": 12288,
+            "force_linf_error": 0,
+            "peak_speed": 0.03233387945122918,
+            "compared": false,
+            "velocity_linf_difference": 0
+          },
+          {
+            "time": 0.025,
+            "step": 4,
+            "levels": 3,
+            "stored_cells": 12288,
+            "force_linf_error": 0,
+            "peak_speed": 0.04310958268785175,
+            "compared": false,
+            "velocity_linf_difference": 0
+          }
+        ],
+        "restart": {
+          "time": 0.025,
+          "step": 4,
+          "levels": 3,
+          "stored_cells": 12288,
+          "force_linf_error": 0,
+          "peak_speed": 0.04310958268785175,
+          "compared": true,
+          "velocity_linf_difference": 0
+        }
+      }
+    },
+    "nonbinary_capacity": {
+      "passed": false,
+      "base_n": 96,
+      "levels": 4,
+      "stored_cells": 3538944,
+      "active_cells": 3207168,
+      "t_end": 0.025,
+      "steps": 16,
+      "peak_rss_mib": 3127.8125,
+      "initialization_seconds": 23.35401979,
+      "evolution_seconds": 406.2509469,
+      "reported_volume": 8.000000000510395,
+      "required_volume": 8,
+      "volume_tolerance": 1e-10,
+      "failure": "Volume validation failed from accumulated floating-point summation error; trajectory completed. Fix and retest required."
+    }
+  }
+}
