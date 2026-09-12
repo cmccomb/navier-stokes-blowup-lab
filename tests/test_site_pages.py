@@ -1,3 +1,4 @@
+import json
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -32,6 +33,7 @@ def test_documentation_is_a_native_multipage_site() -> None:
         "reproduction.html",
         "review.html",
         "accuracy.html",
+        "refinement.html",
     ):
         assert (SITE / name).is_file()
 
@@ -70,3 +72,20 @@ def test_site_keeps_peak_speed_without_illustrative_comparisons() -> None:
         "fingernail", "Arctic coast", "Statue speed", "emoji comparison",
     ):
         assert removed not in content
+
+
+def test_refinement_pilot_is_documentation_not_a_replacement_flow_run() -> None:
+    docs = (SITE / "documentation.html").read_text()
+    page = (SITE / "refinement.html").read_text()
+    assert 'href="refinement.html"' in docs
+    assert 'href="data/refinement-pilot.json"' in page
+    assert "not a new Navier–Stokes trajectory" in page
+    assert "as-yet-unimplemented momentum transport" in page
+    report = json.loads((SITE / "data/refinement-pilot.json").read_text())
+    assert report["passed"] and len(report["cases"]) == 9
+    row = next(r for r in report["cases"] if r["base_n"] == 128 and r["levels"] == 4)
+    assert row["finest_effective_n"] == 1024
+    assert row["stored_cells"] == 8388608
+    assert row["active_cells"] == 7602176
+    assert row["coarse_fine_flux_mismatch"] == 0
+    assert row["divergence_after_linf"] < 1e-8
