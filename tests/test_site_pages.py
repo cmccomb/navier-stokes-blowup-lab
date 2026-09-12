@@ -89,3 +89,14 @@ def test_refinement_pilot_is_documentation_not_a_replacement_flow_run() -> None:
     assert row["active_cells"] == 7602176
     assert row["coarse_fine_flux_mismatch"] == 0
     assert row["divergence_after_linf"] < 1e-8
+
+
+def test_tenfold_design_stays_distinct_from_measured_operator_results() -> None:
+    page = (SITE / "refinement.html").read_text()
+    assert "extrapolations, not new simulated frames" in page
+    design = json.loads((SITE / "data/tenfold-design.json").read_text())
+    assert [r["speed_multiplier"] for r in design["forecasts"]] == [1,10,100]
+    assert not any(r["production_ready"] for r in design["tenfold_mesh_candidates"])
+    diffusion = json.loads((SITE / "data/diffusion-pilot.json").read_text())
+    assert diffusion["passed"] and len(diffusion["cases"]) == 11
+    assert all(r["passed"] for r in diffusion["convergence"]["temporal"])

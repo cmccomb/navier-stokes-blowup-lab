@@ -44,3 +44,15 @@ add_test(NAME exact_rest COMMAND ns_projection_pilot n_cell=16 levels=3 test_cas
 add_test(NAME mixed_projection COMMAND ns_projection_pilot n_cell=16 levels=3 test_case=mixed)
 add_test(NAME solenoidal COMMAND ns_projection_pilot n_cell=16 levels=4 test_case=solenoidal)
 add_test(NAME four_level_projection COMMAND ns_projection_pilot n_cell=16 levels=4 test_case=mixed)
+
+add_executable(ns_diffusion_pilot diffusion_pilot.cpp)
+target_compile_features(ns_diffusion_pilot PRIVATE cxx_std_20)
+target_link_libraries(ns_diffusion_pilot PRIVATE amrex_hydro)
+file(SHA256 "${CMAKE_CURRENT_SOURCE_DIR}/diffusion_pilot.cpp" diffusion_source_sha256)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS diffusion_pilot.cpp)
+target_compile_definitions(ns_diffusion_pilot PRIVATE
+  NS_DIFFUSION_SOURCE_SHA256="${diffusion_source_sha256}"
+  NS_AMREX_COMMIT="e60cdc18711ccf7fc0616d7a2fdf062021376976")
+add_test(NAME diffusion_rest COMMAND ns_diffusion_pilot test_case=rest steps=8)
+add_test(NAME diffusion_constant COMMAND ns_diffusion_pilot test_case=constant steps=8)
+add_test(NAME diffusion_decay COMMAND ns_diffusion_pilot test_case=decay steps=8)
