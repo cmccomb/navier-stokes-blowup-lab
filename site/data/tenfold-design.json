@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "scope": "Conditional similarity extrapolation and sampled phase-only mesh screen, not a run or convergence certificate",
+  "reference": {
+    "captured_frames": 487,
+    "config": {
+      "base_height": 0.52,
+      "base_radius": 0.52,
+      "capture_force_volumes": true,
+      "capture_volumes": true,
+      "cfl": 0.2,
+      "derivative_epsilon": 2e-7,
+      "forcing_end": null,
+      "forcing_phase_step": 0.0375,
+      "frame_spacing": "similarity",
+      "frames": 81,
+      "h": 0.008,
+      "half_domain": 1,
+      "integrator": "rk2",
+      "localization_inner": 0.72,
+      "localization_outer": 0.94,
+      "max_dt": 0.00025,
+      "mesh_preset": "full-domain",
+      "min_cells_per_scale": 4,
+      "paper_annulus_xa": 0.6,
+      "paper_annulus_xb": 1.45,
+      "paper_axial_bias": 0.12,
+      "paper_axial_slope": 4,
+      "paper_axis_lambda": 2,
+      "paper_axis_offset": 0.03,
+      "paper_axis_sigma": 0.25,
+      "paper_eta_support": 0.86,
+      "paper_eta_taper": 0.98,
+      "paper_profile_revision": "appendix-b-axis-v1",
+      "paper_swirl_bias": 0.08,
+      "paper_time_cutoff_end": 0.775,
+      "paper_time_cutoff_start": 0.55,
+      "pressure_abs_tol": 1e-9,
+      "pressure_max_iterations": 2000,
+      "pressure_projection": "fft",
+      "pressure_rel_tol": 1e-7,
+      "preview_phase_step": 0.3,
+      "preview_resolution": 192,
+      "profile_interpolation": "cubic",
+      "profile_model": "paper-surrogate",
+      "pulse_axial_frequency": 2.5,
+      "pulse_azimuthal_mode": 4,
+      "pulse_correction_passes": 1,
+      "pulse_correction_strength": 0.04,
+      "pulse_hierarchy_levels": 3,
+      "pulse_log_frequency": 1,
+      "pulse_mode_stride": 1,
+      "pulse_radial_frequency": 4,
+      "pulse_rtheta_strength": 0.075,
+      "pulse_rz_strength": 0.06,
+      "pulse_scale_ratio": 0.68,
+      "pulse_time_width": 0.46,
+      "pulses_enabled": true,
+      "ramp_time": 0.15,
+      "resolution": 192,
+      "stream_volumes": true,
+      "swirl_ratio": 0.85,
+      "t_end": 0.985,
+      "t_star": 1,
+      "t_start": 0,
+      "velocity_scale": 0.25,
+      "viscosity": 0.01,
+      "volume_frames": 12
+    },
+    "diagnostics": {
+      "axial_length": 0.06586280808726123,
+      "peak_speed": 4.179807916147603,
+      "radial_length": 0.06368673331236266,
+      "t": 0.985
+    },
+    "run_id": "best-guess-n192-native-f32-rest-t0985",
+    "source_commit": "9d2afb89096c869c1be3a7fb654cb8b797f03b35",
+    "status": "complete"
+  },
+  "design_source_sha256": "6286f0cb8441f79f18937835dbd684d4cb57920a6a6a6fb418151ffb0b9c5d42",
+  "forecasts": [
+    {
+      "speed_multiplier": 1,
+      "projected_peak_model_units": 4.179807916147603,
+      "t": 0.985,
+      "tau": 0.015000000000000013,
+      "radial_scale": 0.06368673331236266,
+      "axial_scale": 0.06586280808726123,
+      "radial_shrink_factor": 1,
+      "inner_half_bump_velocity_wavelength": 0.02668973112080825,
+      "radial_design_dx": 0.0016681081950505156,
+      "radial_design_equivalent_n": 1200,
+      "forcing_phase_dt_limit": 0.000013169538424803444,
+      "force_difference_half_window_preserving_epsilon_over_tau": 2e-7,
+      "additional_phase_only_steps": 0
+    },
+    {
+      "speed_multiplier": 10,
+      "projected_peak_model_units": 41.79807916147603,
+      "t": 0.9998387174720215,
+      "tau": 0.00016128252797848396,
+      "radial_scale": 0.006603847027709082,
+      "axial_scale": 0.00708168012538348,
+      "radial_shrink_factor": 9.643883791544459,
+      "inner_half_bump_velocity_wavelength": 0.0027675293167892805,
+      "radial_design_dx": 0.00017297058229933003,
+      "radial_design_equivalent_n": 11564,
+      "forcing_phase_dt_limit": 1.416010966308053e-7,
+      "force_difference_half_window_preserving_epsilon_over_tau": 2.1504337063797843e-9,
+      "additional_phase_only_steps": 5161
+    },
+    {
+      "speed_multiplier": 100,
+      "projected_peak_model_units": 417.98079161476034,
+      "t": 0.9999982658630779,
+      "tau": 0.0000017341369220753628,
+      "radial_scale": 0.0006847704898206246,
+      "axial_scale": 0.0007614341819712228,
+      "radial_shrink_factor": 93.00449458481393,
+      "inner_half_bump_velocity_wavelength": 0.0002869724870819978,
+      "radial_design_dx": 0.000017935780442624863,
+      "radial_design_equivalent_n": 111510,
+      "forcing_phase_dt_limit": 1.522518855276123e-9,
+      "force_difference_half_window_preserving_epsilon_over_tau": 2.312182562767148e-11,
+      "additional_phase_only_steps": 10321
+    }
+  ],
+  "explicit_diffusion_warning": {
+    "scope": "Applying the existing global uniform-grid explicit rule to a fixed fine spacing, not a derived AMR stability limit",
+    "candidate_core_equivalent_n": 16384,
+    "dt_limit": 1.7881393432617188e-7,
+    "active_interval_step_lower_bound": 2515681
+  },
+  "tenfold_mesh_candidates": [
+    {
+      "base_n": 128,
+      "levels": 4,
+      "patch_fraction": 0.5,
+      "finest_effective_n": 1024,
+      "stored_cells": 8388608,
+      "active_cells": 7602176,
+      "minimum_sampled_doubled_phase_points": 0.5469503087906682,
+      "worst_sample": {
+        "t": 0.9998387174720215,
+        "xyz": [
+          0.007630558744401354,
+          0,
+          -0.0020258760172273717
+        ],
+        "level": 3,
+        "dx": 0.001953125,
+        "phase_gradient_norm": 2940.843825821088
+      },
+      "sampled_phase_screen_passed": false,
+      "production_ready": false,
+      "time_samples": 257,
+      "spatial_samples_per_X_eta": 25,
+      "retained_sample_count": 1444959
+    },
+    {
+      "base_n": 128,
+      "levels": 8,
+      "patch_fraction": 0.5,
+      "finest_effective_n": 16384,
+      "stored_cells": 16777216,
+      "active_cells": 14942208,
+      "minimum_sampled_doubled_phase_points": 2.8187674020974796,
+      "worst_sample": {
+        "t": 0.9014405396455663,
+        "xyz": [
+          0.4897952186913647,
+          0,
+          -0.24111274248748413
+        ],
+        "level": 0,
+        "dx": 0.015625,
+        "phase_gradient_norm": 71.32973429454808
+      },
+      "sampled_phase_screen_passed": false,
+      "production_ready": false,
+      "time_samples": 257,
+      "spatial_samples_per_X_eta": 25,
+      "retained_sample_count": 1444959
+    },
+    {
+      "base_n": 128,
+      "levels": 8,
+      "patch_fraction": 0.75,
+      "finest_effective_n": 16384,
+      "stored_cells": 51642368,
+      "active_cells": 45449216,
+      "minimum_sampled_doubled_phase_points": 4.2473662734492414,
+      "worst_sample": {
+        "t": 0.7724357171005698,
+        "xyz": [
+          0.7353654041901067,
+          0,
+          -0.363928282259331
+        ],
+        "level": 0,
+        "dx": 0.015625,
+        "phase_gradient_norm": 47.33802476292361
+      },
+      "sampled_phase_screen_passed": false,
+      "production_ready": false,
+      "time_samples": 257,
+      "spatial_samples_per_X_eta": 25,
+      "retained_sample_count": 1444959
+    },
+    {
+      "base_n": 128,
+      "levels": 8,
+      "patch_fraction": 0.875,
+      "finest_effective_n": 16384,
+      "stored_cells": 80773120,
+      "active_cells": 70938624,
+      "minimum_sampled_doubled_phase_points": 4.9697276139077164,
+      "worst_sample": {
+        "t": 0.6897592562290891,
+        "xyz": [
+          0.8689900410224776,
+          0,
+          -0.42387364720695947
+        ],
+        "level": 0,
+        "dx": 0.015625,
+        "phase_gradient_norm": 40.457333972807206
+      },
+      "sampled_phase_screen_passed": false,
+      "production_ready": false,
+      "time_samples": 257,
+      "spatial_samples_per_X_eta": 25,
+      "retained_sample_count": 1444959
+    },
+    {
+      "base_n": 160,
+      "levels": 8,
+      "patch_fraction": 0.75,
+      "finest_effective_n": 20480,
+      "stored_cells": 100864000,
+      "active_cells": 88768000,
+      "minimum_sampled_doubled_phase_points": 5.329467170968081,
+      "worst_sample": {
+        "t": 0.7724357171005698,
+        "xyz": [
+          0.7442475818752918,
+          0,
+          -0.363928282259331
+        ],
+        "level": 0,
+        "dx": 0.0125,
+        "phase_gradient_norm": 47.15807494908175
+      },
+      "sampled_phase_screen_passed": false,
+      "production_ready": false,
+      "time_samples": 257,
+      "spatial_samples_per_X_eta": 25,
+      "retained_sample_count": 1444959
+    },
+    {
+      "base_n": 192,
+      "levels": 8,
+      "patch_fraction": 0.75,
+      "finest_effective_n": 24576,
+      "stored_cells": 174292992,
+      "active_cells": 153391104,
+      "minimum_sampled_doubled_phase_points": 6.395360605161697,
+      "worst_sample": {
+        "t": 0.7724357171005698,
+        "xyz": [
+          0.7442475818752918,
+          0,
+          -0.363928282259331
+        ],
+        "level": 0,
+        "dx": 0.010416666666666666,
+        "phase_gradient_norm": 47.15807494908175
+      },
+      "sampled_phase_screen_passed": false,
+      "production_ready": false,
+      "time_samples": 257,
+      "spatial_samples_per_X_eta": 25,
+      "retained_sample_count": 1444959
+    }
+  ],
+  "limitations": [
+    "Anchored to a spatially unvalidated peak; no fitted peak-growth law.",
+    "All speeds and lengths remain in model units. No Mach number or acoustic transition is defined.",
+    "Samples can miss minima and small cells do not establish solution accuracy.",
+    "Envelope, Cartesian-basis variation, numerical correction, background, taper and momentum transport still need verification.",
+    "The finite surrogate does not establish the paper's infinite hierarchy or a singularity."
+  ]
+}

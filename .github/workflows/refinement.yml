@@ -7,13 +7,17 @@ on:
     paths:
       - "backends/amrex/**"
       - "scripts/refinement_pilot.py"
+      - "scripts/diffusion_pilot.py"
       - "tests/test_refinement_pilot.py"
+      - "tests/test_diffusion_pilot.py"
       - ".github/workflows/refinement.yml"
   pull_request:
     paths:
       - "backends/amrex/**"
       - "scripts/refinement_pilot.py"
+      - "scripts/diffusion_pilot.py"
       - "tests/test_refinement_pilot.py"
+      - "tests/test_diffusion_pilot.py"
       - ".github/workflows/refinement.yml"
 
 permissions:
@@ -33,9 +37,12 @@ jobs:
       - run: cmake --build build/amrex --parallel 2
       - run: ctest --test-dir build/amrex --output-on-failure
       - run: python -m scripts.refinement_pilot --levels 4 --output outputs/projection-ci
+      - run: python -m scripts.diffusion_pilot --output outputs/diffusion-ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: projection-validation
-          path: outputs/projection-ci
+          path: |
+            outputs/projection-ci
+            outputs/diffusion-ci
           if-no-files-found: ignore

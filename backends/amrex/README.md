@@ -50,9 +50,26 @@ be compared directly with a macOS physical-footprint measurement.
 
 ## Launch boundary
 
+The companion `ns_diffusion_pilot` now advances three-component diffusion with
+Crank–Nicolson on the fixed periodic hierarchy. Run
+`python -m scripts.diffusion_pilot --output outputs/diffusion-check` after the
+same build. Eleven cases verify exact rest, constants, decay, forcing-integral
+balance, separate space/time convergence, decomposition invariance, and an
+eight-level evolution smoke test. The temporal manufactured force is built from
+the semidiscrete Laplacian independently of dt; the spatial test uses a separate
+continuous analytic source. Neither applies the actual project's force.
+
+The [10× design forecast](../../site/data/tenfold-design.json) anchors the leading
+similarity law to the last 192³ peak. It is not a new run or a verified peak law.
+The sampled 3D phase screen rejects all tested simple nested-cube candidates,
+including an eight-level 16,384-equivalent core; coarse forcing regions remain
+underresolved by that conservative criterion. The new
+`navier_stokes_sim.refinement_design` module reproduces this screen. It does not
+generate a production mesh or certify the full force, weak tails, or errors.
+
 There is deliberately no production-run option. Before a refined from-rest
 trajectory can replace the existing 192³ result, implement and verify the
-multilevel momentum/viscous update, ghost-cell interpolation and synchronization,
+coupled multilevel momentum/viscous update, ghost-cell interpolation and synchronization,
 force evaluation, and multilevel archive/export path. Audit the entire active
 support and all relevant phase gradients, then separate spatial, temporal, and
 force-difference convergence. The pilot's convenient nested cubes are not yet
