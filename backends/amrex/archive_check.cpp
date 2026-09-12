@@ -1,0 +1,58 @@
+#include <AMReX_PlotFileDataImpl.H>
+#include "ns_case.H"
+
+int main(int argc, char** argv) {
+    amrex::Initialize(argc,argv);
+    {
+        using namespace amrex;
+        ParmParse pp; std::string path; Real nu=0.01;
+        pp.get("plot",path); pp.query("nu",nu);
+        PlotFileDataImpl data(path);
+        std::string compare;
+        std::unique_ptr<PlotFileDataImpl> reference;
+        if (pp.query("compare",compare)) {
+            reference=std::make_unique<PlotFileDataImpl>(compare);
+            if (reference->time()!=data.time() || reference->finestLevel()!=data.finestLevel())
+                Abort("restart comparison has different time or levels");
+        }
+        Vector<std::string> expected{"velx","vely","velz","forcing_x","forcing_y","forcing_z"};
+        if (data.varNames()!=expected || data.spaceDim()!=3)
+            Abort("native archive is missing velocity/force components");
+        Real max_force_error=0, max_speed=0, max_velocity_difference=0; Long stored=0;
+        for (int lev=0; lev<=data.finestLevel(); ++lev) {
+            MultiFab mf=data.get(lev);
+            MultiFab comparison;
+            if (reference) {
+                comparison=reference->get(lev);
+                if (comparison.boxArray()!=mf.boxArray()) Abort("restart mesh changed");
+            }
+            auto dx=data.cellSize(lev); auto lo=data.probLo();
+            stored+=mf.boxArray().numPts();
+            for (MFIter mfi(mf);mfi.isValid();++mfi) {
+                auto a=mf.const_array(mfi);
+                auto b=reference ? comparison.const_array(mfi) : a;
+                LoopOnCpu(mfi.validbox(),[&](int i,int j,int k) {
+                    Real x=lo[0]+(i+0.5)*dx[0], y=lo[1]+(j+0.5)*dx[1], z=lo[2]+(k+0.5)*dx[2];
+                    Real speed2=0;
+                    for (int c=0;c<3;++c) {
+                        if (!std::isfinite(a(i,j,k,c)) || !std::isfinite(a(i,j,k,c+3)))
+                            Abort("non-finite archived vector");
+                        speed2+=a(i,j,k,c)*a(i,j,k,c);
+                        max_velocity_difference=std::max(max_velocity_difference,std::abs(a(i,j,k,c)-b(i,j,k,c)));
+                        Real f=ns_case::force_value(ns_case::options().force,x,y,z,data.time(),c,nu);
+                        max_force_error=std::max(max_force_error,std::abs(a(i,j,k,c+3)-f));
+                    }
+                    max_speed=std::max(max_speed,std::sqrt(speed2));
+                });
+            }
+        }
+        if (max_force_error>1e-12) Abort("saved forcing differs from instantaneous external body force");
+        if (max_velocity_difference>1e-12) Abort("restarted velocity differs from uninterrupted trajectory");
+        Print()<<std::setprecision(17)<<"NS_ARCHIVE_RESULT {\"time\":"<<data.time()
+            <<",\"step\":"<<data.levelStep(0)<<",\"levels\":"<<data.finestLevel()+1
+            <<",\"stored_cells\":"<<stored<<",\"force_linf_error\":"<<max_force_error
+            <<",\"peak_speed\":"<<max_speed<<",\"compared\":"<<(reference ? "true" : "false")
+            <<",\"velocity_linf_difference\":"<<max_velocity_difference<<"}\n";
+    }
+    amrex::Finalize();
+}

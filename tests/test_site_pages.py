@@ -79,8 +79,8 @@ def test_refinement_pilot_is_documentation_not_a_replacement_flow_run() -> None:
     page = (SITE / "refinement.html").read_text()
     assert 'href="refinement.html"' in docs
     assert 'href="data/refinement-pilot.json"' in page
-    assert "not a new Navier–Stokes trajectory" in page
-    assert "as-yet-unimplemented momentum transport" in page
+    assert "not a new paper-surrogate trajectory" in page
+    assert "manufactured tests, not validation of the paper-surrogate forcing" in page
     report = json.loads((SITE / "data/refinement-pilot.json").read_text())
     assert report["passed"] and len(report["cases"]) == 9
     row = next(r for r in report["cases"] if r["base_n"] == 128 and r["levels"] == 4)
@@ -100,3 +100,19 @@ def test_tenfold_design_stays_distinct_from_measured_operator_results() -> None:
     diffusion = json.loads((SITE / "data/diffusion-pilot.json").read_text())
     assert diffusion["passed"] and len(diffusion["cases"]) == 11
     assert all(r["passed"] for r in diffusion["convergence"]["temporal"])
+
+
+def test_coupled_validation_remains_distinct_from_the_project_force():
+    page = (SITE / "refinement.html").read_text()
+    assert 'href="data/coupled-pilot.json"' in page
+    assert "not sharing one simulation's domain" in page
+    report = json.loads((SITE / "data/coupled-pilot.json").read_text())
+    assert report["passed"] and len(report["cases"]) == 14
+    assert len(report["native_archive"]["frames"]) == 5
+    assert report["native_archive"]["restart"]["velocity_linf_difference"] == 0
+    assert report["native_archive"]["frames"][0]["peak_speed"] == 0
+    assert all(r["initial"]["adapter_sha256"] == report["adapter_sha256"] for r in report["cases"])
+    capacity = report["fleet_checks"]["nonbinary_capacity"]
+    assert capacity["passed"] is False  # Keep the original failed gate visible.
+    assert capacity["resolution"]["status"] == "fixed"
+    assert all(r["volume"] == 8 for r in capacity["resolution"]["regression"]["rows"])

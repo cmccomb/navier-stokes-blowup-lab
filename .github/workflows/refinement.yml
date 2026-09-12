@@ -8,16 +8,20 @@ on:
       - "backends/amrex/**"
       - "scripts/refinement_pilot.py"
       - "scripts/diffusion_pilot.py"
+      - "scripts/coupled_*.py"
       - "tests/test_refinement_pilot.py"
       - "tests/test_diffusion_pilot.py"
+      - "tests/test_coupled_pilot.py"
       - ".github/workflows/refinement.yml"
   pull_request:
     paths:
       - "backends/amrex/**"
       - "scripts/refinement_pilot.py"
       - "scripts/diffusion_pilot.py"
+      - "scripts/coupled_*.py"
       - "tests/test_refinement_pilot.py"
       - "tests/test_diffusion_pilot.py"
+      - "tests/test_coupled_pilot.py"
       - ".github/workflows/refinement.yml"
 
 permissions:
@@ -26,7 +30,7 @@ permissions:
 jobs:
   projection:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -38,6 +42,7 @@ jobs:
       - run: ctest --test-dir build/amrex --output-on-failure
       - run: python -m scripts.refinement_pilot --levels 4 --output outputs/projection-ci
       - run: python -m scripts.diffusion_pilot --output outputs/diffusion-ci
+      - run: python -m scripts.coupled_pilot --output outputs/coupled-ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -45,4 +50,5 @@ jobs:
           path: |
             outputs/projection-ci
             outputs/diffusion-ci
+            outputs/coupled-ci
           if-no-files-found: ignore

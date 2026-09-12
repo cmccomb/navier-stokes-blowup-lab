@@ -56,3 +56,46 @@ target_compile_definitions(ns_diffusion_pilot PRIVATE
 add_test(NAME diffusion_rest COMMAND ns_diffusion_pilot test_case=rest steps=8)
 add_test(NAME diffusion_constant COMMAND ns_diffusion_pilot test_case=constant steps=8)
 add_test(NAME diffusion_decay COMMAND ns_diffusion_pilot test_case=decay steps=8)
+
+# Build the established coupled integrator against the same pinned operators.
+# Include its src directory, not its superbuild, to avoid duplicate libraries.
+option(NS_BUILD_INCFLO "Build the upstream coupled incompressible integrator" ON)
+if(NS_BUILD_INCFLO)
+  FetchContent_Declare(incflo_upstream
+    URL https://codeload.github.com/AMReX-Fluids/incflo/tar.gz/7491eea4d69bbfde0581a5fe7f95d803841a8a09
+    URL_HASH SHA256=51ef0cbc023ae98d1be559bff6c3a76e1bf951e3576f65a5c9308670148efc0d
+    SOURCE_SUBDIR no-superbuild)
+  FetchContent_MakeAvailable(incflo_upstream)
+  set(INCFLO_DIM 3)
+  set(INCFLO_EB OFF)
+  set(INCFLO_PARTICLES OFF)
+  add_executable(incflo)
+  set_target_properties(incflo PROPERTIES OUTPUT_NAME ns_incflo)
+  target_compile_features(incflo PRIVATE cxx_std_20)
+  target_link_libraries(incflo PRIVATE amrex_hydro)
+  list(APPEND CMAKE_MODULE_PATH "${amrex_SOURCE_DIR}/Tools/CMake")
+  include(AMReXBuildInfo)
+  generate_buildinfo(incflo ${CMAKE_CURRENT_SOURCE_DIR})
+  find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS incflo_overlay.py ns_case.H)
+  file(SHA256 "${CMAKE_CURRENT_SOURCE_DIR}/ns_case.H" ns_case_hash)
+  file(SHA256 "${CMAKE_CURRENT_SOURCE_DIR}/incflo_overlay.py" ns_overlay_hash)
+  string(SHA256 ns_adapter_hash "${ns_case_hash};${ns_overlay_hash}")
+  target_compile_definitions(incflo PRIVATE NS_ADAPTER_SHA256="${ns_adapter_hash}")
+  execute_process(COMMAND "${Python3_EXECUTABLE}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/incflo_overlay.py"
+    "${incflo_upstream_SOURCE_DIR}/src" "${CMAKE_CURRENT_BINARY_DIR}/incflo-overlay"
+    COMMAND_ERROR_IS_FATAL ANY)
+  target_include_directories(incflo PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+  add_subdirectory("${CMAKE_CURRENT_BINARY_DIR}/incflo-overlay" incflo-src)
+  add_test(NAME coupled_rest COMMAND incflo "${CMAKE_CURRENT_SOURCE_DIR}/inputs.coupled"
+    stop_time=0.025 amr.max_level=2 "ns.refine_half_width=0.5 0.25")
+  set_tests_properties(coupled_rest PROPERTIES TIMEOUT 60)
+  add_test(NAME coupled_nonbinary_volume COMMAND incflo "${CMAKE_CURRENT_SOURCE_DIR}/inputs.coupled"
+    stop_time=0.003125 ns.max_dt=0.003125 "amr.n_cell=96 96 96"
+    amr.max_level=3 "ns.refine_half_width=0.5 0.25 0.125")
+  set_tests_properties(coupled_nonbinary_volume PROPERTIES TIMEOUT 180)
+  add_executable(ns_archive_check archive_check.cpp)
+  target_compile_features(ns_archive_check PRIVATE cxx_std_20)
+  target_link_libraries(ns_archive_check PRIVATE amrex_hydro)
+endif()

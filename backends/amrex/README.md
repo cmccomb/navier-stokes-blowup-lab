@@ -1,10 +1,11 @@
-# Static 3D refinement pilot
+# Fixed-refinement incompressible backend
 
 This backend validates the pressure-projection operator needed for full-domain,
 fixed local refinement. It uses the established AMReX-Hydro MAC projector and
 AMReX multilevel multigrid, with double precision and immutable upstream source
-pins in `CMakeLists.txt`. It does **not** yet integrate Navier–Stokes, apply the
-project's force, or produce a new flow animation.
+pins in `CMakeLists.txt`. The coupled `incflo` integrator now advances
+incompressible Navier–Stokes in manufactured validation cases. It does **not**
+yet apply the project's paper-surrogate force or produce a new vortex animation.
 
 The [first-class documentation page](https://cmccomb.com/navier-stokes-singularity-simulation/refinement.html)
 contains the mesh derivation, measured results, limitations, and next gates.
@@ -13,7 +14,7 @@ nine cases, source/binary hashes, errors, timings, and peak process RSS.
 
 ## Build and reproduce
 
-Requires Python 3.11+, a C++20 compiler, and network access for the two pinned
+Requires Python 3.11+, a C++20 compiler, and network access for the three pinned
 source archives. The pilot runner uses only Python's standard library. No
 PhiFlow, MPI, GPU, system-wide installation, or fleet service is required.
 
@@ -50,6 +51,53 @@ be compared directly with a macOS physical-footprint measurement.
 
 ## Launch boundary
 
+`ns_incflo` builds the established
+[AMReX-Fluids/incflo](https://github.com/AMReX-Fluids/incflo) integrator at
+`7491eea4d69bbfde0581a5fe7f95d803841a8a09` against the same AMReX libraries.
+`incflo_overlay.py` generates a separate source tree with exact-count edits;
+it leaves the downloaded upstream unchanged and refuses source drift.
+`ns_case.H` supplies only analytic verification forces, fixed-region tagging,
+and volume-weighted composite diagnostics. Covered coarse cells are excluded.
+
+```sh
+python -m scripts.coupled_pilot --output outputs/coupled-check
+```
+
+Fourteen evolution cases check exact rest, oscillatory time convergence for
+MOL and Godunov, spatial convergence of a fully 3D manufactured shear flow on
+three levels, the upstream translating/decaying Taylor vortex on uniform grids,
+and decomposition invariance. The spatial force is continuous and independent
+of grid spacing. Five native 3D frames are read back with `ns_archive_check`;
+all velocity and forcing components must exist, forcing must equal the external
+acceleration at each frame's time, and a mid-run checkpoint must reproduce the
+uninterrupted final full velocity field. The runner pins a private executable
+copy, checks the compiled adapter hash, preserves logs, and refuses nonempty
+output directories.
+
+The integration edits matter for an oscillatory case from rest:
+
+- MOL predicts with `f(t)` and corrects with `[f(t)+f(t+dt)]/2. Godunov traces
+  with the old-time force and updates with the midpoint force. Pressure retains
+  the upstream treatment; it is not averaged with the external force.
+- `ns.max_dt` is a ceiling in addition to the CFL and output/end-time limits.
+  It avoids the upstream zero-CFL timestep-halving fallback during quiescent
+  intervals. The unsafe `incflo.fixed_dt` override is refused with this ceiling.
+- Plotfile forcing excludes the solver's pressure gradient. Native archives
+  contain `velx`, `vely`, `velz`, `forcing_x`, `forcing_y`, and `forcing_z` on
+  every stored level.
+
+These smooth manufactured problems do not establish accuracy for the actual
+oscillatory pulse hierarchy. The current build is serial CPU, double precision,
+and constant unit density; the fleet runs independent checks, not distributed
+subdomains of one trajectory. Set `NS_BUILD_INCFLO=OFF` for operator-only builds.
+
+The archived fourteen-case suite identifies source commit `ec253643b31d`.
+A subsequent 96³-base capacity check exposed accumulated roundoff in diagnostic
+volume sums. The current source computes volume from integer active-cell counts
+per level and includes a non-binary 96³-base/four-level exact-rest CTest. The
+original failed check and corrected regression are both retained in the record;
+the volume tolerance was not widened.
+
 The companion `ns_diffusion_pilot` now advances three-component diffusion with
 Crank–Nicolson on the fixed periodic hierarchy. Run
 `python -m scripts.diffusion_pilot --output outputs/diffusion-check` after the
@@ -69,8 +117,10 @@ generate a production mesh or certify the full force, weak tails, or errors.
 
 There is deliberately no production-run option. Before a refined from-rest
 trajectory can replace the existing 192³ result, implement and verify the
-coupled multilevel momentum/viscous update, ghost-cell interpolation and synchronization,
-force evaluation, and multilevel archive/export path. Audit the entire active
+actual finite-surrogate force evaluation and multilevel movie/export path.
+The upstream coupled update, interpolation, synchronization, and native archive
+now have manufactured-case checks, not a project-force convergence certificate.
+Audit the entire active
 support and all relevant phase gradients, then separate spatial, temporal, and
 force-difference convergence. The pilot's convenient nested cubes are not yet
 an accepted forcing-informed production mesh.
