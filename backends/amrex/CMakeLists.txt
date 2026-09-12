@@ -91,6 +91,10 @@ if(NS_BUILD_INCFLO)
   add_test(NAME coupled_rest COMMAND incflo "${CMAKE_CURRENT_SOURCE_DIR}/inputs.coupled"
     stop_time=0.025 amr.max_level=2 "ns.refine_half_width=0.5 0.25")
   set_tests_properties(coupled_rest PROPERTIES TIMEOUT 60)
+  add_test(NAME coupled_nonbinary_volume COMMAND incflo "${CMAKE_CURRENT_SOURCE_DIR}/inputs.coupled"
+    stop_time=0.003125 ns.max_dt=0.003125 "amr.n_cell=96 96 96"
+    amr.max_level=3 "ns.refine_half_width=0.5 0.25 0.125")
+  set_tests_properties(coupled_nonbinary_volume PROPERTIES TIMEOUT 180)
   add_executable(ns_archive_check archive_check.cpp)
   target_compile_features(ns_archive_check PRIVATE cxx_std_20)
   target_link_libraries(ns_archive_check PRIVATE amrex_hydro)

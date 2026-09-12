@@ -91,6 +91,13 @@ oscillatory pulse hierarchy. The current build is serial CPU, double precision,
 and constant unit density; the fleet runs independent checks, not distributed
 subdomains of one trajectory. Set `NS_BUILD_INCFLO=OFF` for operator-only builds.
 
+The archived fourteen-case suite identifies source commit `ec253643b31d`.
+A subsequent 96³-base capacity check exposed accumulated roundoff in diagnostic
+volume sums. The current source computes volume from integer active-cell counts
+per level and includes a non-binary 96³-base/four-level exact-rest CTest. The
+original failed check and corrected regression are both retained in the record;
+the volume tolerance was not widened.
+
 The companion `ns_diffusion_pilot` now advances three-component diffusion with
 Crank–Nicolson on the fixed periodic hierarchy. Run
 `python -m scripts.diffusion_pilot --output outputs/diffusion-check` after the

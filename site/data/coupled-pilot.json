@@ -1100,7 +1100,89 @@
       "reported_volume": 8.000000000510395,
       "required_volume": 8,
       "volume_tolerance": 1e-10,
-      "failure": "Volume validation failed from accumulated floating-point summation error; trajectory completed. Fix and retest required."
+      "failure": "Volume validation failed from accumulated floating-point summation error; trajectory completed. Fix and retest required.",
+      "resolution": {
+        "status": "fixed",
+        "method": "Sum integer active-cell counts times each level's cell volume, instead of accumulating one floating volume per cell.",
+        "regression": {
+          "mode": "rest",
+          "base_n": 96,
+          "levels": 4,
+          "rows": [
+            {
+              "schema_version": 1,
+              "adapter_sha256": "dac9d8a15d60d0d1b6ce82a879378da6870b77029277e14f68e6843eadba7cc0",
+              "case": "rest",
+              "problem": 0,
+              "step": 0,
+              "time": 0,
+              "dt": -1,
+              "levels": 4,
+              "stored_cells": 3538944,
+              "active_cells": 3207168,
+              "volume": 8,
+              "l2_error": 0,
+              "linf_error": 0,
+              "peak_speed": 0,
+              "energy": 0,
+              "velocity_integral": [
+                0,
+                0,
+                0
+              ],
+              "peak_rss_mib": 3012.65625
+            },
+            {
+              "schema_version": 1,
+              "adapter_sha256": "dac9d8a15d60d0d1b6ce82a879378da6870b77029277e14f68e6843eadba7cc0",
+              "case": "rest",
+              "problem": 0,
+              "step": 1,
+              "time": 0.0026041666666666665,
+              "dt": 0.0026041666666666665,
+              "levels": 4,
+              "stored_cells": 3538944,
+              "active_cells": 3207168,
+              "volume": 8,
+              "l2_error": 0,
+              "linf_error": 0,
+              "peak_speed": 0,
+              "energy": 0,
+              "velocity_integral": [
+                0,
+                0,
+                0
+              ],
+              "peak_rss_mib": 3105.171875
+            },
+            {
+              "schema_version": 1,
+              "adapter_sha256": "dac9d8a15d60d0d1b6ce82a879378da6870b77029277e14f68e6843eadba7cc0",
+              "case": "rest",
+              "problem": 0,
+              "step": 2,
+              "time": 0.003125,
+              "dt": 0.0005208333333333337,
+              "levels": 4,
+              "stored_cells": 3538944,
+              "active_cells": 3207168,
+              "volume": 8,
+              "l2_error": 0,
+              "linf_error": 0,
+              "peak_speed": 0,
+              "energy": 0,
+              "velocity_integral": [
+                0,
+                0,
+                0
+              ],
+              "peak_rss_mib": 3105.171875
+            }
+          ],
+          "passed": true
+        }
+      }
     }
-  }
+  },
+  "suite_source_commit": "ec253643b31dff59a17acd6facdc57dad694266e"
 }

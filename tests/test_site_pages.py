@@ -112,3 +112,7 @@ def test_coupled_validation_remains_distinct_from_the_project_force():
     assert report["native_archive"]["restart"]["velocity_linf_difference"] == 0
     assert report["native_archive"]["frames"][0]["peak_speed"] == 0
     assert all(r["initial"]["adapter_sha256"] == report["adapter_sha256"] for r in report["cases"])
+    capacity = report["fleet_checks"]["nonbinary_capacity"]
+    assert capacity["passed"] is False  # Keep the original failed gate visible.
+    assert capacity["resolution"]["status"] == "fixed"
+    assert all(r["volume"] == 8 for r in capacity["resolution"]["regression"]["rows"])

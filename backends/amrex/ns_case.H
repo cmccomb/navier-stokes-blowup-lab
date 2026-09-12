@@ -115,11 +115,12 @@ inline void diagnose(Vector<MultiFab const*> const& vel, Vector<Geometry> const&
         auto dx=geom[lev].CellSizeArray(); auto lo=geom[lev].ProbLoArray();
         Real dv=dx[0]*dx[1]*dx[2];
         stored+=v.boxArray().numPts();
+        Long active_before=active;
         for (MFIter mfi(v);mfi.isValid();++mfi) {
             auto a=v.const_array(mfi); auto m=mask.const_array(mfi);
             LoopOnCpu(mfi.validbox(),[&](int i,int j,int k) {
                 if (!m(i,j,k)) return;
-                ++active; volume+=dv; Real speed2=0;
+                ++active; Real speed2=0;
                 Real x=lo[0]+(i+0.5)*dx[0], y=lo[1]+(j+0.5)*dx[1], z=lo[2]+(k+0.5)*dx[2];
                 for (int c=0;c<3;++c) {
                     Real u=a(i,j,k,c);
@@ -131,7 +132,12 @@ inline void diagnose(Vector<MultiFab const*> const& vel, Vector<Geometry> const&
                 peak=std::max(peak,std::sqrt(speed2)); energy+=0.5*speed2*dv;
             });
         }
+        // Integer counts avoid O(cell count) roundoff for non-binary spacings.
+        volume+=Real(active-active_before)*dv;
     }
+    Real domain_volume=1;
+    for (int c=0;c<3;++c) domain_volume*=geom[0].ProbHi(c)-geom[0].ProbLo(c);
+    if (std::abs(volume-domain_volume)>1e-10) Abort("composite diagnostic volume does not cover the domain");
     // Current target is explicitly serial CPU. No misleading distributed reduction.
     if (ParallelDescriptor::NProcs()!=1) Abort("diagnostic reductions require the serial validation build");
     struct rusage usage{}; getrusage(RUSAGE_SELF,&usage);
