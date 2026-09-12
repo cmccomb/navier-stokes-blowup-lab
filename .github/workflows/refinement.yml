@@ -1,0 +1,41 @@
+name: Refined-mesh operator
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "backends/amrex/**"
+      - "scripts/refinement_pilot.py"
+      - "tests/test_refinement_pilot.py"
+      - ".github/workflows/refinement.yml"
+  pull_request:
+    paths:
+      - "backends/amrex/**"
+      - "scripts/refinement_pilot.py"
+      - "tests/test_refinement_pilot.py"
+      - ".github/workflows/refinement.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  projection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r backends/amrex/requirements-build.txt
+      - run: cmake -S backends/amrex -B build/amrex -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build/amrex --parallel 2
+      - run: ctest --test-dir build/amrex --output-on-failure
+      - run: python -m scripts.refinement_pilot --levels 4 --output outputs/projection-ci
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: projection-validation
+          path: outputs/projection-ci
+          if-no-files-found: ignore

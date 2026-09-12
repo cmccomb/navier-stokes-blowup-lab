@@ -21,14 +21,14 @@ toward the normalized singular time `t*=1`.
 ## Current best
 
 The [results site](https://cmccomb.com/navier-stokes-singularity-simulation/)
-features the current **192³ start-from-rest run while it is still in progress**.
+features the completed **192³ start-from-rest run: 487 saved states through t = 0.985**.
 The [stream record](site/data/stream.json) is the authoritative published
-configuration and latest saved time; it is not a completed endpoint claim.
+configuration and saved history; completion at the configured endpoint is not a singularity claim.
 
-| Current streaming configuration | Value |
+| Completed run configuration | Value |
 |---|---:|
 | Grid / domain | `192^3`, full `[-1,1]^3` box |
-| Planned time interval | `0` to `0.985` |
+| Saved time interval | `0` to `0.985` |
 | Exact rest interval | `0` to `0.55` |
 | Profile interpolation | Cubic, source `9d2afb8` |
 | Maximum timestep / phase advance | `0.00025` / `0.0375` radians |
@@ -38,6 +38,11 @@ The from-rest 32³ cubic-profile temporal pilot recovered a successive-differenc
 ratio of 3.989, consistent with second-order time convergence at that coarse
 resolution. Spatial convergence is not established. This remains a best-guess
 finite-surrogate experiment, not a singularity demonstration.
+
+The new [refined-mesh operator pilot](https://cmccomb.com/navier-stokes-singularity-simulation/refinement.html)
+validates AMReX-Hydro pressure projection on a fixed, full-domain hierarchy,
+including 1024³-equivalent core spacing. It is not yet a new flow simulation;
+the linked documentation records the tests, memory measurement, and remaining gates.
 
 With noninteractive GitHub authentication configured, the publisher detects
 finalized phase-clock snapshots every 30 seconds and commits the latest

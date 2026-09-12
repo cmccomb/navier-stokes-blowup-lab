@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Measured validation of the fixed, full-domain 3D refined-mesh pressure-projection pilot." />
+    <meta name="theme-color" content="#07111f" />
+    <title>Refined-mesh pilot · Navier–Stokes Singularity Simulation</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="index.html"><span class="mark" aria-hidden="true">∇</span><span>Navier–Stokes Simulation</span></a>
+      <nav aria-label="Project navigation"><a href="index.html">Results</a><a href="documentation.html" aria-current="page">Documentation</a><a class="nav-cta" href="https://github.com/cmccomb/navier-stokes-singularity-simulation">GitHub ↗</a></nav>
+    </header>
+    <main class="docs-shell" id="content">
+      <nav class="docs-nav" aria-label="Documentation pages">
+        <a href="method.html">Model &amp; method</a><a href="derivation.html">Profile derivation</a><a href="running.html">Run it</a><a href="results.html">Numerical record</a><a href="reproduction.html">Reproduction target</a><a href="review.html">Numerical review</a><a href="accuracy.html">Accuracy budget</a><a href="refinement.html" aria-current="page">Refined-mesh pilot</a>
+      </nav>
+      <article class="doc-page">
+        <p class="eyebrow">Guide 08 · September 12, 2026</p>
+        <h1>Keep the domain. Refine the core.</h1>
+        <p class="dek">A fixed four-level Cartesian mesh has passed the first pressure-projection checks, reaching 1024³-equivalent spacing inside the central core. This is an operator-validation result, not a new Navier–Stokes trajectory or a singularity demonstration.</p>
+
+        <h2>The numerical bottleneck</h2>
+        <p>The completed 192³ run preserves all 487 saved states from rest through <span class="math">t = 0.985</span>. Its finest retained radial velocity phase has only about three cells per wavelength at the annulus midpoint there. Smaller timesteps cannot recover spatial structure that the grid does not resolve. Uniform refinement is expensive because its memory grows cubically.</p>
+        <p>The new backend uses the established <a href="https://amrex-fluids.github.io/amrex-hydro/docs_html/Projections.html">AMReX-Hydro MAC projection</a> and AMReX multilevel multigrid. The projection couples the levels across their interfaces. This does not stretch the coordinates of the existing FFT solver, impose axisymmetry, or change the original periodic box. The published flow movies remain the completed 192³ calculation.</p>
+
+        <h2>A measured fixed-mesh prototype</h2>
+        <p>Each refined cube halves the previous cube's side length and cell spacing. At base resolution <span class="math">N = 128</span>, every level stores 128³ cells. The four levels are fixed throughout each operator test.</p>
+        <table>
+          <thead><tr><th>Level</th><th>Physical cube</th><th>Spacing</th><th>Full-box equivalent</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>[−1, 1]³</td><td>1/64</td><td>128³</td></tr>
+            <tr><td>1</td><td>[−0.5, 0.5]³</td><td>1/128</td><td>256³</td></tr>
+            <tr><td>2</td><td>[−0.25, 0.25]³</td><td>1/256</td><td>512³</td></tr>
+            <tr><td>3</td><td>[−0.125, 0.125]³</td><td>1/512</td><td>1024³</td></tr>
+          </tbody>
+        </table>
+        <div class="equation">Stored cells = L N³. &nbsp; Uncovered cells = N³ [1 + 7(L − 1)/8].</div>
+        <p>The largest test stores 8,388,608 cells across its levels. Composite diagnostics count 7,602,176 uncovered cells and recover the original box volume of 8 exactly. Covered coarse cells are excluded from norms. The finest core spacing is 5.33 times smaller than the previous 192³ grid spacing; it is not a uniform 1024³ simulation.</p>
+        <p>On the local 16 GiB Apple-silicon Mac, the largest case used <strong>1,590 MiB peak process RSS (1.55 GiB)</strong> and took 6.12 seconds for allocation, two projections, and diagnostic passes in a serial, double-precision Release build. This is a measured operator cost, not a timestep benchmark or the memory requirement of a full forced-flow solver. Momentum, diffusion, forcing, ghost cells, and output will add costs. RSS and macOS physical footprint are different measurements.</p>
+
+        <h2>What the checks establish</h2>
+        <p>The mixed test starts from the exact face averages of the divergence-free field below, plus the face-averaged gradient of a known scalar. The analytic answer is independent of the numerical projection.</p>
+        <div class="equation">u = (sin πx cos πy cos πz, cos πx sin πy cos πz, −2 cos πx cos πy sin πz)<br />ψ = 0.05 cos πx cos 2πy cos 3πz; &nbsp; u<sub>input</sub> = u + ∇ψ.</div>
+        <p>Distinct wave numbers expose truncation error on the uniform control as well as on the nested mesh. Errors use volume-weighted, cell-centered averages of the face field over uncovered cells. They are measured against analytic face averages, not against an assumed-exact finest numerical grid.</p>
+        <table>
+          <thead><tr><th>Base N</th><th>Core equivalent</th><th>Absolute L² error</th><th>Previous / current</th></tr></thead>
+          <tbody>
+            <tr><td>32</td><td>256³</td><td>1.71270 × 10<sup>−3</sup></td><td>—</td></tr>
+            <tr><td>64</td><td>512³</td><td>4.33333 × 10<sup>−4</sup></td><td>3.952</td></tr>
+            <tr><td>128</td><td>1024³</td><td>1.08455 × 10<sup>−4</sup></td><td>3.995</td></tr>
+          </tbody>
+        </table>
+        <p>The finest pair gives observed order 1.998. The single-level control also approaches order two. Refinement here doubles the base grid and every nested level together; this is not a claim that adding levels alone makes the whole-domain error decrease by four.</p>
+        <p>All nine cases passed. Exact rest remained exactly zero; an already solenoidal field changed by about 1.8 × 10<sup>−17</sup> in L². The largest mixed case reduced divergence from 6.91 to 2.45 × 10<sup>−11</sup>, had zero measured coarse/fine face-average mismatch, and changed by 2.87 × 10<sup>−14</sup> on a repeated projection. Changing the maximum box size from 32 to 16 cells preserved the mixed-case error within the 10<sup>−10</sup> gate. These checks exercise pressure coupling, not the as-yet-unimplemented momentum transport.</p>
+
+        <h2>The mesh is not yet a production design</h2>
+        <p>The convenient nested cubes are manufactured-test geometry. They have not passed a phase-resolution audit of the forcing's entire support from rest. The off-midplane annulus extends beyond the innermost cube; a fine central spacing alone is insufficient. The pulse support, background, fixed exterior taper, axis, and axial/angular phase gradients all need coverage at their required spacing.</p>
+        <p>The <a href="accuracy.html">radial-wave estimate</a> gives about 15.9 cells per velocity wavelength at the midplane annulus midpoint at <span class="math">t = 0.985</span> if that point lies on the finest level. Quadratic terms can halve that count, and smaller-radius locations are more demanding. None of these counts is a convergence certificate or permission to approach <span class="math">t = 1</span> without further tests.</p>
+        <p>Next, implement and verify the compatible multilevel momentum and viscous update, ghost-cell interpolation and synchronization, and the existing finite-surrogate forcing with full vector capture. Audit the fixed mesh against the swept active support. Then run from-rest temporal and spatial convergence separately, with an independent force-difference check and matched output times. A late restart can test throughput, but cannot recover spatial information lost earlier in the trajectory.</p>
+
+        <h2>Reproduce the operator test</h2>
+        <pre><code>python3 -m venv .venv-amrex
+.venv-amrex/bin/python -m pip install -r backends/amrex/requirements-build.txt
+.venv-amrex/bin/cmake -S backends/amrex -B build/amrex -DCMAKE_BUILD_TYPE=Release
+.venv-amrex/bin/cmake --build build/amrex --parallel 2
+.venv-amrex/bin/ctest --test-dir build/amrex --output-on-failure
+.venv-amrex/bin/python -m scripts.refinement_pilot \
+  --levels 4 --resolutions 32 64 128 --output outputs/projection-32-128</code></pre>
+        <p>Use a fresh output directory. A C++20 compiler and Python 3.11+ are required. CMake fetches AMReX source <code>e60cdc18711c</code> and AMReX-Hydro source <code>e49df248aabd</code> from immutable commits and verifies the archive hashes. The <a href="data/refinement-pilot.json">complete machine-readable record</a> includes all cases, convergence ratios, commands, pilot-source and executable hashes, timing, memory, and failure status. The dedicated CI job builds the actual C++ backend and repeats the smaller four-level suite.</p>
+        <nav class="page-links" aria-label="Adjacent documentation"><a href="accuracy.html">Accuracy budget →</a><a href="documentation.html">All documentation →</a></nav>
+      </article>
+    </main>
+    <footer><p>Independent open numerical work · not affiliated with OpenAI.</p></footer>
+  </body>
+</html>
